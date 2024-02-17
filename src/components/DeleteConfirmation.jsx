@@ -1,0 +1,95 @@
+/* eslint-disable react/prop-types */
+import * as React from "react";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Slide,
+  Typography,
+} from "@mui/material";
+
+import HighlightOffIcon from "@mui/icons-material/HighlightOff"; // Import the icon
+import { red, grey } from "@mui/material/colors";
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
+export default function DeleteConfirmation({ open, onClose, onDelete }) {
+  return (
+    <Dialog
+      open={open}
+      TransitionComponent={Transition}
+      keepMounted
+      onClose={onClose}
+      aria-labelledby="delete-confirmation-dialog-title"
+      aria-describedby="delete-confirmation-dialog-description"
+      sx={{
+        "& .MuiDialog-paper": {
+          minWidth: "250px",
+          maxWidth: "500px",
+          width: "80%",
+        },
+      }}
+    >
+      <DialogTitle
+        id="delete-confirmation-dialog-title"
+        sx={{ textAlign: "center" }}
+      >
+        <HighlightOffIcon style={{ fontSize: 110, color: red[500] }} />
+      </DialogTitle>
+      <DialogContent
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="h2">Are you sure?</Typography>
+        <Typography variant="body1">
+          Do you really want to delete this record?
+        </Typography>
+        <Typography variant="body1">This process cannot be undone</Typography>
+      </DialogContent>
+      <DialogActions sx={{ justifyContent: "center" }}>
+        <Button
+          onClick={onClose}
+          variant="contained"
+          sx={{
+            width: "8rem",
+            marginRight: 1,
+            backgroundColor: grey[500],
+            color: "#fff",
+            mb: 2,
+            "&:hover": {
+              boxShadow:
+                "0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12)", // MUI elevation shadow
+              backgroundColor: grey[500], // Keep the background color on hover
+            },
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={onDelete}
+          variant="contained"
+          sx={{
+            width: "8rem",
+            backgroundColor: red[500],
+            color: "#fff",
+            mb: 2,
+            "&:hover": {
+              boxShadow:
+                "0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12)", // MUI elevation shadow
+              backgroundColor: red[500], // Keep the background color on hover
+            },
+          }}
+        >
+          Confirm
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}

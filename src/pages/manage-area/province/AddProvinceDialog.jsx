@@ -1,0 +1,65 @@
+import { useState } from "react";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Box,
+  Grid,
+} from "@mui/material";
+import PropTypes from "prop-types";
+
+function AddProvinceDialog({ open, onClose }) {
+  const [formData, setFormData] = useState({
+    province: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = () => {
+    console.log(formData);
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <Box sx={{ p: 2 }}>
+        <DialogTitle variant="h3">Add New Province</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2}>
+            {/* Province Name */}
+            <Grid item xs={12}>
+              <TextField
+                autoFocus
+                margin="dense"
+                name="province"
+                label="Name"
+                type="text"
+                fullWidth
+                variant="outlined"
+                onChange={handleChange}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button variant="contained" onClick={handleSubmit}>
+            Confirm
+          </Button>
+        </DialogActions>
+      </Box>
+    </Dialog>
+  );
+}
+
+AddProvinceDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
+
+export default AddProvinceDialog;
