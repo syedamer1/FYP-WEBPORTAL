@@ -20,7 +20,7 @@ cd FYP-PROJECT/front-end
 ### Install Dependencies
 ```
 npm install
-npm i echarts prop-types lodash react-router-dom @mui/material @emotion/react @emotion/styled antd
+npm i echarts prop-types lodash react-router-dom @mui/material @emotion/react @emotion/styled antd material-react-table @mui/x-date-pickers @mui/icons-material
 ```
 ### Usage
 
