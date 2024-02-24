@@ -15,12 +15,12 @@ git clone https://github.com/syedamer1/FYP-WEBPORTAL/
 ```
 ### Change to the project directory
 ```
-cd FYP-PROJECT/front-end
+cd FYP-WEBPORTAL
 ```
 ### Install Dependencies
 ```
 npm install
-npm i echarts prop-types lodash react-router-dom @mui/material @emotion/react @emotion/styled antd material-react-table @mui/x-date-pickers @mui/icons-material
+npm i echarts prop-types lodash react-router-dom @mui/material @emotion/react @emotion/styled antd material-react-table @mui/x-date-pickers @mui/icons-material axios 
 ```
 ### Usage
 
