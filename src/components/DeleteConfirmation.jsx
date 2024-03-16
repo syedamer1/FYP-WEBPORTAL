@@ -2,6 +2,7 @@
 import * as React from "react";
 import {
   Button,
+  Container,
   Dialog,
   DialogActions,
   DialogContent,
@@ -17,7 +18,12 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function DeleteConfirmation({ open, onClose, onDelete }) {
+export default function DeleteConfirmation({
+  open,
+  onClose,
+  onDelete,
+  deleteId,
+}) {
   return (
     <Dialog
       open={open}
@@ -47,11 +53,17 @@ export default function DeleteConfirmation({ open, onClose, onDelete }) {
           alignItems: "center",
         }}
       >
-        <Typography variant="h2">Are you sure?</Typography>
-        <Typography variant="body1">
-          Do you really want to delete this record?
-        </Typography>
-        <Typography variant="body1">This process cannot be undone</Typography>
+        <Container style={{ textAlign: "center" }}>
+          <Typography variant="h2" align="center">
+            Are you sure?
+          </Typography>
+          <Typography variant="body1" align="center">
+            Do you really want to delete this record?
+          </Typography>
+          <Typography variant="body1" align="center">
+            This process cannot be undone
+          </Typography>
+        </Container>
       </DialogContent>
       <DialogActions sx={{ justifyContent: "center" }}>
         <Button
@@ -73,7 +85,7 @@ export default function DeleteConfirmation({ open, onClose, onDelete }) {
           Cancel
         </Button>
         <Button
-          onClick={onDelete}
+          onClick={() => onDelete(deleteId)}
           variant="contained"
           sx={{
             width: "8rem",
