@@ -1,37 +1,77 @@
+/* eslint-disable no-undef */
 /* eslint-disable react/prop-types */
+// React imports
 import { useMemo, useState } from "react";
-import {
-  LocalHospital as LocalHospitalIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-} from "@mui/icons-material";
-import AddHospitalDialog from "./AddHospitalDialog";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+// Material-UI imports
+import { Box, Button, lighten } from "@mui/material";
+import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+// Material React Table imports
 import {
   MaterialReactTable,
   useMaterialReactTable,
   MRT_GlobalFilterTextField,
   MRT_ToggleFiltersButton,
 } from "material-react-table";
-import { Box, Button, lighten } from "@mui/material";
-import { data } from "./makedata";
-import DeleteConfirmation from "@components/DeleteConfirmation";
+
+// Custom component imports
 import EditHospitalDialog from "./EditHospitalDialog";
-const DataColumns = () => {
-  const [AddHospitalOpen, setAddHospitalOpen] = useState(false);
-  const [DeleteOpen, setDeleteOpen] = useState(false);
-  const [EditOpen, setEditOpen] = useState(false);
-  const toggleDeleteOpen = () => {
-    setDeleteOpen(!DeleteOpen);
-  };
-  const toggleEditOpen = () => {
-    setEditOpen(!EditOpen);
+import AddHospitalDialog from "./AddHospitalDialog";
+import DeleteConfirmation from "@components/DeleteConfirmation";
+// Axios for making HTTP requests
+import axios from "axios";
+
+const HospitalTable = ({ hospitalData, tehsilOptions }) => {
+  const [deleteHospitalId, setDeleteHospitalId] = useState(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isAddHospitalDialogOpen, setIsAddHospitalDialogOpen] = useState(false);
+  const [isEditHospitalDialogOpen, setIsEditHospitalDialogOpen] =
+    useState(false);
+  const [selectedHospital, setSelectedHospital] = useState(null);
+
+  const handleDeleteHospital = (hospitalId) => {
+    setDeleteHospitalId(hospitalId);
+    setIsDeleteDialogOpen(true);
   };
 
-  const toggleAddHospitalOpen = () => {
-    setAddHospitalOpen(!AddHospitalOpen);
+  const toggleDeleteDialog = () => {
+    setIsDeleteDialogOpen((prevOpen) => !prevOpen);
+    // Reset the deleteHospitalId when the dialog is closed
+    if (!isDeleteDialogOpen) {
+      setDeleteHospitalId(null);
+    }
   };
+
+  const deleteHospitalFromServer = async () => {
+    try {
+      if (deleteHospitalId) {
+        await axios.delete(
+          `http://localhost:8080/hospital/delete/${deleteHospitalId}`
+        );
+        console.log("Hospital deleted");
+      }
+    } catch (error) {
+      console.error("Error deleting hospital:", error);
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setDeleteHospitalId(null);
+    }
+  };
+
+  const toggleEditHospitalDialog = (hospital) => {
+    setSelectedHospital(hospital);
+    setIsEditHospitalDialogOpen((prevOpen) => !prevOpen);
+  };
+
+  const handleAddHospitalDialog = () => {
+    setIsAddHospitalDialogOpen(true);
+  };
+
+  const handleAddHospitalDialogClose = () => {
+    setIsAddHospitalDialogOpen(false);
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -52,26 +92,27 @@ const DataColumns = () => {
           },
           {
             id: "code",
-            accessorKey: "code ",
+            accessorKey: "code",
             header: "Code",
             size: 150,
           },
           {
             id: "hospital_type",
-            accessorKey: "hospital_type",
+            accessorKey: "hospitalType",
             header: "Hospital Type",
             size: 150,
           },
           {
             id: "tehsil_name",
-            accessorKey: "tehsil_name",
+            accessorFn: (row) =>
+              row.tehsil != null ? row.tehsil.name : "No Tehsil",
             header: "Tehsil Name",
             size: 150,
           },
           {
-            accessorKey: "created_on",
+            accessorFn: (row) => new Date(row.created_on),
+            id: "created_on",
             header: "Created On",
-            size: 200,
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
@@ -84,9 +125,10 @@ const DataColumns = () => {
             },
           },
           {
-            accessorKey: "updated_on",
+            accessorFn: (row) =>
+              row.updated_on == "null" ? "Not Updated" : row.updated_on,
+            id: "updated_on",
             header: "Updated On",
-            size: 200,
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
@@ -102,14 +144,13 @@ const DataColumns = () => {
             id: "actions",
             header: "Actions",
             size: 200,
-            // eslint-disable-next-line no-unused-vars
             Cell: ({ row }) => (
               <Box sx={{ display: "flex", gap: "0.5rem" }}>
                 <Button
                   variant="outlined"
                   color="primary"
                   startIcon={<EditIcon />}
-                  onClick={toggleEditOpen}
+                  onClick={() => toggleEditHospitalDialog(row.original)}
                 >
                   Edit
                 </Button>
@@ -117,7 +158,7 @@ const DataColumns = () => {
                   variant="outlined"
                   color="error"
                   startIcon={<DeleteIcon />}
-                  onClick={toggleDeleteOpen}
+                  onClick={() => handleDeleteHospital(row.original.id)}
                 >
                   Delete
                 </Button>
@@ -132,7 +173,7 @@ const DataColumns = () => {
 
   const table = useMaterialReactTable({
     columns,
-    data,
+    data: hospitalData,
     enableColumnFilterModes: true,
     enableColumnOrdering: true,
     enableGrouping: false,
@@ -140,7 +181,6 @@ const DataColumns = () => {
     enableFacetedValues: true,
     enableRowActions: false,
     enableRowSelection: false,
-
     initialState: { showColumnFilters: true, showGlobalFilter: true },
     paginationDisplayMode: "pages",
     positionToolbarAlertBanner: "bottom",
@@ -171,17 +211,14 @@ const DataColumns = () => {
           </Box>
           <Box>
             <Box sx={{ display: "flex", gap: "0.5rem" }}>
-              <Button
-                variant="contained"
-                startIcon={<LocalHospitalIcon sx={{ fontSize: "0.5rem" }} />}
-                onClick={toggleAddHospitalOpen}
-              >
+              <Button variant="contained" onClick={handleAddHospitalDialog}>
                 Add Hospital
               </Button>
             </Box>
             <AddHospitalDialog
-              open={AddHospitalOpen}
-              onClose={toggleAddHospitalOpen}
+              open={isAddHospitalDialogOpen}
+              onClose={handleAddHospitalDialogClose}
+              tehsilOptions={tehsilOptions}
             />
           </Box>
         </Box>
@@ -190,22 +227,21 @@ const DataColumns = () => {
   });
 
   return (
-    <>
-      <DeleteConfirmation
-        open={DeleteOpen}
-        onClose={toggleDeleteOpen}
-        onDelete={toggleDeleteOpen}
-      />
-      <EditHospitalDialog open={EditOpen} onClose={toggleEditOpen} />
-      <MaterialReactTable table={table} />
-    </>
-  );
-};
-
-const HospitalTable = () => {
-  return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DataColumns />
+      <MaterialReactTable table={table} />
+      <DeleteConfirmation
+        open={isDeleteDialogOpen}
+        onClose={toggleDeleteDialog}
+        onDelete={deleteHospitalFromServer}
+      />
+      {isEditHospitalDialogOpen && selectedHospital && (
+        <EditHospitalDialog
+          open={isEditHospitalDialogOpen}
+          onClose={() => setIsEditHospitalDialogOpen(false)}
+          hospital={selectedHospital}
+          tehsilOptions={tehsilOptions}
+        />
+      )}
     </LocalizationProvider>
   );
 };

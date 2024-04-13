@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -23,7 +23,7 @@ import {
 } from "@mui/icons-material";
 import AddDiseaseDialog from "./AddDiseaseDialog";
 import { styled } from "@mui/material/styles";
-import axios from "axios";
+import fetchDisease$ from "./_request";
 const Dashboard = () => {
   const CustomIconButton = styled(IconButton)({
     fontSize: "1.25rem",
@@ -44,18 +44,23 @@ const Dashboard = () => {
   ];
   const [selectedDisease, setSelectedDisease] = useState(null);
   const [disease, setDisease] = useState(["COVID-19", "Influenza", "Ebola"]);
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("http://localhost:8080/disease/get");
-        setDisease(response.data.map((disease) => disease.name));
-      } catch (error) {
-        console.error("Error fetching disease names:", error);
-      }
-    };
+  const [fetching, setFetching] = useState(true);
+  const hasEffectRun = useRef(false); // Create a ref to track whether the effect has run
 
-    fetchData();
-  }, []);
+  useEffect(() => {
+    if (!hasEffectRun.current && fetching) {
+      console.log("Effect running");
+      fetchDisease$({ setDisease });
+      hasEffectRun.current = true;
+      setFetching(false); // Update the ref to indicate the effect has run
+    }
+
+    // Cleanup function
+    return () => {
+      console.log("Effect cleanup");
+      // You can perform any cleanup here if needed
+    };
+  }, [fetching]); // Effect will run only when fetching changes
 
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>

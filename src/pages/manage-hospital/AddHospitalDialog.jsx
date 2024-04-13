@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import {
   Button,
   Dialog,
@@ -12,150 +12,160 @@ import {
   Autocomplete,
 } from "@mui/material";
 import axios from "axios";
-function AddHospitalDialog({ open, onClose }) {
+import PropTypes from "prop-types";
+
+const AddHospitalDialog = ({ open, onClose, tehsilOptions }) => {
   const [formData, setFormData] = useState({
-    id: "1",
     name: "",
     code: "",
     address: "",
-    hospital_type: "",
-    tehsil_id: "",
+    hospitalType: "",
+    tehsil: { id: "", name: "" },
   });
 
-  const hospitalTypes = ["Government", "Private"];
-  const [tehsilOptions, setTehsilOptions] = useState([]);
-  useEffect(() => {
-    const fetchTehsilOptions = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:8080/tehsil/getIdAndName"
-        );
-        setTehsilOptions(response.data);
-      } catch (error) {
-        console.error("Error fetching tehsil information:", error);
-      }
+  const handleInputChange = useCallback(
+    (e) => {
+      const { name, value } = e.target;
+      setFormData({ ...formData, [name]: value });
+    },
+    [formData]
+  );
+
+  const handleTehsilChange = (event, newValue) => {
+    if (newValue === null) return;
+    setFormData({
+      ...formData,
+      tehsil: { id: newValue.id, name: newValue.name },
+    });
+  };
+
+  const handleSubmit = async () => {
+    const submitData = {
+      name: formData.name,
+      code: formData.code,
+      address: formData.address,
+      hospitalType: formData.hospitalType,
+      tehsil: { id: formData.tehsil.id },
     };
-    fetchTehsilOptions();
-  }, []);
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleHospitalTypeChange = (event, newValue) => {
-    setFormData({ ...formData, hospital_type: newValue });
-  };
-
-  const handleTehsilNameChange = (event, newValue) => {
-    setFormData({ ...formData, tehsil_name: newValue });
-  };
-
-  const handleSubmit = () => {
-    console.log(formData);
+    try {
+      await axios.post("http://localhost:8080/hospital/add", submitData);
+      setFormData({
+        name: "",
+        code: "",
+        address: "",
+        hospitalType: "",
+        tehsil: { id: "", name: "" },
+      });
+    } catch (error) {
+      console.error("Error creating hospital:", error);
+    }
     onClose();
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <Box sx={{ p: 2 }}>
-        <DialogTitle variant="h3">Add New Hospital</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                autoFocus
-                margin="normal"
-                name="name"
-                label="Hospital Name"
-                type="text"
-                fullWidth
-                variant="outlined"
-                onChange={handleChange}
-                value={formData.name}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                margin="normal"
-                name="code"
-                label="Hospital Code"
-                type="text"
-                fullWidth
-                variant="outlined"
-                onChange={handleChange}
-                value={formData.code}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                margin="dense"
-                name="address"
-                label="Hospital Address"
-                type="text"
-                fullWidth
-                variant="outlined"
-                onChange={handleChange}
-                value={formData.address}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Autocomplete
-                fullWidth
-                disablePortal
-                id="hospital-type-autocomplete"
-                onChange={handleHospitalTypeChange}
-                options={hospitalTypes}
-                value={formData.hospital_type}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    name="hospital_type"
-                    label="Hospital Type"
-                    variant="outlined"
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="tehsil_id"
-                type="hidden"
-                value={formData.tehsil_id}
-              />
-              <Grid item xs={12}>
+    <>
+      <Dialog open={open} onClose={onClose}>
+        <Box sx={{ p: 2 }}>
+          <DialogTitle variant="h3">Add Hospital</DialogTitle>
+          <DialogContent>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  margin="dense"
+                  name="name"
+                  label="Name"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  margin="dense"
+                  name="code"
+                  label="Code"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  value={formData.code}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
                 <Autocomplete
                   fullWidth
                   disablePortal
-                  id="tehsil-name-autocomplete"
-                  onChange={handleTehsilNameChange}
-                  options={tehsilOptions}
-                  getOptionLabel={(option) => option.name}
-                  value={
-                    tehsilOptions.find(
-                      (option) => option.id === formData.tehsil_id
-                    ) || null
-                  }
+                  id="hospital-type-autocomplete"
+                  value={formData.hospitalType}
+                  onChange={(event, newValue) => {
+                    setFormData({ ...formData, hospitalType: newValue });
+                  }}
+                  options={["Government", "Private"]}
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      name="tehsil_name"
-                      label="Tehsil Name"
+                      label="Hospital Type"
                       variant="outlined"
                     />
                   )}
+                  gutterBottom
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Autocomplete
+                  fullWidth
+                  disablePortal
+                  id="tehsil-autocomplete"
+                  value={formData.tehsil}
+                  onChange={handleTehsilChange}
+                  options={tehsilOptions}
+                  getOptionLabel={(option) => option.name || ""}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Tehsil" variant="outlined" />
+                  )}
+                  gutterBottom
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  margin="dense"
+                  name="address"
+                  label="Address"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  multiline
+                  rows={3}
                 />
               </Grid>
             </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button variant="contained" onClick={handleSubmit}>
-            Confirm
-          </Button>
-        </DialogActions>
-      </Box>
-    </Dialog>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button variant="contained" onClick={handleSubmit}>
+              Add
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
+    </>
   );
-}
+};
 
 export default AddHospitalDialog;
+
+AddHospitalDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  tehsilOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number,
+      name: PropTypes.string,
+    })
+  ).isRequired,
+};
