@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   Button,
   Checkbox,
@@ -13,12 +13,12 @@ import {
   OutlinedInput,
   Stack,
   Typography,
-} from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+} from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 const Form = () => {
-  const [userEmail, setUserEmail] = useState('example@example.com');
-  const [userPassword, setUserPassword] = useState('password123');
+  const [userEmail, setUserEmail] = useState("example@example.com");
+  const [userPassword, setUserPassword] = useState("password123");
   const [isChecked, setIsChecked] = useState(false);
   const [showUserPassword, setShowUserPassword] = useState(false);
   const [loginError, setLoginError] = useState(null);
@@ -35,9 +35,9 @@ const Form = () => {
   };
 
   const handleInputChange = ({ target: { name, value } }) => {
-    if (name === 'email') {
+    if (name === "email") {
       setUserEmail(value);
-    } else if (name === 'password') {
+    } else if (name === "password") {
       setUserPassword(value);
     }
   };
@@ -49,7 +49,7 @@ const Form = () => {
     try {
       setLoginError(null);
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate("/dashboard");
         setIsLoading(false);
       }, 1000);
     } catch (err) {
@@ -95,7 +95,7 @@ const Form = () => {
                 fullWidth
                 error={Boolean(userPassword && !isPasswordValid(userPassword))}
                 id="user-password"
-                type={showUserPassword ? 'text' : 'password'}
+                type={showUserPassword ? "text" : "password"}
                 value={userPassword}
                 name="password"
                 onChange={handleInputChange}
@@ -115,13 +115,20 @@ const Form = () => {
                 placeholder="Enter password"
               />
               {userPassword && !isPasswordValid(userPassword) && (
-                <FormHelperText error>Your password is not valid</FormHelperText>
+                <FormHelperText error>
+                  Your password is not valid
+                </FormHelperText>
               )}
             </Stack>
           </Grid>
 
           <Grid item xs={12} sx={{ mt: -1 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              spacing={2}
+            >
               <FormControlLabel
                 control={
                   <Checkbox
@@ -134,7 +141,12 @@ const Form = () => {
                 }
                 label={<Typography variant="h6">Keep me signed in</Typography>}
               />
-              <Link variant="h6" component={RouterLink} to="" color="text.primary">
+              <Link
+                variant="h6"
+                component={RouterLink}
+                to=""
+                color="text.primary"
+              >
                 Forgot Password?
               </Link>
             </Stack>
@@ -154,7 +166,7 @@ const Form = () => {
               color="primary"
               disabled={isLoading}
             >
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading ? "Logging in..." : "Login"}
             </Button>
           </Grid>
         </Grid>

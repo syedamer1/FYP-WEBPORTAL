@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable react/prop-types */
 // React imports
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 // Material-UI imports
 import { Box, Button, lighten } from "@mui/material";
 import {
@@ -27,18 +27,58 @@ import DeleteConfirmation from "@components/DeleteConfirmation";
 import axios from "axios";
 
 const AccountTable = ({
-  userData,
   tehsilOptions,
   districtOptions,
   divisionOptions,
   provinceOptions,
   hospitalOptions,
 }) => {
+  const [userData, setUserData] = useState([]);
   const [deleteUserId, setDeleteUserId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const [totalRows, settotalRows] = useState(0);
+  const hasEffectRun = useRef(false); // Create a ref to track whether the effect has run
+
+  const fetchData = async (page, pageSize) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/user/get-all-users?pageNo=${page}&pageSize=${pageSize}`
+      );
+      setUserData(response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+  const fetchtotalusers = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/user/get-total-users-count`
+      );
+      settotalRows(response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+  const handlePaginationChange = useCallback((newPagination) => {
+    console.log(newPagination);
+    setPagination(newPagination);
+    fetchData(newPagination.pageIndex, newPagination.pageSize);
+  }, []);
+
+  useEffect(() => {
+    if (!hasEffectRun.current) {
+      fetchData(pagination.pageIndex, pagination.pageSize);
+      fetchtotalusers();
+      hasEffectRun.current = true;
+    }
+  }, []);
 
   const handleDeleteUser = (userId) => {
     setDeleteUserId(userId);
@@ -47,7 +87,6 @@ const AccountTable = ({
 
   const toggleDeleteDialog = () => {
     setIsDeleteDialogOpen((prevOpen) => !prevOpen);
-    // Reset the deleteUserId when the dialog is closed
     if (!isDeleteDialogOpen) {
       setDeleteUserId(null);
     }
@@ -58,6 +97,7 @@ const AccountTable = ({
       if (deleteUserId) {
         await axios.delete(`http://localhost:8080/user/delete/${deleteUserId}`);
         console.log("User deleted");
+        fetchData(pagination.pageIndex, pagination.pageSize); // Refresh the data after successful deletion
       }
     } catch (error) {
       console.error("Error deleting user:", error);
@@ -209,7 +249,6 @@ const AccountTable = ({
     ],
     []
   );
-
   const table = useMaterialReactTable({
     columns,
     data: userData,
@@ -234,6 +273,11 @@ const AccountTable = ({
       shape: "rounded",
       variant: "outlined",
     },
+    state: {
+      pagination,
+    },
+    rowCount: totalRows,
+    onPaginationChange: handlePaginationChange,
     renderTopToolbar: ({ table }) => {
       return (
         <Box

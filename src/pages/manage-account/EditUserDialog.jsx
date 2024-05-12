@@ -49,6 +49,8 @@ const EditUserDialog = ({
     id: "",
     name: "",
   });
+  const [headerVisible, setHeaderVisible] = useState(true); // State to track header visibility
+  const [storedHeader, setStoredHeader] = useState(null); // State to store the header before removing it
 
   useEffect(() => {
     if (userData) {

@@ -14,7 +14,7 @@ const ManageHospital = () => {
     try {
       const [hospitalDataResponse, tehsilOptionsResponse] = await Promise.all([
         axios.get("http://localhost:8080/hospital/get"),
-        axios.get("http://localhost:8080/tehsil/get"),
+        axios.get("http://localhost:8080/tehsil/getIdAndName"),
       ]);
       setHospitalData(hospitalDataResponse.data);
       setTehsilOptions(tehsilOptionsResponse.data);

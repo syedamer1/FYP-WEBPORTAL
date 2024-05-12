@@ -1,37 +1,34 @@
 import MainCard from "@components/CustomCard";
-import AccountTable from "./AccountTable";
+import AccountTable from "./AccountTable2";
 import { Grid, Typography } from "@mui/material/";
 import axios from "axios";
 import { useState, useEffect, useMemo } from "react";
 import OverlayLoader from "@components/OverlayLoader";
-
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const ManageAccount = () => {
-  const [userData, setUserData] = useState([]);
   const [tehsilOptions, setTehsilOptions] = useState([]);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [divisionOptions, setDivisionOptions] = useState([]);
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [hospitalOptions, setHospitalOptions] = useState([]);
   const [fetching, setFetching] = useState(true);
+  const queryClient = new QueryClient();
 
   const fetchData = async () => {
     try {
       const [
-        userDataResponse,
         tehsilOptionsResponse,
         districtOptionsResponse,
         divisionOptionsResponse,
         provinceOptionsResponse,
         hospitalOptionsResponse,
       ] = await Promise.all([
-        axios.get("http://localhost:8080/user/get"),
-      //  axios.get("http://localhost:8080/tehsil/get"),
-        //axios.get("http://localhost:8080/district/get"),
-        //axios.get("http://localhost:8080/division/get"),
-       // axios.get("http://localhost:8080/province/get"),
-        //axios.get("http://localhost:8080/hospital/get"),
+        axios.get("http://localhost:8080/tehsil/getIdAndName"),
+        axios.get("http://localhost:8080/district/getIdAndName"),
+        axios.get("http://localhost:8080/division/getIdAndName"),
+        axios.get("http://localhost:8080/province/getIdAndName"),
+        axios.get("http://localhost:8080/hospital/getIdAndName"),
       ]);
-      setUserData(userDataResponse.data);
       setTehsilOptions(tehsilOptionsResponse.data);
       setDistrictOptions(districtOptionsResponse.data);
       setDivisionOptions(divisionOptionsResponse.data);
@@ -84,7 +81,9 @@ const ManageAccount = () => {
             md={8}
             sx={{ display: { sm: "none", md: "block", lg: "none" } }}
           />
-          <AccountTable userData={userData} {...memoizedOptions} />
+          <QueryClientProvider client={queryClient}>
+            <AccountTable {...memoizedOptions} />
+          </QueryClientProvider>
         </MainCard>
       </OverlayLoader>
     </>
