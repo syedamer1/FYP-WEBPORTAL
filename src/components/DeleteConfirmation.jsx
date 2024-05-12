@@ -18,12 +18,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function DeleteConfirmation({
-  open,
-  onClose,
-  onDelete,
-  deleteId,
-}) {
+export default function DeleteConfirmation({ open, onClose, onDelete }) {
   return (
     <Dialog
       open={open}
@@ -85,7 +80,7 @@ export default function DeleteConfirmation({
           Cancel
         </Button>
         <Button
-          onClick={() => onDelete(deleteId)}
+          onClick={onDelete}
           variant="contained"
           sx={{
             width: "8rem",

@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Button,
   Dialog,
@@ -18,9 +18,10 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import axios from "axios";
 import PropTypes from "prop-types";
 
-const AddUserDialog = ({
+const EditUserDialog = ({
   open,
   onClose,
+  userData,
   tehsilOptions,
   divisionOptions,
   districtOptions,
@@ -28,6 +29,7 @@ const AddUserDialog = ({
   hospitalOptions,
 }) => {
   const [formData, setFormData] = useState({
+    id: "",
     firstName: "",
     lastName: "",
     cnic: "",
@@ -47,41 +49,62 @@ const AddUserDialog = ({
     id: "",
     name: "",
   });
+  const [headerVisible, setHeaderVisible] = useState(true); // State to track header visibility
+  const [storedHeader, setStoredHeader] = useState(null); // State to store the header before removing it
 
-  const handleInputChange = useCallback(
-    (e) => {
-      const { name, value } = e.target;
-      setFormData({ ...formData, [name]: value });
-    },
-    [formData]
-  );
+  useEffect(() => {
+    if (userData) {
+      setFormData({ ...userData });
+      const userTypeData = {
+        "Tehsil Administrator": userData.tehsil,
+        "Division Administrator": userData.division,
+        "District Administrator": userData.district,
+        "Province Administrator": userData.province,
+        "Hospital Administrator": userData.hospital,
+      };
+      const selectedAreaData = userTypeData[userData.usertype] || {
+        id: "",
+        name: "",
+      };
+      setSelectedArea(selectedAreaData);
+
+      setAreaOptions(getAreaOptions(userData.usertype));
+    }
+  }, [userData]);
+
+  const getAreaOptions = (userType) => {
+    switch (userType) {
+      case "Tehsil Administrator":
+        return tehsilOptions;
+      case "Division Administrator":
+        return divisionOptions;
+      case "District Administrator":
+        return districtOptions;
+      case "Province Administrator":
+        return provinceOptions;
+      case "Hospital Administrator":
+        return hospitalOptions;
+      default:
+        return [];
+    }
+  };
+
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+    }));
+  }, []);
 
   const handleUserTypeChange = (event, newValue) => {
-    if (newValue === null) return;
-    setFormData({ ...formData, usertype: newValue });
+    if (!newValue) return;
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      usertype: newValue,
+    }));
     setSelectedArea({ id: "", name: "" });
-    switch (newValue) {
-      case "Super Administrator":
-        setAreaOptions([]);
-        break;
-      case "Tehsil Administrator":
-        setAreaOptions(tehsilOptions);
-        break;
-      case "Division Administrator":
-        setAreaOptions(divisionOptions);
-        break;
-      case "District Administrator":
-        setAreaOptions(districtOptions);
-        break;
-      case "Province Administrator":
-        setAreaOptions(provinceOptions);
-        break;
-      case "Hospital Administrator":
-        setAreaOptions(hospitalOptions);
-        break;
-      default:
-        setAreaOptions([]);
-    }
+    setAreaOptions(getAreaOptions(newValue));
   };
 
   const handleTogglePasswordVisibility = () => {
@@ -90,6 +113,7 @@ const AddUserDialog = ({
 
   const handleSubmit = async () => {
     const submitData = {
+      id: formData.id,
       firstName: formData.firstName,
       lastName: formData.lastName,
       cnic: formData.cnic,
@@ -119,23 +143,9 @@ const AddUserDialog = ({
           : null,
     };
     try {
-      await axios.post("http://localhost:8080/user/add", submitData);
-      setFormData({
-        firstName: "",
-        lastName: "",
-        cnic: "",
-        email: "",
-        contact: "",
-        password: "",
-        usertype: "",
-        tehsil: { id: "", name: "" },
-        division: { id: "", name: "" },
-        district: { id: "", name: "" },
-        province: { id: "", name: "" },
-        hospital: { id: "", name: "" },
-      });
+      await axios.put(`http://localhost:8080/user/update`, submitData);
     } catch (error) {
-      console.error("Error creating user:", error);
+      console.error("Error updating user data:", error);
     }
     onClose();
   };
@@ -144,7 +154,7 @@ const AddUserDialog = ({
     <>
       <Dialog open={open} onClose={onClose}>
         <Box sx={{ p: 2 }}>
-          <DialogTitle variant="h3">Add User</DialogTitle>
+          <DialogTitle variant="h3">Edit Account</DialogTitle>
           <DialogContent>
             <Grid container spacing={2}>
               <Grid item xs={6}>
@@ -289,7 +299,7 @@ const AddUserDialog = ({
           <DialogActions>
             <Button onClick={onClose}>Cancel</Button>
             <Button variant="contained" onClick={handleSubmit}>
-              Add
+              Save
             </Button>
           </DialogActions>
         </Box>
@@ -298,39 +308,39 @@ const AddUserDialog = ({
   );
 };
 
-export default AddUserDialog;
+export default EditUserDialog;
 
-AddUserDialog.propTypes = {
+EditUserDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  tehsilOptions: PropTypes.arrayOf(
-    PropTypes.shape({
+  userData: PropTypes.shape({
+    id: PropTypes.number,
+    firstName: PropTypes.string,
+    lastName: PropTypes.string,
+    cnic: PropTypes.string,
+    email: PropTypes.string,
+    contact: PropTypes.string,
+    password: PropTypes.string,
+    usertype: PropTypes.string,
+    tehsil: PropTypes.shape({
       id: PropTypes.number,
       name: PropTypes.string,
-    })
-  ).isRequired,
-  divisionOptions: PropTypes.arrayOf(
-    PropTypes.shape({
+    }),
+    division: PropTypes.shape({
       id: PropTypes.number,
       name: PropTypes.string,
-    })
-  ).isRequired,
-  districtOptions: PropTypes.arrayOf(
-    PropTypes.shape({
+    }),
+    district: PropTypes.shape({
       id: PropTypes.number,
       name: PropTypes.string,
-    })
-  ).isRequired,
-  provinceOptions: PropTypes.arrayOf(
-    PropTypes.shape({
+    }),
+    province: PropTypes.shape({
       id: PropTypes.number,
       name: PropTypes.string,
-    })
-  ).isRequired,
-  hospitalOptions: PropTypes.arrayOf(
-    PropTypes.shape({
+    }),
+    hospital: PropTypes.shape({
       id: PropTypes.number,
       name: PropTypes.string,
-    })
-  ).isRequired,
+    }),
+  }),
 };

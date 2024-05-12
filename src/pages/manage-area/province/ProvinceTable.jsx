@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import EditProvinceDialog from "./EditProvinceDialog";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   AddLocation as AddLocationIcon,
   Edit as EditIcon,
@@ -15,23 +15,54 @@ import {
   MRT_ToggleFiltersButton,
 } from "material-react-table";
 import { Box, Button, lighten } from "@mui/material";
-import { data } from "./makedata";
 import AddProvinceDialog from "./AddProvinceDialog";
 import DeleteConfirmation from "@components/DeleteConfirmation";
+import axios from "axios";
 
 const DataColumns = () => {
   const [AddProvinceOpen, setAddProvinceOpen] = useState(false);
-  const [DeleteOpen, setDeleteOpen] = useState(false);
   const [EditOpen, setEditOpen] = useState(false);
-  const toggleDeleteOpen = () => {
-    setDeleteOpen(!DeleteOpen);
-  };
+  const [deleteProvinceId, setDeleteProvinceId] = useState(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [provinceData, setProvinceData] = useState([]);
+
   const toggleEditOpen = () => {
     setEditOpen(!EditOpen);
   };
+
   const toggleAddProvinceOpen = () => {
     setAddProvinceOpen(!AddProvinceOpen);
   };
+
+  const toggleDeleteDialog = () => {
+    setIsDeleteDialogOpen(!isDeleteDialogOpen);
+  };
+
+  const deleteProvince = async (provinceId) => {
+    try {
+      await axios.delete(`http://localhost:8080/province/delete/${provinceId}`);
+      console.log("Province deleted");
+      setDeleteProvinceId(null);
+      setIsDeleteDialogOpen(false);
+      fetchProvinceData(); // Refresh the data after successful deletion
+    } catch (error) {
+      console.error("Error deleting province:", error);
+    }
+  };
+
+  const fetchProvinceData = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/province/get");
+      setProvinceData(response.data);
+    } catch (error) {
+      console.error("Error fetching provinces:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProvinceData();
+  }, []);
+
   const columns = useMemo(
     () => [
       {
@@ -51,13 +82,13 @@ const DataColumns = () => {
             size: 300,
           },
           {
-            accessorKey: "created_on",
+            accessorFn: (row) => new Date(row.created_on),
+            id: "created_on",
             header: "Created On",
-            size: 200,
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleDateString(),
+            Cell: ({ cell }) => cell.getValue()?.toLocaleDateString(),
             Header: ({ column }) => <em>{column.columnDef.header}</em>,
             muiFilterTextFieldProps: {
               sx: {
@@ -66,13 +97,14 @@ const DataColumns = () => {
             },
           },
           {
-            accessorKey: "updated_on",
+            accessorFn: (row) =>
+              row.updated_on == "null" ? "Not Updated" : row.updated_on,
+            id: "updated_on",
             header: "Updated On",
-            size: 200,
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleDateString(),
+            Cell: ({ cell }) => cell.getValue()?.toLocaleDateString(),
             Header: ({ column }) => <em>{column.columnDef.header}</em>,
             muiFilterTextFieldProps: {
               sx: {
@@ -85,7 +117,6 @@ const DataColumns = () => {
             header: "Actions",
             size: 200,
             enableHiding: false,
-            // eslint-disable-next-line no-unused-vars
             Cell: ({ row }) => (
               <Box sx={{ display: "flex", gap: "0.5rem" }}>
                 <Button
@@ -100,7 +131,10 @@ const DataColumns = () => {
                   variant="outlined"
                   color="error"
                   startIcon={<DeleteIcon />}
-                  onClick={toggleDeleteOpen}
+                  onClick={() => {
+                    setDeleteProvinceId(row.original.id);
+                    setIsDeleteDialogOpen(true);
+                  }}
                 >
                   Delete
                 </Button>
@@ -115,7 +149,7 @@ const DataColumns = () => {
 
   const table = useMaterialReactTable({
     columns,
-    data,
+    data: provinceData,
     enableColumnFilterModes: true,
     enableColumnOrdering: true,
     enableGrouping: false,
@@ -130,7 +164,6 @@ const DataColumns = () => {
       size: "small",
       variant: "outlined",
     },
-
     muiPaginationProps: {
       color: "secondary",
       rowsPerPageOptions: [5, 10, 20, 30],
@@ -174,11 +207,11 @@ const DataColumns = () => {
 
   return (
     <>
-      <MaterialReactTable table={table} />{" "}
+      <MaterialReactTable table={table} />
       <DeleteConfirmation
-        open={DeleteOpen}
-        onClose={toggleDeleteOpen}
-        onDelete={toggleDeleteOpen}
+        open={isDeleteDialogOpen}
+        onClose={toggleDeleteDialog}
+        onDelete={() => deleteProvince(deleteProvinceId)}
       />
       <EditProvinceDialog open={EditOpen} onClose={toggleEditOpen} />
     </>
