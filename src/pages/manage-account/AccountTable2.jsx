@@ -66,7 +66,9 @@ const AccountTable = (
   }
 
   useEffect(() => {
-    initializeButton();
+    setTimeout(() => {
+      initializeButton();
+    }, 2000);
   }, []);
 
   // Call initializeButton function after a delay
