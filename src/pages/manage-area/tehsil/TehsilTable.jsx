@@ -1,107 +1,158 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Box, Button, IconButton, Tooltip } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import axios from "axios";
 import {
   AddLocation as AddLocationIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
-import AddTehsilDialog from "./AddTehsilDialog";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import {
   MaterialReactTable,
   useMaterialReactTable,
-  MRT_GlobalFilterTextField,
-  MRT_ToggleFiltersButton,
 } from "material-react-table";
-import { Box, Button, lighten } from "@mui/material";
-import { data } from "./makedata";
+import EditTehsilDialog from "./EditTehsilDialog.jsx"; // Assuming you have an EditTehsilDialog component
+import AddTehsilDialog from "./AddTehsilDialog.jsx"; // Assuming you have an AddTehsilDialog component
 import DeleteConfirmation from "@components/DeleteConfirmation";
 
-const DataColumns = () => {
-  const [AddTehsilOpen, setAddTehsilOpen] = useState(false);
-  const [DeleteOpen, setDeleteOpen] = useState(false);
-  const handledDeleteOpen = () => {
-    setDeleteOpen(true);
+const TehsilTable = () => {
+  const [deleteTehsilId, setDeleteTehsilId] = useState(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isAddTehsilDialogOpen, setIsAddTehsilDialogOpen] = useState(false);
+  const [isEditTehsilDialogOpen, setIsEditTehsilDialogOpen] = useState(false);
+  const [selectedTehsil, setSelectedTehsil] = useState(null);
+  const [columnFilters, setColumnFilters] = useState([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [sorting, setSorting] = useState([]);
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  const {
+    data: { data = [], meta } = {},
+    isError,
+    isRefetching,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: [
+      "table-data",
+      columnFilters,
+      globalFilter,
+      pagination.pageIndex,
+      pagination.pageSize,
+      sorting,
+    ],
+    queryFn: async () => {
+      const response = await axios.get("http://localhost:8080/tehsil/get"); // Updated API endpoint
+      console.log("Response Data:", response.data);
+
+      return {
+        data: response.data,
+        meta: response.meta,
+      };
+    },
+    placeholderData: keepPreviousData,
+  });
+
+  const handleDeleteTehsil = (tehsilId) => {
+    setDeleteTehsilId(tehsilId);
+    setIsDeleteDialogOpen(true);
   };
-  const handledDeleteClose = () => {
-    setDeleteOpen(false);
+
+  const toggleDeleteDialog = () => {
+    setIsDeleteDialogOpen((prevOpen) => !prevOpen);
+    if (!isDeleteDialogOpen) {
+      setDeleteTehsilId(null);
+    }
   };
-  const handleAddTehsil = () => {
-    setAddTehsilOpen(true);
+
+  const deleteTehsilFromServer = async () => {
+    try {
+      if (deleteTehsilId) {
+        await axios.delete(
+          `http://localhost:8080/tehsil/delete/${deleteTehsilId}` // Updated API endpoint
+        );
+        console.log("Tehsil deleted");
+        refetch();
+      }
+    } catch (error) {
+      console.error("Error deleting tehsil:", error);
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setDeleteTehsilId(null);
+    }
   };
-  const handleAddTehsilClose = () => {
-    setAddTehsilOpen(false);
+
+  const toggleEditTehsilDialog = (tehsil) => {
+    setSelectedTehsil(tehsil);
+    setIsEditTehsilDialogOpen((prevOpen) => !prevOpen);
   };
+
+  const toggleAddTehsilDialog = () => {
+    setIsAddTehsilDialogOpen((prevOpen) => !prevOpen);
+  };
+
   const columns = useMemo(
     () => [
       {
-        id: "tehsil",
+        id: "table",
         header: "",
         columns: [
           {
             id: "id",
             accessorKey: "id",
             header: "ID",
-            size: 200,
+            size: 150,
           },
           {
             id: "name",
             accessorKey: "name",
             header: "Name",
-            size: 200,
+            size: 150,
           },
           {
-            id: "district_name",
-            accessorKey: "district_name",
+            id: "district.name",
+            accessorFn: (row) => row.district.name, // Assuming tehsil has a district attribute
             header: "District Name",
-            size: 200,
+            size: 150,
           },
           {
-            accessorKey: "created_on",
+            accessorFn: (row) => new Date(row.createdOn),
+            id: "createdOn",
             header: "Created On",
-            size: 200,
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleDateString(),
-            Header: ({ column }) => <em>{column.columnDef.header}</em>,
-            muiFilterTextFieldProps: {
-              sx: {
-                minWidth: "250px",
-              },
-            },
+            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
           },
           {
-            accessorKey: "updated_on",
+            accessorFn: (row) =>
+              row.updatedOn === "null" ? "Not Updated" : row.updatedOn, // Assuming tehsil has updatedOn attribute
+            id: "updatedOn",
             header: "Updated On",
-            size: 200,
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleDateString(),
-            Header: ({ column }) => <em>{column.columnDef.header}</em>,
-            muiFilterTextFieldProps: {
-              sx: {
-                minWidth: "250px",
-              },
-            },
+            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
           },
           {
             id: "actions",
             header: "Actions",
             size: 200,
-            enableHiding: false,
-            // eslint-disable-next-line no-unused-vars
             Cell: ({ row }) => (
               <Box sx={{ display: "flex", gap: "0.5rem" }}>
                 <Button
                   variant="outlined"
                   color="primary"
                   startIcon={<EditIcon />}
-                  onClick={() => {
-                    console.log("EDIT");
-                  }}
+                  onClick={() => toggleEditTehsilDialog(row.original)}
                 >
                   Edit
                 </Button>
@@ -109,7 +160,7 @@ const DataColumns = () => {
                   variant="outlined"
                   color="error"
                   startIcon={<DeleteIcon />}
-                  onClick={handledDeleteOpen}
+                  onClick={() => handleDeleteTehsil(row.original.id)}
                 >
                   Delete
                 </Button>
@@ -125,79 +176,83 @@ const DataColumns = () => {
   const table = useMaterialReactTable({
     columns,
     data,
-    enableColumnFilterModes: true,
-    enableColumnOrdering: true,
-    enableGrouping: false,
-    enableColumnPinning: true,
-    enableFacetedValues: true,
-    enableRowActions: false,
-    enableRowSelection: false,
-
-    initialState: { showColumnFilters: true, showGlobalFilter: true },
-    paginationDisplayMode: "pages",
-    positionToolbarAlertBanner: "bottom",
-    muiSearchTextFieldProps: {
-      size: "small",
-      variant: "outlined",
-    },
-    muiPaginationProps: {
-      color: "secondary",
-      rowsPerPageOptions: [5, 10, 20, 30],
-      shape: "rounded",
-      variant: "outlined",
-    },
-    renderTopToolbar: ({ table }) => {
-      return (
+    initialState: { showColumnFilters: true },
+    manualFiltering: true,
+    manualPagination: true,
+    manualSorting: true,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
+    onSortingChange: setSorting,
+    renderTopToolbarCustomActions: () => (
+      <>
         <Box
-          sx={(theme) => ({
-            backgroundColor: lighten(theme.palette.background.default, 0.05),
+          sx={{
             display: "flex",
-            gap: "0.5rem",
-            p: "8px",
             justifyContent: "space-between",
-          })}
+            alignItems: "center",
+            gap: 1,
+            marginLeft: 1,
+          }}
         >
-          <Box sx={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            <MRT_GlobalFilterTextField table={table} />
-            <MRT_ToggleFiltersButton table={table} />
-          </Box>
           <Box>
-            <Box sx={{ display: "flex", gap: "0.5rem" }}>
-              <Button
-                variant="contained"
-                startIcon={<AddLocationIcon sx={{ fontSize: "0.5rem" }} />}
-                onClick={handleAddTehsil}
-              >
-                Add Tehsil
-              </Button>
-              <AddTehsilDialog
-                open={AddTehsilOpen}
-                onClose={handleAddTehsilClose}
-              />
-            </Box>
+            <Button
+              startIcon={<AddLocationIcon sx={{ fontSize: "0.5rem" }} />}
+              variant="contained"
+              onClick={toggleAddTehsilDialog}
+            >
+              Add Tehsil
+            </Button>
+          </Box>
+
+          <Box>
+            <Tooltip arrow title="Refresh Data">
+              <IconButton onClick={() => refetch()}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Box>
-      );
+      </>
+    ),
+    rowCount: 500,
+    state: {
+      columnFilters,
+      globalFilter,
+      isLoading,
+      pagination,
+      showAlertBanner: false,
+      showProgressBars: isRefetching,
+      sorting,
     },
   });
 
   return (
     <>
-      <MaterialReactTable table={table} />{" "}
-      <DeleteConfirmation
-        open={DeleteOpen}
-        onClose={handledDeleteClose}
-        onDelete={handledDeleteClose}
-      />
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Box sx={{ marginTop: "30px" }}>
+          <MaterialReactTable table={table} />
+          <DeleteConfirmation
+            open={isDeleteDialogOpen}
+            onClose={toggleDeleteDialog}
+            onDelete={deleteTehsilFromServer}
+          />
+          <AddTehsilDialog
+            open={isAddTehsilDialogOpen}
+            onClose={toggleAddTehsilDialog}
+            refresh={refetch}
+          />
+          {isEditTehsilDialogOpen && selectedTehsil && (
+            <EditTehsilDialog
+              open={isEditTehsilDialogOpen}
+              onClose={() => setIsEditTehsilDialogOpen(false)}
+              tehsil={selectedTehsil}
+              refresh={refetch}
+            />
+          )}
+        </Box>
+      </LocalizationProvider>
     </>
-  );
-};
-
-const TehsilTable = () => {
-  return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DataColumns />
-    </LocalizationProvider>
   );
 };
 

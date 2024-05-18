@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -13,69 +13,76 @@ import {
 import axios from "axios";
 import PropTypes from "prop-types";
 
-const AddTehsilDialog = ({ open, onClose, refresh }) => {
+const EditDistrictDialog = ({ open, onClose, district, refresh }) => {
   const [formData, setFormData] = useState({
+    id: "",
     name: "",
-    district: null,
+    division: { id: "", name: "" },
   });
-  const [districtOptions, setDistrictOptions] = useState([
-    { id: "", name: "" },
-  ]);
+  const [divisionOptions, setDivisionOptions] = useState([]);
 
   useEffect(() => {
-    const fetchDistrictOptions = async () => {
+    if (district) {
+      setFormData({
+        id: district.id,
+        name: district.name,
+        division: district.division,
+      });
+    }
+    const fetchDivisionOptions = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/district/getIdAndName"
+          "http://localhost:8080/division/getIdAndName"
         );
-        setDistrictOptions(response.data);
+        setDivisionOptions(response.data);
       } catch (error) {
-        console.error("Error fetching districts:", error);
+        console.error("Error fetching divisions:", error);
       }
     };
-    fetchDistrictOptions();
-  }, []);
+    fetchDivisionOptions();
+  }, [district]);
 
-  const handleInputChange = useCallback((e) => {
-    const { name, value } = e.target;
+  const handleInputChange = (e, fieldName) => {
+    const { value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [fieldName]: value,
     }));
-  }, []);
+  };
 
-  const handleDistrictChange = (event, newValue) => {
-    if (!newValue) {
+  const handleDivisionChange = (event, newValue) => {
+    if (newValue) {
       setFormData((prevData) => ({
         ...prevData,
-        district: { id: "", name: "" },
+        division: newValue,
       }));
     } else {
       setFormData((prevData) => ({
         ...prevData,
-        district: newValue,
+        division: { id: "", name: "" },
       }));
     }
   };
 
   const handleSubmit = async () => {
+    const submitData = {
+      id: formData.id,
+      name: formData.name,
+      division: { id: formData.division.id },
+    };
     try {
-      await axios.post("http://localhost:8080/tehsil/add", formData);
-      setFormData({
-        name: "",
-        district: { id: "", name: "" },
-      });
-      refresh();
+      await axios.put(`http://localhost:8080/district/update`, submitData);
       onClose();
+      refresh();
     } catch (error) {
-      console.error("Error creating tehsil:", error);
+      console.error("Error updating district:", error);
     }
   };
 
   return (
     <Dialog open={open} onClose={onClose}>
       <Box sx={{ p: 2 }}>
-        <DialogTitle variant="h3">Add Tehsil</DialogTitle>
+        <DialogTitle variant="h3">Edit District</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
@@ -87,20 +94,20 @@ const AddTehsilDialog = ({ open, onClose, refresh }) => {
                 fullWidth
                 variant="outlined"
                 value={formData.name}
-                onChange={handleInputChange}
+                onChange={(e) => handleInputChange(e, "name")}
               />
             </Grid>
             <Grid item xs={12} md={6}>
               <Autocomplete
                 fullWidth
                 disablePortal
-                id="district-autocomplete"
-                value={formData.district}
-                onChange={handleDistrictChange}
-                options={districtOptions}
+                id="division-autocomplete"
+                value={formData.division}
+                onChange={handleDivisionChange}
+                options={divisionOptions}
                 getOptionLabel={(option) => option.name || ""}
                 renderInput={(params) => (
-                  <TextField {...params} label="District" variant="outlined" />
+                  <TextField {...params} label="Division" variant="outlined" />
                 )}
                 gutterBottom
               />
@@ -110,7 +117,7 @@ const AddTehsilDialog = ({ open, onClose, refresh }) => {
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
           <Button variant="contained" onClick={handleSubmit}>
-            Add
+            Update
           </Button>
         </DialogActions>
       </Box>
@@ -118,10 +125,18 @@ const AddTehsilDialog = ({ open, onClose, refresh }) => {
   );
 };
 
-AddTehsilDialog.propTypes = {
+EditDistrictDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  district: PropTypes.shape({
+    id: PropTypes.number,
+    name: PropTypes.string,
+    division: PropTypes.shape({
+      id: PropTypes.number,
+      name: PropTypes.string,
+    }),
+  }),
   refresh: PropTypes.func.isRequired,
 };
 
-export default AddTehsilDialog;
+export default EditDistrictDialog;

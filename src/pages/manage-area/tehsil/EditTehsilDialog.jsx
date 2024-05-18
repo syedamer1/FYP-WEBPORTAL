@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -13,16 +13,22 @@ import {
 import axios from "axios";
 import PropTypes from "prop-types";
 
-const AddTehsilDialog = ({ open, onClose, refresh }) => {
+const EditTehsilDialog = ({ open, onClose, tehsil, refresh }) => {
   const [formData, setFormData] = useState({
+    id: "",
     name: "",
-    district: null,
+    district: { id: "", name: "" },
   });
-  const [districtOptions, setDistrictOptions] = useState([
-    { id: "", name: "" },
-  ]);
+  const [districtOptions, setDistrictOptions] = useState([]);
 
   useEffect(() => {
+    if (tehsil) {
+      setFormData({
+        id: tehsil.id,
+        name: tehsil.name,
+        district: tehsil.district,
+      });
+    }
     const fetchDistrictOptions = async () => {
       try {
         const response = await axios.get(
@@ -34,48 +40,49 @@ const AddTehsilDialog = ({ open, onClose, refresh }) => {
       }
     };
     fetchDistrictOptions();
-  }, []);
+  }, [tehsil]);
 
-  const handleInputChange = useCallback((e) => {
-    const { name, value } = e.target;
+  const handleInputChange = (e, fieldName) => {
+    const { value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [fieldName]: value,
     }));
-  }, []);
+  };
 
   const handleDistrictChange = (event, newValue) => {
-    if (!newValue) {
+    if (newValue) {
       setFormData((prevData) => ({
         ...prevData,
-        district: { id: "", name: "" },
+        district: newValue,
       }));
     } else {
       setFormData((prevData) => ({
         ...prevData,
-        district: newValue,
+        district: { id: "", name: "" },
       }));
     }
   };
 
   const handleSubmit = async () => {
+    const submitData = {
+      id: formData.id,
+      name: formData.name,
+      district: { id: formData.district.id },
+    };
     try {
-      await axios.post("http://localhost:8080/tehsil/add", formData);
-      setFormData({
-        name: "",
-        district: { id: "", name: "" },
-      });
-      refresh();
+      await axios.put(`http://localhost:8080/tehsil/update`, submitData);
       onClose();
+      refresh();
     } catch (error) {
-      console.error("Error creating tehsil:", error);
+      console.error("Error updating tehsil:", error);
     }
   };
 
   return (
     <Dialog open={open} onClose={onClose}>
       <Box sx={{ p: 2 }}>
-        <DialogTitle variant="h3">Add Tehsil</DialogTitle>
+        <DialogTitle variant="h3">Edit Tehsil</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
@@ -87,7 +94,7 @@ const AddTehsilDialog = ({ open, onClose, refresh }) => {
                 fullWidth
                 variant="outlined"
                 value={formData.name}
-                onChange={handleInputChange}
+                onChange={(e) => handleInputChange(e, "name")}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -110,7 +117,7 @@ const AddTehsilDialog = ({ open, onClose, refresh }) => {
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
           <Button variant="contained" onClick={handleSubmit}>
-            Add
+            Update
           </Button>
         </DialogActions>
       </Box>
@@ -118,10 +125,18 @@ const AddTehsilDialog = ({ open, onClose, refresh }) => {
   );
 };
 
-AddTehsilDialog.propTypes = {
+EditTehsilDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  tehsil: PropTypes.shape({
+    id: PropTypes.number,
+    name: PropTypes.string,
+    district: PropTypes.shape({
+      id: PropTypes.number,
+      name: PropTypes.string,
+    }),
+  }),
   refresh: PropTypes.func.isRequired,
 };
 
-export default AddTehsilDialog;
+export default EditTehsilDialog;
