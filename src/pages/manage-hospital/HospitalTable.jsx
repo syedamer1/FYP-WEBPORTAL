@@ -1,35 +1,109 @@
-/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-// React imports
-import { useMemo, useState } from "react";
-// Material-UI imports
-import { Box, Button, lighten } from "@mui/material";
-import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { useEffect, useMemo, useState } from "react";
+import { Box, Button, IconButton, Tooltip } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-// Material React Table imports
+import axios from "axios";
+import {
+  PersonAdd as PersonAddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+} from "@mui/icons-material";
 import {
   MaterialReactTable,
   useMaterialReactTable,
-  MRT_GlobalFilterTextField,
-  MRT_ToggleFiltersButton,
 } from "material-react-table";
-
-// Custom component imports
 import EditHospitalDialog from "./EditHospitalDialog";
 import AddHospitalDialog from "./AddHospitalDialog";
 import DeleteConfirmation from "@components/DeleteConfirmation";
-// Axios for making HTTP requests
-import axios from "axios";
 
-const HospitalTable = ({ hospitalData, tehsilOptions }) => {
+const HospitalTable = () => {
   const [deleteHospitalId, setDeleteHospitalId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAddHospitalDialogOpen, setIsAddHospitalDialogOpen] = useState(false);
   const [isEditHospitalDialogOpen, setIsEditHospitalDialogOpen] =
     useState(false);
   const [selectedHospital, setSelectedHospital] = useState(null);
+  const [columnFilters, setColumnFilters] = useState([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [sorting, setSorting] = useState([]);
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
+  const {
+    // eslint-disable-next-line no-unused-vars
+    data: { data = [], meta } = {}, // Initialize data as an empty array
+    isError,
+    isRefetching,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: [
+      "table-data",
+      columnFilters,
+      globalFilter,
+      pagination.pageIndex,
+      pagination.pageSize,
+      sorting,
+    ],
+    queryFn: async () => {
+      const fetchURL = new URL("http://localhost:8080/hospital/get");
+
+      // fetchURL.searchParams.set(
+      //   "start",
+      //   `${pagination.pageIndex * pagination.pageSize}`
+      // );
+      // fetchURL.searchParams.set("size", `${pagination.pageSize}`);
+      // fetchURL.searchParams.set("filters", JSON.stringify(columnFilters ?? []));
+      // fetchURL.searchParams.set("globalFilter", globalFilter ?? "");
+      // fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
+
+      const response = await axios.get(fetchURL.href);
+      console.log("Response Data:", response.data);
+
+      return {
+        data: response.data,
+        meta: response.meta,
+      };
+    },
+    placeholderData: keepPreviousData,
+  });
+  const [initialize, setInitialize] = useState(false);
+  function handleClick() {
+    var header = document.querySelector("header");
+
+    var computedStyle = window.getComputedStyle(header);
+    if (computedStyle.display === "flex") {
+      header.style.display = "none";
+    } else {
+      header.style.display = "flex";
+    }
+  }
+
+  function initializeButton() {
+    var button = document.querySelector(
+      'button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.css-riw2ar-MuiButtonBase-root-MuiIconButton-root[aria-label="Toggle full screen"]'
+    );
+
+    var header = document.querySelector("header");
+    header.style.display = "flex";
+
+    button.addEventListener("click", handleClick);
+  }
+
+  useEffect(() => {
+    if (!initialize) {
+      setTimeout(() => {
+        initializeButton();
+      }, 2000);
+      setInitialize(true);
+    }
+  }, []);
   const handleDeleteHospital = (hospitalId) => {
     setDeleteHospitalId(hospitalId);
     setIsDeleteDialogOpen(true);
@@ -37,7 +111,6 @@ const HospitalTable = ({ hospitalData, tehsilOptions }) => {
 
   const toggleDeleteDialog = () => {
     setIsDeleteDialogOpen((prevOpen) => !prevOpen);
-    // Reset the deleteHospitalId when the dialog is closed
     if (!isDeleteDialogOpen) {
       setDeleteHospitalId(null);
     }
@@ -50,6 +123,7 @@ const HospitalTable = ({ hospitalData, tehsilOptions }) => {
           `http://localhost:8080/hospital/delete/${deleteHospitalId}`
         );
         console.log("Hospital deleted");
+        refetch();
       }
     } catch (error) {
       console.error("Error deleting hospital:", error);
@@ -64,12 +138,8 @@ const HospitalTable = ({ hospitalData, tehsilOptions }) => {
     setIsEditHospitalDialogOpen((prevOpen) => !prevOpen);
   };
 
-  const handleAddHospitalDialog = () => {
-    setIsAddHospitalDialogOpen(true);
-  };
-
-  const handleAddHospitalDialogClose = () => {
-    setIsAddHospitalDialogOpen(false);
+  const toggleAddHospitalDialog = () => {
+    setIsAddHospitalDialogOpen((prevOpen) => !prevOpen);
   };
 
   const columns = useMemo(
@@ -116,13 +186,7 @@ const HospitalTable = ({ hospitalData, tehsilOptions }) => {
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => cell.getValue()?.toLocaleDateString(),
-            Header: ({ column }) => <em>{column.columnDef.header}</em>,
-            muiFilterTextFieldProps: {
-              sx: {
-                minWidth: "250px",
-              },
-            },
+            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
           },
           {
             accessorFn: (row) =>
@@ -132,13 +196,7 @@ const HospitalTable = ({ hospitalData, tehsilOptions }) => {
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => cell.getValue()?.toLocaleDateString(),
-            Header: ({ column }) => <em>{column.columnDef.header}</em>,
-            muiFilterTextFieldProps: {
-              sx: {
-                minWidth: "250px",
-              },
-            },
+            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
           },
           {
             id: "actions",
@@ -173,76 +231,80 @@ const HospitalTable = ({ hospitalData, tehsilOptions }) => {
 
   const table = useMaterialReactTable({
     columns,
-    data: hospitalData,
-    enableColumnFilterModes: true,
-    enableColumnOrdering: true,
-    enableGrouping: false,
-    enableColumnPinning: true,
-    enableFacetedValues: true,
-    enableRowActions: false,
-    enableRowSelection: false,
-    initialState: { showColumnFilters: true, showGlobalFilter: true },
-    paginationDisplayMode: "pages",
-    positionToolbarAlertBanner: "bottom",
-    muiSearchTextFieldProps: {
-      size: "small",
-      variant: "outlined",
-    },
-    muiPaginationProps: {
-      color: "secondary",
-      rowsPerPageOptions: [5, 10, 20, 30],
-      shape: "rounded",
-      variant: "outlined",
-    },
-    renderTopToolbar: ({ table }) => {
-      return (
+    data,
+    initialState: { showColumnFilters: true },
+    manualFiltering: true, //turn off built-in client-side filtering
+    manualPagination: true, //turn off built-in client-side pagination
+    manualSorting: true, //turn off built-in client-side sorting
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
+    onSortingChange: setSorting,
+    renderTopToolbarCustomActions: () => (
+      <>
         <Box
-          sx={(theme) => ({
-            backgroundColor: lighten(theme.palette.background.default, 0.05),
+          sx={{
             display: "flex",
-            gap: "0.5rem",
-            p: "8px",
             justifyContent: "space-between",
-          })}
+            alignItems: "center",
+            gap: 1,
+            marginLeft: 1,
+          }}
         >
-          <Box sx={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            <MRT_GlobalFilterTextField table={table} />
-            <MRT_ToggleFiltersButton table={table} />
-          </Box>
           <Box>
-            <Box sx={{ display: "flex", gap: "0.5rem" }}>
-              <Button variant="contained" onClick={handleAddHospitalDialog}>
-                Add Hospital
-              </Button>
-            </Box>
-            <AddHospitalDialog
-              open={isAddHospitalDialogOpen}
-              onClose={handleAddHospitalDialogClose}
-              tehsilOptions={tehsilOptions}
-            />
+            <Button variant="contained" onClick={toggleAddHospitalDialog}>
+              Add Hospital
+            </Button>
+          </Box>
+
+          <Box>
+            <Tooltip arrow title="Refresh Data">
+              <IconButton onClick={() => refetch()}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Box>
-      );
+      </>
+    ),
+    rowCount: 30,
+    state: {
+      columnFilters,
+      globalFilter,
+      isLoading,
+      pagination,
+      showAlertBanner: false,
+      showProgressBars: isRefetching,
+      sorting,
     },
   });
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <MaterialReactTable table={table} />
-      <DeleteConfirmation
-        open={isDeleteDialogOpen}
-        onClose={toggleDeleteDialog}
-        onDelete={deleteHospitalFromServer}
-      />
-      {isEditHospitalDialogOpen && selectedHospital && (
-        <EditHospitalDialog
-          open={isEditHospitalDialogOpen}
-          onClose={() => setIsEditHospitalDialogOpen(false)}
-          hospital={selectedHospital}
-          tehsilOptions={tehsilOptions}
-        />
-      )}
-    </LocalizationProvider>
+    <>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Box sx={{ marginTop: "30px" }}>
+          <MaterialReactTable table={table} />
+          <AddHospitalDialog
+            open={isAddHospitalDialogOpen}
+            onClose={toggleAddHospitalDialog}
+            refresh={refetch}
+          />
+          <DeleteConfirmation
+            open={isDeleteDialogOpen}
+            onClose={toggleDeleteDialog}
+            onDelete={deleteHospitalFromServer}
+          />
+          {isEditHospitalDialogOpen && selectedHospital && (
+            <EditHospitalDialog
+              open={isEditHospitalDialogOpen}
+              onClose={() => setIsEditHospitalDialogOpen(false)}
+              hospital={selectedHospital}
+              refresh={refetch}
+            />
+          )}
+        </Box>
+      </LocalizationProvider>
+    </>
   );
 };
 

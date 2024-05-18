@@ -49,8 +49,6 @@ const EditUserDialog = ({
     id: "",
     name: "",
   });
-  const [headerVisible, setHeaderVisible] = useState(true); // State to track header visibility
-  const [storedHeader, setStoredHeader] = useState(null); // State to store the header before removing it
 
   useEffect(() => {
     if (userData) {
@@ -343,4 +341,9 @@ EditUserDialog.propTypes = {
       name: PropTypes.string,
     }),
   }),
+  tehsilOptions: PropTypes.array.isRequired,
+  divisionOptions: PropTypes.array.isRequired,
+  districtOptions: PropTypes.array.isRequired,
+  provinceOptions: PropTypes.array.isRequired,
+  hospitalOptions: PropTypes.array.isRequired,
 };
