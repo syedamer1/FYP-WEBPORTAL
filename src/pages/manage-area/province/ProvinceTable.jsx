@@ -55,7 +55,6 @@ const ProvinceTable = () => {
       const fetchURL = new URL("http://localhost:8080/province/get");
 
       const response = await axios.get(fetchURL.href);
-      console.log("Response Data:", response.data);
 
       return {
         data: response.data,
@@ -115,7 +114,6 @@ const ProvinceTable = () => {
         await axios.delete(
           `http://localhost:8080/province/delete/${deleteProvinceId}`
         );
-        console.log("Province deleted");
         refetch();
       }
     } catch (error) {

@@ -51,10 +51,8 @@ const AccountTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const fetchURL = new URL("http://localhost:8080/user/get"); // Change to account API endpoint
-
+      const fetchURL = new URL("http://localhost:8080/user/get");
       const response = await axios.get(fetchURL.href);
-      console.log("Response Data:", response.data);
 
       return {
         data: response.data,
@@ -116,7 +114,6 @@ const AccountTable = () => {
         await axios.delete(
           `http://localhost:8080/account/delete/${deleteAccountId}` // Change to account API endpoint
         );
-        console.log("Account deleted");
         refetch();
       }
     } catch (error) {

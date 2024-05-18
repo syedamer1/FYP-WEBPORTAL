@@ -51,7 +51,6 @@ const TehsilTable = () => {
     ],
     queryFn: async () => {
       const response = await axios.get("http://localhost:8080/tehsil/get"); // Updated API endpoint
-      console.log("Response Data:", response.data);
 
       return {
         data: response.data,
@@ -79,7 +78,6 @@ const TehsilTable = () => {
         await axios.delete(
           `http://localhost:8080/tehsil/delete/${deleteTehsilId}` // Updated API endpoint
         );
-        console.log("Tehsil deleted");
         refetch();
       }
     } catch (error) {

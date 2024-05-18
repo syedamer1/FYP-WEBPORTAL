@@ -64,7 +64,6 @@ const HospitalTable = () => {
       // fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
 
       const response = await axios.get(fetchURL.href);
-      console.log("Response Data:", response.data);
 
       return {
         data: response.data,
@@ -122,7 +121,6 @@ const HospitalTable = () => {
         await axios.delete(
           `http://localhost:8080/hospital/delete/${deleteHospitalId}`
         );
-        console.log("Hospital deleted");
         refetch();
       }
     } catch (error) {

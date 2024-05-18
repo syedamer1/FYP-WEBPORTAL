@@ -47,7 +47,6 @@ const EditProfileDialog = ({ open, onClose, initialData }) => {
   };
 
   const handleSave = () => {
-    console.log("Updated values:", values);
     onClose();
   };
 

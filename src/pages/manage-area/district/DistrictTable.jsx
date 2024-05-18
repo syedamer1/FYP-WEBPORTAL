@@ -52,7 +52,6 @@ const DistrictTable = () => {
     ],
     queryFn: async () => {
       const response = await axios.get("http://localhost:8080/district/get"); // Updated API endpoint
-      console.log("Response Data:", response.data);
 
       return {
         data: response.data,

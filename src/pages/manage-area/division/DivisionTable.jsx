@@ -52,7 +52,6 @@ const DivisionTable = () => {
     ],
     queryFn: async () => {
       const response = await axios.get("http://localhost:8080/division/get");
-      console.log("Response Data:", response.data);
 
       return {
         data: response.data,
@@ -80,7 +79,6 @@ const DivisionTable = () => {
         await axios.delete(
           `http://localhost:8080/division/delete/${deleteDivisionId}`
         );
-        console.log("Division deleted");
         refetch();
       }
     } catch (error) {
