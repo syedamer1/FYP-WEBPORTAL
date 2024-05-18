@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Button,
   Dialog,
@@ -14,7 +13,7 @@ import {
 import axios from "axios";
 import PropTypes from "prop-types";
 
-const AddHospitalDialog = ({ open, onClose, tehsilOptions }) => {
+const AddHospitalDialog = ({ open, onClose, refresh }) => {
   const [formData, setFormData] = useState({
     name: "",
     code: "",
@@ -22,33 +21,47 @@ const AddHospitalDialog = ({ open, onClose, tehsilOptions }) => {
     hospitalType: "",
     tehsil: { id: "", name: "" },
   });
+  const [tehsilOptions, setTehsilOptions] = useState([]);
 
-  const handleInputChange = useCallback(
-    (e) => {
-      const { name, value } = e.target;
-      setFormData({ ...formData, [name]: value });
-    },
-    [formData]
-  );
+  useEffect(() => {
+    const fetchTehsilOptions = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:8080/tehsil/getIdAndName"
+        );
+        setTehsilOptions(response.data);
+      } catch (error) {
+        console.error("Error fetching tehsils:", error);
+      }
+    };
+    fetchTehsilOptions();
+  }, []);
+
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  }, []);
 
   const handleTehsilChange = (event, newValue) => {
-    if (newValue === null) return;
-    setFormData({
-      ...formData,
-      tehsil: { id: newValue.id, name: newValue.name },
-    });
+    if (!newValue) {
+      setFormData((prevData) => ({
+        ...prevData,
+        tehsil: { id: "", name: "" },
+      }));
+    } else {
+      setFormData((prevData) => ({
+        ...prevData,
+        tehsil: newValue,
+      }));
+    }
   };
 
   const handleSubmit = async () => {
-    const submitData = {
-      name: formData.name,
-      code: formData.code,
-      address: formData.address,
-      hospitalType: formData.hospitalType,
-      tehsil: { id: formData.tehsil.id },
-    };
     try {
-      await axios.post("http://localhost:8080/hospital/add", submitData);
+      await axios.post("http://localhost:8080/hospital/add", formData);
       setFormData({
         name: "",
         code: "",
@@ -56,10 +69,11 @@ const AddHospitalDialog = ({ open, onClose, tehsilOptions }) => {
         hospitalType: "",
         tehsil: { id: "", name: "" },
       });
+      refresh();
+      onClose();
     } catch (error) {
       console.error("Error creating hospital:", error);
     }
-    onClose();
   };
 
   return (
@@ -101,7 +115,10 @@ const AddHospitalDialog = ({ open, onClose, tehsilOptions }) => {
                   id="hospital-type-autocomplete"
                   value={formData.hospitalType}
                   onChange={(event, newValue) => {
-                    setFormData({ ...formData, hospitalType: newValue });
+                    setFormData((prevData) => ({
+                      ...prevData,
+                      hospitalType: newValue,
+                    }));
                   }}
                   options={["Government", "Private"]}
                   renderInput={(params) => (
@@ -157,8 +174,6 @@ const AddHospitalDialog = ({ open, onClose, tehsilOptions }) => {
   );
 };
 
-export default AddHospitalDialog;
-
 AddHospitalDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
@@ -167,5 +182,8 @@ AddHospitalDialog.propTypes = {
       id: PropTypes.number,
       name: PropTypes.string,
     })
-  ).isRequired,
+  ),
+  refresh: PropTypes.func.isRequired,
 };
+
+export default AddHospitalDialog;

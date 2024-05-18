@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Button,
   Dialog,
@@ -6,71 +6,103 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-  Autocomplete,
   Box,
   Grid,
+  Autocomplete,
 } from "@mui/material";
+import axios from "axios";
 import PropTypes from "prop-types";
 
-function AddDistrictDialog({ open, onClose }) {
+const AddDistrictDialog = ({ open, onClose, refresh }) => {
   const [formData, setFormData] = useState({
     name: "",
-    division: "",
+    division: null,
   });
+  const [divisionOptions, setDivisionOptions] = useState([
+    { id: "", name: "" },
+  ]);
 
-  const handleChange = (e, value) => {
-    if (value) {
-      setFormData({ ...formData, division: value });
+  useEffect(() => {
+    const fetchDivisionOptions = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:8080/division/getIdAndName"
+        );
+        setDivisionOptions(response.data);
+      } catch (error) {
+        console.error("Error fetching divisions:", error);
+      }
+    };
+    fetchDivisionOptions();
+  }, []);
+
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  }, []);
+
+  const handleDivisionChange = (event, newValue) => {
+    if (!newValue) {
+      setFormData((prevData) => ({
+        ...prevData,
+        division: { id: "", name: "" },
+      }));
     } else {
-      setFormData({ ...formData, [e.target.name]: e.target.value });
+      setFormData((prevData) => ({
+        ...prevData,
+        division: newValue,
+      }));
     }
   };
 
-  const handleSubmit = () => {
-    console.log(formData); // Replace with your submission logic
-    onClose();
+  const handleSubmit = async () => {
+    try {
+      await axios.post("http://localhost:8080/district/add", formData);
+      setFormData({
+        name: "",
+        division: { id: "", name: "" },
+      });
+      refresh();
+      onClose();
+    } catch (error) {
+      console.error("Error creating district:", error);
+    }
   };
-
-  const data = [
-    { label: "Division A" },
-    { label: "Division B" },
-    { label: "Division C" },
-    { label: "Division D" },
-    { label: "Division E" },
-  ];
 
   return (
     <Dialog open={open} onClose={onClose}>
       <Box sx={{ p: 2 }}>
-        <DialogTitle variant="h3">Add New District</DialogTitle>
+        <DialogTitle variant="h3">Add District</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
-            {/* Name */}
-            <Grid item xs={12}>
+            <Grid item xs={12} md={6}>
               <TextField
-                autoFocus
                 margin="dense"
                 name="name"
                 label="Name"
                 type="text"
                 fullWidth
                 variant="outlined"
-                onChange={handleChange}
+                value={formData.name}
+                onChange={handleInputChange}
               />
             </Grid>
-
-            {/* Division */}
-            <Grid item xs={12}>
+            <Grid item xs={12} md={6}>
               <Autocomplete
                 fullWidth
                 disablePortal
-                id="basic-autocomplete-label"
-                options={data}
-                getOptionLabel={(option) => option.label}
+                id="division-autocomplete"
+                value={formData.division}
+                onChange={handleDivisionChange}
+                options={divisionOptions}
+                getOptionLabel={(option) => option.name || ""}
                 renderInput={(params) => (
-                  <TextField {...params} label="Division" />
+                  <TextField {...params} label="Division" variant="outlined" />
                 )}
-                onChange={(event, value) => handleChange(event, value)}
+                gutterBottom
               />
             </Grid>
           </Grid>
@@ -78,17 +110,18 @@ function AddDistrictDialog({ open, onClose }) {
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
           <Button variant="contained" onClick={handleSubmit}>
-            Confirm
+            Add
           </Button>
         </DialogActions>
       </Box>
     </Dialog>
   );
-}
+};
 
 AddDistrictDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
 };
 
 export default AddDistrictDialog;

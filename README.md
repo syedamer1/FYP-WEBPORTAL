@@ -15,7 +15,7 @@ git clone https://github.com/syedamer1/FYP-WEBPORTAL/
 ```
 ### Change to the project directory
 ```
-cd FYP-WEBPORTAL
+cd FYP-FrontEnd
 ```
 ### Install Dependencies
 ```

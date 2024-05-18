@@ -10,19 +10,25 @@ import {
   Grid,
 } from "@mui/material";
 import PropTypes from "prop-types";
+import axios from "axios";
 
-function AddProvinceDialog({ open, onClose }) {
+function AddProvinceDialog({ open, onClose, refresh }) {
   const [formData, setFormData] = useState({
-    province: "",
+    name: "",
   });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    console.log(formData);
-    onClose();
+  const handleSubmit = async () => {
+    try {
+      await axios.post("http://localhost:8080/province/add", formData);
+      refresh();
+      onClose();
+    } catch (error) {
+      console.error("Error creating province:", error);
+    }
   };
 
   return (
@@ -36,7 +42,7 @@ function AddProvinceDialog({ open, onClose }) {
               <TextField
                 autoFocus
                 margin="dense"
-                name="province"
+                value={formData.name}
                 label="Name"
                 type="text"
                 fullWidth
@@ -60,6 +66,7 @@ function AddProvinceDialog({ open, onClose }) {
 AddProvinceDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
 };
 
 export default AddProvinceDialog;

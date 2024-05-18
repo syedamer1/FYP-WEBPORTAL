@@ -1,0 +1,12 @@
+{
+  "routes": [
+    { "src": "/", "dest": "/" },
+    { "src": "/login", "dest": "/" },
+    { "src": "/manage-account", "dest": "/" },
+    { "src": "/manage-area", "dest": "/" },
+    { "src": "/predictive-analytics", "dest": "/" },
+    { "src": "/manage-hospital", "dest": "/" },
+    { "src": "/404NotFound", "dest": "/" },
+    { "src": "/*", "dest": "/404NotFound" }
+  ]
+}

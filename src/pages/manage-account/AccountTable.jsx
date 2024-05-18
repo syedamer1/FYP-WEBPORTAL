@@ -1,123 +1,136 @@
-/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-// React imports
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
-// Material-UI imports
-import { Box, Button, lighten } from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
+import { Box, Button, IconButton, Tooltip } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import axios from "axios";
 import {
   PersonAdd as PersonAddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-// Material React Table imports
 import {
   MaterialReactTable,
   useMaterialReactTable,
-  MRT_GlobalFilterTextField,
-  MRT_ToggleFiltersButton,
 } from "material-react-table";
-
-// Custom component imports
-import AddUserDialog from "./AddUserDialog";
 import EditUserDialog from "./EditUserDialog";
+import AddUserDialog from "./AddUserDialog";
 import DeleteConfirmation from "@components/DeleteConfirmation";
-// Axios for making HTTP requests
-import axios from "axios";
 
-const AccountTable = ({
-  tehsilOptions,
-  districtOptions,
-  divisionOptions,
-  provinceOptions,
-  hospitalOptions,
-}) => {
-  const [userData, setUserData] = useState([]);
-  const [deleteUserId, setDeleteUserId] = useState(null);
+const AccountTable = () => {
+  const [deleteAccountId, setDeleteAccountId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [columnFilters, setColumnFilters] = useState([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [sorting, setSorting] = useState([]);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
   });
-  const [totalRows, settotalRows] = useState(0);
-  const hasEffectRun = useRef(false); // Create a ref to track whether the effect has run
 
-  const fetchData = async (page, pageSize) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:8080/user/get-all-users?pageNo=${page}&pageSize=${pageSize}`
-      );
-      setUserData(response.data);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+  const {
+    // eslint-disable-next-line no-unused-vars
+    data: { data = [], meta } = {}, // Initialize data as an empty array
+    isError,
+    isRefetching,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: [
+      "table-data",
+      columnFilters,
+      globalFilter,
+      pagination.pageIndex,
+      pagination.pageSize,
+      sorting,
+    ],
+    queryFn: async () => {
+      const fetchURL = new URL("http://localhost:8080/user/get");
+      const response = await axios.get(fetchURL.href);
+
+      return {
+        data: response.data,
+        meta: response.meta,
+      };
+    },
+    placeholderData: keepPreviousData,
+  });
+  const [initialize, setInitialize] = useState(false);
+
+  // Function to toggle full screen - just for reference, you might not need it
+  function handleClick() {
+    var header = document.querySelector("header");
+
+    var computedStyle = window.getComputedStyle(header);
+    if (computedStyle.display === "flex") {
+      header.style.display = "none";
+    } else {
+      header.style.display = "flex";
     }
-  };
-  const fetchtotalusers = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:8080/user/get-total-users-count`
-      );
-      settotalRows(response.data);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
-  const handlePaginationChange = useCallback((newPagination) => {
-    console.log(newPagination);
-    setPagination(newPagination);
-    fetchData(newPagination.pageIndex, newPagination.pageSize);
-  }, []);
+  }
+
+  // Function to initialize button - just for reference, you might not need it
+  function initializeButton() {
+    var button = document.querySelector(
+      'button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.css-riw2ar-MuiButtonBase-root-MuiIconButton-root[aria-label="Toggle full screen"]'
+    );
+
+    var header = document.querySelector("header");
+    header.style.display = "flex";
+
+    button.addEventListener("click", handleClick);
+  }
 
   useEffect(() => {
-    if (!hasEffectRun.current) {
-      fetchData(pagination.pageIndex, pagination.pageSize);
-      fetchtotalusers();
-      hasEffectRun.current = true;
+    if (!initialize) {
+      setTimeout(() => {
+        initializeButton();
+      }, 2000);
+      setInitialize(true);
     }
   }, []);
 
-  const handleDeleteUser = (userId) => {
-    setDeleteUserId(userId);
+  const handleDeleteAccount = (accountId) => {
+    setDeleteAccountId(accountId);
     setIsDeleteDialogOpen(true);
   };
 
   const toggleDeleteDialog = () => {
     setIsDeleteDialogOpen((prevOpen) => !prevOpen);
     if (!isDeleteDialogOpen) {
-      setDeleteUserId(null);
+      setDeleteAccountId(null);
     }
   };
 
-  const deleteUserFromServer = async () => {
+  const deleteAccountFromServer = async () => {
     try {
-      if (deleteUserId) {
-        await axios.delete(`http://localhost:8080/user/delete/${deleteUserId}`);
-        console.log("User deleted");
-        fetchData(pagination.pageIndex, pagination.pageSize); // Refresh the data after successful deletion
+      if (deleteAccountId) {
+        await axios.delete(
+          `http://localhost:8080/account/delete/${deleteAccountId}` // Change to account API endpoint
+        );
+        refetch();
       }
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error deleting account:", error);
     } finally {
       setIsDeleteDialogOpen(false);
-      setDeleteUserId(null);
+      setDeleteAccountId(null);
     }
   };
 
-  const toggleEditUserDialog = (user) => {
-    setSelectedUser(user);
+  const toggleEditUserDialog = (account) => {
+    setSelectedAccount(account);
     setIsEditUserDialogOpen((prevOpen) => !prevOpen);
   };
 
-  const handleAddUserDialog = () => {
-    setIsAddUserDialogOpen(true);
-  };
-
-  const handleAddUserDialogClose = () => {
-    setIsAddUserDialogOpen(false);
+  const toggleAddUserDialog = () => {
+    setIsAddUserDialogOpen((prevOpen) => !prevOpen);
   };
 
   const columns = useMemo(
@@ -128,9 +141,13 @@ const AccountTable = ({
         size: 100,
       },
       {
-        accessorFn: (row) => `${row.firstName} ${row.lastName}`,
-        id: "name",
-        header: "Name",
+        accessorKey: "firstName",
+        header: "First Name",
+        size: 200,
+      },
+      {
+        accessorKey: "lastName",
+        header: "Last Name",
         size: 200,
       },
       {
@@ -195,13 +212,7 @@ const AccountTable = ({
         filterVariant: "date",
         filterFn: "lessThan",
         sortingFn: "datetime",
-        Cell: ({ cell }) => cell.getValue()?.toLocaleDateString(),
-        Header: ({ column }) => <em>{column.columnDef.header}</em>,
-        muiFilterTextFieldProps: {
-          sx: {
-            minWidth: "250px",
-          },
-        },
+        Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
       },
       {
         accessorFn: (row) =>
@@ -211,137 +222,116 @@ const AccountTable = ({
         filterVariant: "date",
         filterFn: "lessThan",
         sortingFn: "datetime",
-        Cell: ({ cell }) => cell.getValue()?.toLocaleDateString(),
-        Header: ({ column }) => <em>{column.columnDef.header}</em>,
-        muiFilterTextFieldProps: {
-          sx: {
-            minWidth: "250px",
-          },
-        },
+        Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
       },
       {
         id: "actions",
         header: "Actions",
-        size: 300,
+        size: 200,
         Cell: ({ row }) => (
-          <>
-            <Box sx={{ display: "flex", gap: "0.5rem" }}>
-              <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<EditIcon />}
-                onClick={() => toggleEditUserDialog(row.original)}
-              >
-                Edit
-              </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                startIcon={<DeleteIcon />}
-                onClick={() => handleDeleteUser(row.original.id)}
-              >
-                Delete
-              </Button>
-            </Box>
-          </>
+          <Box sx={{ display: "flex", gap: "0.5rem" }}>
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<EditIcon />}
+              onClick={() => toggleEditUserDialog(row.original)}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={() => handleDeleteAccount(row.original.id)}
+            >
+              Delete
+            </Button>
+          </Box>
         ),
       },
     ],
     []
   );
+
   const table = useMaterialReactTable({
     columns,
-    data: userData,
-    enableColumnFilterModes: true,
-    enablePagination: true,
-    enableColumnOrdering: true,
-    enableGrouping: false,
-    enableColumnPinning: true,
-    enableFacetedValues: true,
-    enableRowActions: false,
-    enableRowSelection: false,
-    initialState: { showColumnFilters: true, showGlobalFilter: true },
-    paginationDisplayMode: "pages",
-    positionToolbarAlertBanner: "bottom",
-    muiSearchTextFieldProps: {
-      size: "small",
-      variant: "outlined",
-    },
-    muiPaginationProps: {
-      color: "secondary",
-      rowsPerPageOptions: [5, 10, 20, 30],
-      shape: "rounded",
-      variant: "outlined",
-    },
-    state: {
-      pagination,
-    },
-    rowCount: totalRows,
-    onPaginationChange: handlePaginationChange,
-    renderTopToolbar: ({ table }) => {
-      return (
+    data,
+    initialState: { showColumnFilters: true },
+    manualFiltering: true, //turn off built-in client-side filtering
+    manualPagination: true, //turn off built-in client-side pagination
+    manualSorting: true, //turn off built-in client-side sorting
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
+    onSortingChange: setSorting,
+    renderTopToolbarCustomActions: () => (
+      <>
         <Box
-          sx={(theme) => ({
-            backgroundColor: lighten(theme.palette.background.default, 0.05),
+          sx={{
             display: "flex",
-            gap: "0.5rem",
-            p: "8px",
             justifyContent: "space-between",
-          })}
+            alignItems: "center",
+            gap: 1,
+            marginLeft: 1,
+          }}
         >
-          <Box sx={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            <MRT_GlobalFilterTextField table={table} />
-            <MRT_ToggleFiltersButton table={table} />
+          <Box>
+            <Button
+              startIcon={<PersonAddIcon sx={{ fontSize: "0.5rem" }} />}
+              variant="contained"
+              onClick={toggleAddUserDialog}
+            >
+              Add User
+            </Button>
           </Box>
           <Box>
-            <Box sx={{ display: "flex", gap: "0.5rem" }}>
-              <Button
-                variant="contained"
-                startIcon={<PersonAddIcon sx={{ fontSize: "0.5rem" }} />}
-                onClick={handleAddUserDialog}
-              >
-                Add User
-              </Button>
-            </Box>
-            <AddUserDialog
-              open={isAddUserDialogOpen}
-              onClose={handleAddUserDialogClose}
-            />
+            <Tooltip arrow title="Refresh Data">
+              <IconButton onClick={() => refetch()}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Box>
-      );
+      </>
+    ),
+    rowCount: 30,
+    state: {
+      columnFilters,
+      globalFilter,
+      isLoading,
+      pagination,
+      showAlertBanner: false,
+      showProgressBars: isRefetching,
+      sorting,
     },
   });
+
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <MaterialReactTable table={table} />
-      <DeleteConfirmation
-        open={isDeleteDialogOpen}
-        onClose={toggleDeleteDialog}
-        onDelete={deleteUserFromServer}
-      />
-      {isEditUserDialogOpen && selectedUser && (
-        <EditUserDialog
-          open={isEditUserDialogOpen}
-          onClose={() => setIsEditUserDialogOpen(false)}
-          userData={selectedUser}
-          tehsilOptions={tehsilOptions}
-          districtOptions={districtOptions}
-          divisionOptions={divisionOptions}
-          provinceOptions={provinceOptions}
-          hospitalOptions={hospitalOptions}
-        />
-      )}
-      <AddUserDialog
-        open={isAddUserDialogOpen}
-        onClose={handleAddUserDialogClose}
-        tehsilOptions={tehsilOptions}
-        districtOptions={districtOptions}
-        divisionOptions={divisionOptions}
-        provinceOptions={provinceOptions}
-        hospitalOptions={hospitalOptions}
-      />
-    </LocalizationProvider>
+    <>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Box sx={{ marginTop: "30px" }}>
+          <MaterialReactTable table={table} />
+          <AddUserDialog
+            open={isAddUserDialogOpen}
+            onClose={toggleAddUserDialog}
+            refresh={refetch}
+          />
+          <DeleteConfirmation
+            open={isDeleteDialogOpen}
+            onClose={toggleDeleteDialog}
+            onDelete={deleteAccountFromServer}
+          />
+          {isEditUserDialogOpen && selectedAccount && (
+            <EditUserDialog
+              open={isEditUserDialogOpen}
+              onClose={() => setIsEditUserDialogOpen(false)}
+              account={selectedAccount}
+              refresh={refetch}
+            />
+          )}
+        </Box>
+      </LocalizationProvider>
+    </>
   );
 };
 

@@ -1,40 +1,13 @@
 import MainCard from "@components/CustomCard";
 import HospitalTable from "./HospitalTable";
 import { Grid, Typography } from "@mui/material/";
-import axios from "axios";
-import { useState, useEffect } from "react";
-import OverlayLoader from "@components/OverlayLoader";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const ManageHospital = () => {
-  const [tehsilOptions, setTehsilOptions] = useState([]);
-  const [fetching, setFetching] = useState(true);
-  const [hospitalData, setHospitalData] = useState([]);
-
-  const fetchData = async () => {
-    try {
-      const [hospitalDataResponse, tehsilOptionsResponse] = await Promise.all([
-        axios.get("http://localhost:8080/hospital/get"),
-        axios.get("http://localhost:8080/tehsil/getIdAndName"),
-      ]);
-      setHospitalData(hospitalDataResponse.data);
-      setTehsilOptions(tehsilOptionsResponse.data);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setFetching(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-
-    return () => {};
-  }, []);
+  const queryClient = new QueryClient();
 
   return (
     <>
-      <OverlayLoader loading={fetching} />
-
       <MainCard>
         <Typography variant="h3" sx={{ marginBottom: 2 }}>
           Manage Hospital
@@ -44,11 +17,9 @@ const ManageHospital = () => {
           md={8}
           sx={{ display: { sm: "none", md: "block", lg: "none" } }}
         />
-
-        <HospitalTable
-          hospitalData={hospitalData}
-          tehsilOptions={tehsilOptions}
-        />
+        <QueryClientProvider client={queryClient}>
+          <HospitalTable />
+        </QueryClientProvider>
       </MainCard>
     </>
   );

@@ -10,45 +10,71 @@ import {
   InputAdornment,
   IconButton,
   TextField,
-  Grid, // Import Grid
+  Grid,
 } from "@mui/material";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
+import axios from "axios";
+import PropTypes from "prop-types";
 
-// eslint-disable-next-line react/prop-types
-const EditProfileDialog = ({ open, onClose, initialData }) => {
+const EditProfileDialog = ({ open, onClose, user }) => {
   const [values, setValues] = useState({
-    id: 123,
+    id: "",
     usertype: "",
-    first_name: "",
-    last_name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     contact: "",
     password: "",
-    showPassword: false,
+    cnic: "",
+    province: null,
+    division: null,
+    district: null,
+    tehsil: null,
+    hospital: null,
   });
 
   useEffect(() => {
-    if (initialData) {
-      setValues({ ...initialData });
+    if (user) {
+      setValues({ ...user });
     }
-  }, [initialData]);
+  }, [user]);
 
   const handleChange = (prop) => (event) => {
     setValues({ ...values, [prop]: event.target.value });
   };
 
   const handleClickShowPassword = () => {
-    setValues({ ...values, showPassword: !values.showPassword });
+    setValues((prevValues) => ({
+      ...prevValues,
+      showPassword: !prevValues.showPassword,
+    }));
   };
 
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
 
-  const handleSave = () => {
-    console.log("Updated values:", values);
-    onClose();
+  const handleSave = async () => {
+    const payload = {
+      ...values,
+      tehsil: values.usertype === "Tehsil Administrator" ? values.tehsil : null,
+      division:
+        values.usertype === "Division Administrator" ? values.division : null,
+      district:
+        values.usertype === "District Administrator" ? values.district : null,
+      province:
+        values.usertype === "Province Administrator" ? values.province : null,
+      hospital:
+        values.usertype === "Hospital Administrator" ? values.hospital : null,
+    };
+
+    try {
+      await axios.put("http://localhost:8080/user/update", payload);
+      onClose();
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+    }
   };
 
   return (
@@ -75,22 +101,20 @@ const EditProfileDialog = ({ open, onClose, initialData }) => {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                id="outlined-required-usertype"
-                label="User Type"
-                value={values.usertype}
-                InputProps={{
-                  readOnly: true,
-                }}
+                id="outlined-required-cnic"
+                label="CNIC"
+                value={values.cnic}
+                onChange={handleChange("cnic")}
               />
             </Grid>
+
             <Grid item xs={6}>
               <TextField
                 fullWidth
                 id="outlined-required-firstname"
                 label="First Name"
-                sx={{}}
-                value={values.first_name}
-                onChange={handleChange("first_name")}
+                value={values.firstName}
+                onChange={handleChange("firstName")}
               />
             </Grid>
             <Grid item xs={6}>
@@ -98,9 +122,20 @@ const EditProfileDialog = ({ open, onClose, initialData }) => {
                 fullWidth
                 id="outlined-required-lastname"
                 label="Last Name"
-                padding="normal"
-                value={values.last_name}
-                onChange={handleChange("last_name")}
+                value={values.lastName}
+                onChange={handleChange("lastName")}
+              />
+            </Grid>
+
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                id="outlined-required-usertype"
+                label="User Type"
+                value={values.usertype}
+                InputProps={{
+                  readOnly: true,
+                }}
               />
             </Grid>
             <Grid item xs={6}>
@@ -121,7 +156,8 @@ const EditProfileDialog = ({ open, onClose, initialData }) => {
                 onChange={handleChange("email")}
               />
             </Grid>
-            <Grid item xs={12}>
+
+            <Grid item xs={6}>
               <OutlinedInput
                 fullWidth
                 id="outlined-adornment-password"
@@ -163,3 +199,9 @@ const EditProfileDialog = ({ open, onClose, initialData }) => {
 };
 
 export default EditProfileDialog;
+
+EditProfileDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  user: PropTypes.object.isRequired,
+};

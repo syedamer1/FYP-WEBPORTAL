@@ -1,94 +1,86 @@
-/* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import {
   Button,
   Dialog,
-  Box,
-  DialogTitle,
-  DialogContent,
   DialogActions,
+  DialogContent,
+  DialogTitle,
   TextField,
+  Box,
   Grid,
 } from "@mui/material";
+import PropTypes from "prop-types";
+import axios from "axios";
 
-const EditProvinceDialog = ({ open, onClose, initialData }) => {
-  const [values, setValues] = useState({
+function EditProvinceDialog({ open, onClose, province, refresh }) {
+  const [formData, setFormData] = useState({
     id: "",
     name: "",
-    createdAt: "",
-    updatedAt: "",
   });
 
   useEffect(() => {
-    if (initialData) {
-      setValues({ ...initialData });
+    if (province) {
+      setFormData({
+        id: province.id,
+        name: province.name,
+      });
     }
-  }, [initialData]);
+  }, [province]);
 
-  const handleChange = (prop) => (event) => {
-    setValues({ ...values, [prop]: event.target.value });
+  const handleChange = (e) => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [e.target.name]: e.target.value,
+    }));
   };
 
-  const handleSave = () => {
-    console.log("Updated values:", values);
-    onClose();
+  const handleSubmit = async () => {
+    try {
+      await axios.put(`http://localhost:8080/province/update`, formData);
+      refresh();
+      onClose();
+    } catch (error) {
+      console.error("Error updating province:", error);
+    }
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      aria-describedby="edit-province-dialog"
-    >
+    <Dialog open={open} onClose={onClose}>
       <Box sx={{ p: 2 }}>
         <DialogTitle variant="h3">Edit Province</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={6}>
+          <Grid container spacing={2}>
+            {/* Province Name */}
+            <Grid item xs={12}>
               <TextField
-                fullWidth
-                label="ID"
-                value={values.id}
-                InputProps={{ readOnly: true }}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
+                autoFocus
+                margin="dense"
                 label="Name"
-                value={values.name}
-                onChange={handleChange("name")}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
+                type="text"
                 fullWidth
-                label="Created At"
-                value={values.createdAt}
-                InputProps={{ readOnly: true }}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Updated At"
-                value={values.updatedAt}
-                InputProps={{ readOnly: true }}
+                variant="outlined"
+                value={formData.name}
+                onChange={handleChange}
               />
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button color="primary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="contained" onClick={handleSave}>
-            Save
+          <Button onClick={onClose}>Cancel</Button>
+          <Button variant="contained" onClick={handleSubmit}>
+            Update
           </Button>
         </DialogActions>
       </Box>
     </Dialog>
   );
+}
+
+EditProvinceDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  province: PropTypes.object.isRequired,
+  refresh: PropTypes.func.isRequired,
 };
 
 export default EditProvinceDialog;

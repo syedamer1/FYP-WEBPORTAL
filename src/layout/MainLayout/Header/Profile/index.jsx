@@ -74,8 +74,9 @@ const Profile = () => {
   const profileData = {
     id: 123,
     usertype: "Super Administrator",
-    first_name: "Ayesha",
-    last_name: "Ali",
+    firstName: "Ayesha",
+    lastName: "Ali",
+    cnic: "123123-1323123-13",
     email: "johnsmith@example.com",
     contact: "09123456789",
     password: "121212121",
@@ -250,7 +251,7 @@ const Profile = () => {
       <EditProfileDialog
         open={editProfileOpen}
         onClose={handleEditProfileClose}
-        initialData={profileData}
+        user={profileData}
       />
     </Box>
   );

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -45,22 +45,12 @@ const Dashboard = () => {
   const [selectedDisease, setSelectedDisease] = useState(null);
   const [disease, setDisease] = useState(["COVID-19", "Influenza", "Ebola"]);
   const [fetching, setFetching] = useState(true);
-  const hasEffectRun = useRef(false); // Create a ref to track whether the effect has run
 
   useEffect(() => {
-    if (!hasEffectRun.current && fetching) {
-      console.log("Effect running");
-      fetchDisease$({ setDisease });
-      hasEffectRun.current = true;
-      setFetching(false); // Update the ref to indicate the effect has run
-    }
-
-    // Cleanup function
-    return () => {
-      console.log("Effect cleanup");
-      // You can perform any cleanup here if needed
-    };
-  }, [fetching]); // Effect will run only when fetching changes
+    setFetching(true);
+    fetchDisease$({ setDisease });
+    setFetching(false);
+  }, [disease]);
 
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>

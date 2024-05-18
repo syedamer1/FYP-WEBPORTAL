@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import PropTypes from "prop-types";
 import {
   Button,
   Dialog,
@@ -16,72 +16,96 @@ import {
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import axios from "axios";
-import PropTypes from "prop-types";
 
-const AddUserDialog = ({
-  open,
-  onClose,
-  tehsilOptions,
-  divisionOptions,
-  districtOptions,
-  provinceOptions,
-  hospitalOptions,
-}) => {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    cnic: "",
-    email: "",
-    contact: "",
-    password: "",
-    usertype: "",
-    tehsil: { id: "", name: "" },
-    division: { id: "", name: "" },
-    district: { id: "", name: "" },
-    province: { id: "", name: "" },
-    hospital: { id: "", name: "" },
-  });
-  const [showPassword, setShowPassword] = useState(false);
-  const [areaOptions, setAreaOptions] = useState([]);
-  const [selectedArea, setSelectedArea] = useState({
-    id: "",
-    name: "",
-  });
-
-  const handleInputChange = useCallback(
-    (e) => {
-      const { name, value } = e.target;
-      setFormData({ ...formData, [name]: value });
-    },
-    [formData]
+const AddUserDialog = ({ open, onClose, refresh }) => {
+  const initialState = useMemo(
+    () => ({
+      firstName: "",
+      lastName: "",
+      cnic: "",
+      email: "",
+      contact: "",
+      password: "",
+      usertype: "Super Administrator",
+      tehsil: { id: "", name: "" },
+      division: { id: "", name: "" },
+      district: { id: "", name: "" },
+      province: { id: "", name: "" },
+      hospital: { id: "", name: "" },
+    }),
+    []
   );
 
-  const handleUserTypeChange = (event, newValue) => {
-    if (newValue === null) return;
-    setFormData({ ...formData, usertype: newValue });
-    setSelectedArea({ id: "", name: "" });
-    switch (newValue) {
-      case "Super Administrator":
-        setAreaOptions([]);
-        break;
-      case "Tehsil Administrator":
-        setAreaOptions(tehsilOptions);
-        break;
-      case "Division Administrator":
-        setAreaOptions(divisionOptions);
-        break;
-      case "District Administrator":
-        setAreaOptions(districtOptions);
-        break;
-      case "Province Administrator":
-        setAreaOptions(provinceOptions);
-        break;
-      case "Hospital Administrator":
-        setAreaOptions(hospitalOptions);
-        break;
-      default:
-        setAreaOptions([]);
+  const [formData, setFormData] = useState({ ...initialState });
+  const [showPassword, setShowPassword] = useState(false);
+  const [areaOptions, setAreaOptions] = useState([]);
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [tehsilOptions, setTehsilOptions] = useState([]);
+  const [divisionOptions, setDivisionOptions] = useState([]);
+  const [districtOptions, setDistrictOptions] = useState([]);
+  const [provinceOptions, setProvinceOptions] = useState([]);
+  const [hospitalOptions, setHospitalOptions] = useState([]);
+
+  useEffect(() => {
+    setFormData({ ...initialState });
+
+    const fetchOptions = async () => {
+      try {
+        const endpoints = [
+          "tehsil/getIdAndName",
+          "division/getIdAndName",
+          "district/getIdAndName",
+          "province/getIdAndName",
+          "hospital/getIdAndName",
+        ];
+
+        const [
+          tehsilData,
+          divisionData,
+          districtData,
+          provinceData,
+          hospitalData,
+        ] = await Promise.all(
+          endpoints.map((endpoint) =>
+            axios.get(`http://localhost:8080/${endpoint}`)
+          )
+        );
+
+        setTehsilOptions(tehsilData.data);
+        setDivisionOptions(divisionData.data);
+        setDistrictOptions(districtData.data);
+        setProvinceOptions(provinceData.data);
+        setHospitalOptions(hospitalData.data);
+      } catch (error) {
+        console.error("Error fetching options:", error);
+      }
+    };
+
+    if (open) {
+      fetchOptions();
     }
+  }, [open, initialState]);
+
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
+  }, []);
+
+  const handleUserTypeChange = (e, newValue) => {
+    setFormData((prevData) => ({ ...prevData, usertype: newValue || "" }));
+    setSelectedArea({ id: "", name: "" });
+    const optionsMap = {
+      "Tehsil Administrator": tehsilOptions,
+      "Division Administrator": divisionOptions,
+      "District Administrator": districtOptions,
+      "Province Administrator": provinceOptions,
+      "Hospital Administrator": hospitalOptions,
+    };
+    setAreaOptions(optionsMap[newValue] || []);
+  };
+
+  const handleAreaChange = (event, newValue) => {
+    setSelectedArea(newValue || null);
   };
 
   const handleTogglePasswordVisibility = () => {
@@ -90,13 +114,7 @@ const AddUserDialog = ({
 
   const handleSubmit = async () => {
     const submitData = {
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      cnic: formData.cnic,
-      email: formData.email,
-      contact: formData.contact,
-      password: formData.password,
-      usertype: formData.usertype,
+      ...formData,
       tehsil:
         formData.usertype === "Tehsil Administrator"
           ? { id: selectedArea.id }
@@ -120,217 +138,132 @@ const AddUserDialog = ({
     };
     try {
       await axios.post("http://localhost:8080/user/add", submitData);
-      setFormData({
-        firstName: "",
-        lastName: "",
-        cnic: "",
-        email: "",
-        contact: "",
-        password: "",
-        usertype: "",
-        tehsil: { id: "", name: "" },
-        division: { id: "", name: "" },
-        district: { id: "", name: "" },
-        province: { id: "", name: "" },
-        hospital: { id: "", name: "" },
-      });
+      setFormData({ ...initialState });
+      setSelectedArea(null);
+      refresh();
+      onClose();
     } catch (error) {
       console.error("Error creating user:", error);
     }
-    onClose();
   };
 
   return (
-    <>
-      <Dialog open={open} onClose={onClose}>
-        <Box sx={{ p: 2 }}>
-          <DialogTitle variant="h3">Add User</DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
+    <Dialog open={open} onClose={onClose}>
+      <Box sx={{ p: 2 }}>
+        <DialogTitle variant="h3">Add User</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2}>
+            {["firstName", "lastName", "cnic", "contact"].map((field) => (
+              <Grid item xs={6} key={field}>
                 <TextField
                   margin="dense"
-                  name="firstName"
-                  label="First Name"
+                  name={field}
+                  label={field.replace(/^\w/, (c) => c.toUpperCase())}
                   type="text"
                   fullWidth
                   variant="outlined"
-                  value={formData.firstName}
+                  value={formData[field]}
                   onChange={handleInputChange}
                 />
               </Grid>
+            ))}
+            <Grid
+              item
+              xs={formData.usertype === "Super Administrator" ? 12 : 6}
+            >
+              <Autocomplete
+                fullWidth
+                disablePortal
+                id="user-type-autocomplete"
+                value={formData.usertype}
+                onChange={handleUserTypeChange}
+                options={[
+                  "Super Administrator",
+                  "Province Administrator",
+                  "Division Administrator",
+                  "District Administrator",
+                  "Tehsil Administrator",
+                  "Hospital Administrator",
+                ]}
+                renderInput={(params) => (
+                  <TextField {...params} label="User Type" variant="outlined" />
+                )}
+              />
+            </Grid>
+            {formData.usertype !== "Super Administrator" && (
               <Grid item xs={6}>
-                <TextField
-                  margin="dense"
-                  name="lastName"
-                  label="Last Name"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  margin="dense"
-                  name="cnic"
-                  label="CNIC"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={formData.cnic}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  margin="dense"
-                  name="contact"
-                  label="Contact"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={formData.contact}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid
-                item
-                xs={formData.usertype === "Super Administrator" ? 12 : 6}
-              >
                 <Autocomplete
                   fullWidth
                   disablePortal
-                  id="user-type-autocomplete"
-                  value={formData.usertype}
-                  onChange={handleUserTypeChange}
-                  options={[
-                    "Super Administrator",
-                    "Province Administrator",
-                    "Division Administrator",
-                    "District Administrator",
-                    "Tehsil Administrator",
-                    "Hospital Administrator",
-                  ]}
+                  id="area-autocomplete"
+                  value={selectedArea}
+                  onChange={handleAreaChange}
+                  options={areaOptions}
+                  getOptionLabel={(option) => option.name || ""}
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="User Type"
+                      label={formData.usertype.replace(" Administrator", "")}
                       variant="outlined"
                     />
                   )}
                 />
               </Grid>
-              {formData.usertype !== "Super Administrator" && (
-                <Grid item xs={6}>
-                  <Autocomplete
-                    fullWidth
-                    disablePortal
-                    id="area-autocomplete"
-                    value={selectedArea}
-                    onChange={(event, newValue) => {
-                      setSelectedArea({ id: newValue.id, name: newValue.name });
-                    }}
-                    options={areaOptions}
-                    getOptionLabel={(option) => option.name || ""}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label={`${formData.usertype.replace(
-                          " Administrator",
-                          ""
-                        )} Name`}
-                        variant="outlined"
-                      />
-                    )}
-                  />
-                </Grid>
-              )}
-              <Grid item xs={6}>
-                <TextField
-                  margin="dense"
-                  name="email"
-                  label="Email"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  margin="dense"
-                  name="password"
-                  label="Password"
-                  type={showPassword ? "text" : "password"}
-                  fullWidth
-                  variant="outlined"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton onClick={handleTogglePasswordVisibility}>
-                          {showPassword ? (
-                            <VisibilityOffIcon />
-                          ) : (
-                            <VisibilityIcon />
-                          )}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
+            )}
+            <Grid item xs={6}>
+              <TextField
+                margin="dense"
+                name="email"
+                label="Email"
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={formData.email}
+                onChange={handleInputChange}
+              />
             </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={onClose}>Cancel</Button>
-            <Button variant="contained" onClick={handleSubmit}>
-              Add
-            </Button>
-          </DialogActions>
-        </Box>
-      </Dialog>
-    </>
+            <Grid item xs={6}>
+              <TextField
+                margin="dense"
+                name="password"
+                label="Password"
+                type={showPassword ? "text" : "password"}
+                fullWidth
+                variant="outlined"
+                value={formData.password}
+                onChange={handleInputChange}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={handleTogglePasswordVisibility}>
+                        {showPassword ? (
+                          <VisibilityOffIcon />
+                        ) : (
+                          <VisibilityIcon />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button variant="contained" onClick={handleSubmit}>
+            Add
+          </Button>
+        </DialogActions>
+      </Box>
+    </Dialog>
   );
 };
-
-export default AddUserDialog;
 
 AddUserDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  tehsilOptions: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    })
-  ).isRequired,
-  divisionOptions: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    })
-  ).isRequired,
-  districtOptions: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    })
-  ).isRequired,
-  provinceOptions: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    })
-  ).isRequired,
-  hospitalOptions: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    })
-  ).isRequired,
+  refresh: PropTypes.func.isRequired,
 };
+
+export default AddUserDialog;
