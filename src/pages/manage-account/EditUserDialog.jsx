@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
 import { useState, useEffect, useCallback } from "react";
+import PropTypes from "prop-types";
 import {
   Button,
   Dialog,
@@ -16,93 +16,151 @@ import {
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import axios from "axios";
-import PropTypes from "prop-types";
 
-const EditUserDialog = ({
-  open,
-  onClose,
-  userData,
-  tehsilOptions,
-  divisionOptions,
-  districtOptions,
-  provinceOptions,
-  hospitalOptions,
-}) => {
-  const [formData, setFormData] = useState({
-    id: "",
-    firstName: "",
-    lastName: "",
-    cnic: "",
-    email: "",
-    contact: "",
-    password: "",
-    usertype: "",
-    tehsil: { id: "", name: "" },
-    division: { id: "", name: "" },
-    district: { id: "", name: "" },
-    province: { id: "", name: "" },
-    hospital: { id: "", name: "" },
-  });
+const EditUserDialog = ({ open, onClose, refresh, account }) => {
+  const [formData, setFormData] = useState(account);
   const [showPassword, setShowPassword] = useState(false);
   const [areaOptions, setAreaOptions] = useState([]);
   const [selectedArea, setSelectedArea] = useState({
     id: "",
     name: "",
   });
+  const [tehsilOptions, setTehsilOptions] = useState([]);
+  const [divisionOptions, setDivisionOptions] = useState([]);
+  const [districtOptions, setDistrictOptions] = useState([]);
+  const [provinceOptions, setProvinceOptions] = useState([]);
+  const [hospitalOptions, setHospitalOptions] = useState([]);
 
   useEffect(() => {
-    if (userData) {
-      setFormData({ ...userData });
-      const userTypeData = {
-        "Tehsil Administrator": userData.tehsil,
-        "Division Administrator": userData.division,
-        "District Administrator": userData.district,
-        "Province Administrator": userData.province,
-        "Hospital Administrator": userData.hospital,
-      };
-      const selectedAreaData = userTypeData[userData.usertype] || {
-        id: "",
-        name: "",
-      };
-      setSelectedArea(selectedAreaData);
+    const fetchOptions = async () => {
+      try {
+        // Fetch Tehsil options
+        const tehsilResponse = await axios
+          .get("http://localhost:8080/tehsil/getIdAndName")
+          .catch((error) => ({ error }));
+        if (tehsilResponse.error)
+          throw new Error(
+            `Error fetching Tehsil options: ${tehsilResponse.error}`
+          );
+        console.log(tehsilResponse.data);
+        setTehsilOptions(tehsilResponse.data);
 
-      setAreaOptions(getAreaOptions(userData.usertype));
-    }
-  }, [userData]);
+        // Fetch Division options
+        const divisionResponse = await axios
+          .get("http://localhost:8080/division/getIdAndName")
+          .catch((error) => ({ error }));
+        if (divisionResponse.error)
+          throw new Error(
+            `Error fetching Division options: ${divisionResponse.error}`
+          );
+        console.log(divisionResponse.data);
+        setDivisionOptions(divisionResponse.data);
 
-  const getAreaOptions = (userType) => {
-    switch (userType) {
-      case "Tehsil Administrator":
-        return tehsilOptions;
-      case "Division Administrator":
-        return divisionOptions;
-      case "District Administrator":
-        return districtOptions;
-      case "Province Administrator":
-        return provinceOptions;
-      case "Hospital Administrator":
-        return hospitalOptions;
-      default:
-        return [];
+        // Fetch District options
+        const districtResponse = await axios
+          .get("http://localhost:8080/district/getIdAndName")
+          .catch((error) => ({ error }));
+        if (districtResponse.error)
+          throw new Error(
+            `Error fetching District options: ${districtResponse.error}`
+          );
+        console.log(districtResponse.data);
+        setDistrictOptions(districtResponse.data);
+
+        // Fetch Province options
+        const provinceResponse = await axios
+          .get("http://localhost:8080/province/getIdAndName")
+          .catch((error) => ({ error }));
+        if (provinceResponse.error)
+          throw new Error(
+            `Error fetching Province options: ${provinceResponse.error}`
+          );
+        console.log(provinceResponse.data);
+        setProvinceOptions(provinceResponse.data);
+
+        // Fetch Hospital options
+        const hospitalResponse = await axios
+          .get("http://localhost:8080/hospital/getIdAndName")
+          .catch((error) => ({ error }));
+        if (hospitalResponse.error)
+          throw new Error(
+            `Error fetching Hospital options: ${hospitalResponse.error}`
+          );
+        console.log(hospitalResponse.data);
+        setHospitalOptions(hospitalResponse.data);
+      } catch (error) {
+        console.error("Error fetching options:", error);
+      }
+    };
+
+    if (open) {
+      fetchOptions();
     }
-  };
+  }, [open]);
+
+  useEffect(() => {
+    const updateSelectedArea = () => {
+      switch (formData.usertype) {
+        case "Tehsil Administrator":
+          setAreaOptions(tehsilOptions);
+          break;
+        case "Division Administrator":
+          setAreaOptions(divisionOptions);
+          break;
+        case "District Administrator":
+          setAreaOptions(districtOptions);
+          break;
+        case "Province Administrator":
+          setAreaOptions(provinceOptions);
+          break;
+        case "Hospital Administrator":
+          setAreaOptions(hospitalOptions);
+          break;
+        default:
+          setAreaOptions([]);
+          setSelectedArea({ id: "", name: "" });
+      }
+    };
+    updateSelectedArea();
+  }, [
+    formData.usertype,
+    tehsilOptions,
+    divisionOptions,
+    districtOptions,
+    provinceOptions,
+    hospitalOptions,
+  ]);
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
+    setFormData((prevData) => ({
+      ...prevData,
       [name]: value,
     }));
   }, []);
 
   const handleUserTypeChange = (event, newValue) => {
-    if (!newValue) return;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      usertype: newValue,
-    }));
-    setSelectedArea({ id: "", name: "" });
-    setAreaOptions(getAreaOptions(newValue));
+    if (!newValue) {
+      setFormData((prevData) => ({
+        ...prevData,
+        usertype: "",
+      }));
+      setSelectedArea({ id: "", name: "" });
+      setAreaOptions([]);
+    } else {
+      setFormData((prevData) => ({
+        ...prevData,
+        usertype: newValue,
+      }));
+    }
+  };
+
+  const handleAreaChange = (event, newValue) => {
+    if (!newValue) {
+      setSelectedArea({ id: "", name: "" });
+    } else {
+      setSelectedArea(newValue);
+    }
   };
 
   const handleTogglePasswordVisibility = () => {
@@ -111,7 +169,6 @@ const EditUserDialog = ({
 
   const handleSubmit = async () => {
     const submitData = {
-      id: formData.id,
       firstName: formData.firstName,
       lastName: formData.lastName,
       cnic: formData.cnic,
@@ -140,19 +197,21 @@ const EditUserDialog = ({
           ? { id: selectedArea.id }
           : null,
     };
+    console.log("Submit data:", submitData);
     try {
       await axios.put(`http://localhost:8080/user/update`, submitData);
+      refresh();
+      onClose();
     } catch (error) {
-      console.error("Error updating user data:", error);
+      console.error("Error updating user:", error);
     }
-    onClose();
   };
 
   return (
     <>
       <Dialog open={open} onClose={onClose}>
         <Box sx={{ p: 2 }}>
-          <DialogTitle variant="h3">Edit Account</DialogTitle>
+          <DialogTitle variant="h3">Edit User</DialogTitle>
           <DialogContent>
             <Grid container spacing={2}>
               <Grid item xs={6}>
@@ -237,18 +296,13 @@ const EditUserDialog = ({
                     disablePortal
                     id="area-autocomplete"
                     value={selectedArea}
-                    onChange={(event, newValue) => {
-                      setSelectedArea({ id: newValue.id, name: newValue.name });
-                    }}
+                    onChange={handleAreaChange}
                     options={areaOptions}
                     getOptionLabel={(option) => option.name || ""}
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        label={`${formData.usertype.replace(
-                          " Administrator",
-                          ""
-                        )} Name`}
+                        label={formData.usertype.replace(" Administrator", "")}
                         variant="outlined"
                       />
                     )}
@@ -306,44 +360,11 @@ const EditUserDialog = ({
   );
 };
 
-export default EditUserDialog;
-
 EditUserDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  userData: PropTypes.shape({
-    id: PropTypes.number,
-    firstName: PropTypes.string,
-    lastName: PropTypes.string,
-    cnic: PropTypes.string,
-    email: PropTypes.string,
-    contact: PropTypes.string,
-    password: PropTypes.string,
-    usertype: PropTypes.string,
-    tehsil: PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    }),
-    division: PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    }),
-    district: PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    }),
-    province: PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    }),
-    hospital: PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    }),
-  }),
-  tehsilOptions: PropTypes.array.isRequired,
-  divisionOptions: PropTypes.array.isRequired,
-  districtOptions: PropTypes.array.isRequired,
-  provinceOptions: PropTypes.array.isRequired,
-  hospitalOptions: PropTypes.array.isRequired,
+  refresh: PropTypes.func.isRequired,
+  account: PropTypes.object.isRequired,
 };
+
+export default EditUserDialog;

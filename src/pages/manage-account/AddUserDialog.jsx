@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import PropTypes from "prop-types";
 import {
   Button,
   Dialog,
@@ -16,71 +16,152 @@ import {
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import axios from "axios";
-import PropTypes from "prop-types";
 
-const AddUserDialog = ({
-  open,
-  onClose,
-  tehsilOptions,
-  divisionOptions,
-  districtOptions,
-  provinceOptions,
-  hospitalOptions,
-}) => {
-  const [formData, setFormData] = useState({
+const AddUserDialog = ({ open, onClose, refresh }) => {
+  const initialState = {
     firstName: "",
     lastName: "",
     cnic: "",
     email: "",
     contact: "",
     password: "",
-    usertype: "",
+    usertype: "Super Administrator",
     tehsil: { id: "", name: "" },
     division: { id: "", name: "" },
     district: { id: "", name: "" },
     province: { id: "", name: "" },
     hospital: { id: "", name: "" },
-  });
+  };
+  const [formData, setFormData] = useState({ ...initialState });
   const [showPassword, setShowPassword] = useState(false);
   const [areaOptions, setAreaOptions] = useState([]);
-  const [selectedArea, setSelectedArea] = useState({
-    id: "",
-    name: "",
-  });
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [tehsilOptions, setTehsilOptions] = useState([]);
+  const [divisionOptions, setDivisionOptions] = useState([]);
+  const [districtOptions, setDistrictOptions] = useState([]);
+  const [provinceOptions, setProvinceOptions] = useState([]);
+  const [hospitalOptions, setHospitalOptions] = useState([]);
 
-  const handleInputChange = useCallback(
-    (e) => {
-      const { name, value } = e.target;
-      setFormData({ ...formData, [name]: value });
-    },
-    [formData]
-  );
+  useEffect(() => {
+    setFormData({ ...initialState });
+    const fetchOptions = async () => {
+      try {
+        // Fetch Tehsil options
+        const tehsilResponse = await axios
+          .get("http://localhost:8080/tehsil/getIdAndName")
+          .catch((error) => ({ error }));
+        if (tehsilResponse.error)
+          throw new Error(
+            `Error fetching Tehsil options: ${tehsilResponse.error}`
+          );
+        console.log(tehsilResponse.data);
+        setTehsilOptions(tehsilResponse.data);
 
-  const handleUserTypeChange = (event, newValue) => {
-    if (newValue === null) return;
-    setFormData({ ...formData, usertype: newValue });
-    setSelectedArea({ id: "", name: "" });
-    switch (newValue) {
-      case "Super Administrator":
-        setAreaOptions([]);
-        break;
-      case "Tehsil Administrator":
-        setAreaOptions(tehsilOptions);
-        break;
-      case "Division Administrator":
-        setAreaOptions(divisionOptions);
-        break;
-      case "District Administrator":
-        setAreaOptions(districtOptions);
-        break;
-      case "Province Administrator":
-        setAreaOptions(provinceOptions);
-        break;
-      case "Hospital Administrator":
-        setAreaOptions(hospitalOptions);
-        break;
-      default:
-        setAreaOptions([]);
+        // Fetch Division options
+        const divisionResponse = await axios
+          .get("http://localhost:8080/division/getIdAndName")
+          .catch((error) => ({ error }));
+        if (divisionResponse.error)
+          throw new Error(
+            `Error fetching Division options: ${divisionResponse.error}`
+          );
+        console.log(divisionResponse.data);
+        setDivisionOptions(divisionResponse.data);
+
+        // Fetch District options
+        const districtResponse = await axios
+          .get("http://localhost:8080/district/getIdAndName")
+          .catch((error) => ({ error }));
+        if (districtResponse.error)
+          throw new Error(
+            `Error fetching District options: ${districtResponse.error}`
+          );
+        console.log(districtResponse.data);
+        setDistrictOptions(districtResponse.data);
+
+        // Fetch Province options
+        const provinceResponse = await axios
+          .get("http://localhost:8080/province/getIdAndName")
+          .catch((error) => ({ error }));
+        if (provinceResponse.error)
+          throw new Error(
+            `Error fetching Province options: ${provinceResponse.error}`
+          );
+        console.log(provinceResponse.data);
+        setProvinceOptions(provinceResponse.data);
+
+        // Fetch Hospital options
+        const hospitalResponse = await axios
+          .get("http://localhost:8080/hospital/getIdAndName")
+          .catch((error) => ({ error }));
+        if (hospitalResponse.error)
+          throw new Error(
+            `Error fetching Hospital options: ${hospitalResponse.error}`
+          );
+        console.log(hospitalResponse.data);
+        setHospitalOptions(hospitalResponse.data);
+      } catch (error) {
+        console.error("Error fetching options:", error);
+      }
+    };
+
+    if (open) {
+      fetchOptions();
+    }
+  }, [open]);
+
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  }, []);
+
+  const handleUserTypeChange = (e, newValue) => {
+    if (!newValue) {
+      setFormData((prevData) => ({
+        ...prevData,
+        usertype: "",
+      }));
+      console.log("No value selected");
+      setSelectedArea({ id: "", name: "" });
+      setAreaOptions([]);
+    } else {
+      setFormData((prevData) => ({
+        ...prevData,
+        usertype: newValue,
+      }));
+      console.log("Selected value:", newValue);
+      console.log(divisionOptions);
+      switch (newValue) {
+        case "Tehsil Administrator":
+          setAreaOptions(tehsilOptions);
+          break;
+        case "Division Administrator":
+          setAreaOptions(divisionOptions);
+          break;
+        case "District Administrator":
+          setAreaOptions(districtOptions);
+          break;
+        case "Province Administrator":
+          setAreaOptions(provinceOptions);
+          break;
+        case "Hospital Administrator":
+          setAreaOptions(hospitalOptions);
+          break;
+        default:
+          setAreaOptions([]);
+          setSelectedArea(null);
+      }
+    }
+  };
+
+  const handleAreaChange = (event, newValue) => {
+    if (!newValue) {
+      setSelectedArea(null);
+    } else {
+      setSelectedArea(newValue);
     }
   };
 
@@ -134,10 +215,12 @@ const AddUserDialog = ({
         province: { id: "", name: "" },
         hospital: { id: "", name: "" },
       });
+      setSelectedArea(null);
+      refresh();
+      onClose();
     } catch (error) {
       console.error("Error creating user:", error);
     }
-    onClose();
   };
 
   return (
@@ -229,18 +312,13 @@ const AddUserDialog = ({
                     disablePortal
                     id="area-autocomplete"
                     value={selectedArea}
-                    onChange={(event, newValue) => {
-                      setSelectedArea({ id: newValue.id, name: newValue.name });
-                    }}
+                    onChange={handleAreaChange}
                     options={areaOptions}
                     getOptionLabel={(option) => option.name || ""}
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        label={`${formData.usertype.replace(
-                          " Administrator",
-                          ""
-                        )} Name`}
+                        label={formData.usertype.replace(" Administrator", "")}
                         variant="outlined"
                       />
                     )}
@@ -298,39 +376,10 @@ const AddUserDialog = ({
   );
 };
 
-export default AddUserDialog;
-
 AddUserDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  tehsilOptions: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    })
-  ).isRequired,
-  divisionOptions: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    })
-  ).isRequired,
-  districtOptions: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    })
-  ).isRequired,
-  provinceOptions: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    })
-  ).isRequired,
-  hospitalOptions: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-    })
-  ).isRequired,
+  refresh: PropTypes.func.isRequired,
 };
+
+export default AddUserDialog;
