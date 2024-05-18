@@ -7,6 +7,6 @@
     { "src": "/predictive-analytics", "dest": "/" },
     { "src": "/manage-hospital", "dest": "/" },
     { "src": "/404NotFound", "dest": "/" },
-    { "src": "*", "dest": "/" }
+    { "src": "/*", "dest": "/404NotFound" }
   ]
 }
