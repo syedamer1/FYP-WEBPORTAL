@@ -1,10 +1,11 @@
 {
   "routes": [
-    { "src": "/", "dest": "/" },
-    { "src": "/login", "dest": "/" },
-    { "src": "/manage-account", "dest": "/" },
-    { "src": "/manage-area", "dest": "/" },
-    { "src": "/predictive-analytics", "dest": "/" },
-    { "src": "/manage-hospital", "dest": "/" }
+    { "src": "^/$", "dest": "/" },
+    { "src": "^/login$", "dest": "/login" },
+    { "src": "^/manage-account$", "dest": "/manage-account" },
+    { "src": "^/manage-area$", "dest": "/manage-area" },
+    { "src": "^/predictive-analytics$", "dest": "/predictive-analytics" },
+    { "src": "^/manage-hospital$", "dest": "/manage-hospital" },
+    { "src": "/.*", "dest": "/404" }
   ]
 }
