@@ -6,6 +6,7 @@
     { "src": "/manage-area", "dest": "/" },
     { "src": "/predictive-analytics", "dest": "/" },
     { "src": "/manage-hospital", "dest": "/" },
+    { "src": "/patient-records", "dest": "/" },
     { "src": "/404NotFound", "dest": "/" },
     { "src": "/*", "dest": "/404NotFound" }
   ]

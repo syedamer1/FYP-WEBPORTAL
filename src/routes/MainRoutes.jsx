@@ -13,6 +13,7 @@ const ManageArea = CustomLoader(lazy(() => import("@pages/manage-area")));
 const PredictiveAnalytics = CustomLoader(
   lazy(() => import("@pages/predictive-analytics"))
 );
+const PatientRecords = CustomLoader(lazy(() => import("@pages/patient-table")));
 
 const MainRoutes = {
   path: "/",
@@ -41,6 +42,10 @@ const MainRoutes = {
     {
       path: "manage-hospital",
       element: <ManageHospital />,
+    },
+    {
+      path: "patient-records",
+      element: <PatientRecords />,
     },
   ],
 };
