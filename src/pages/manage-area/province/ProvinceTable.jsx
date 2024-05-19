@@ -19,7 +19,7 @@ import {
 import EditProvinceDialog from "./EditProvinceDialog";
 import AddProvinceDialog from "./AddProvinceDialog";
 import DeleteConfirmation from "@components/DeleteConfirmation";
-import OverLayLoader from "@components/OverLayLoader";
+import OverLayLoader from "@components/OverlayLoader";
 const ProvinceTable = () => {
   const [deleteProvinceId, setDeleteProvinceId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

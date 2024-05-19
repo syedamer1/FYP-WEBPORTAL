@@ -19,7 +19,7 @@ import {
 import EditHospitalDialog from "./EditHospitalDialog";
 import AddHospitalDialog from "./AddHospitalDialog";
 import DeleteConfirmation from "@components/DeleteConfirmation";
-import OverLayLoader from "@components/OverLayLoader";
+import OverLayLoader from "@components/OverlayLoader";
 const HospitalTable = () => {
   const [deleteHospitalId, setDeleteHospitalId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
