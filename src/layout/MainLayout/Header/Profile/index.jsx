@@ -178,6 +178,7 @@ const Profile = () => {
                             onClick={handleLogout}
                           >
                             <LogoutIcon
+                              sx={{ display: { xs: "none", md: "block" } }}
                               style={{ fontSize: "2rem", color: "gray" }}
                             />
                           </IconButton>

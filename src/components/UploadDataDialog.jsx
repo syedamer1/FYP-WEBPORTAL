@@ -41,12 +41,14 @@ const UploadDataDialog = ({ open, onClose }) => {
   const handleUpload = () => {
     const formData = new FormData();
     formData.append("file", selectedFile);
+    formData.append("hospitalId", 1);
+    formData.append("diseaseId", 1);
 
     axios
-      .post(import.meta.env.VITE_REACT_APP_BASEURL + "/upload", formData)
+      .post(import.meta.env.VITE_REACT_APP_BASEURL + "patient/upload", formData)
       .then((response) => {
-        console.log(response.data); // Handle response from backend
-        handleClose(); // Close dialog after successful upload
+        console.log(response.data);
+        handleClose();
       })
       .catch((error) => {
         console.error("Error:", error);
