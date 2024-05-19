@@ -1,109 +1,132 @@
-import avataruser from "@assets/images/users/avatar-1.png";
+import React from "react";
+import PropTypes from "prop-types";
 import {
-  Avatar,
-  Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Grid,
   Typography,
+  Avatar,
+  Button,
+  Slide,
 } from "@mui/material";
 import {
+  AccessTime as AccessTimeIcon,
+  SupervisorAccount as SupervisorAccountIcon,
   AccountCircle as AccountCircleIcon,
   Badge as BadgeIcon,
   Email as EmailIcon,
   Phone as PhoneIcon,
-  Event as EventIcon,
 } from "@mui/icons-material";
-import PropTypes from "prop-types";
+
+import avataruser from "@assets/images/users/avatar-1.png";
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 const ViewProfileDialog = ({ open, onClose, profiledata }) => {
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
-      <DialogTitle variant="h3">View Profile</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      TransitionComponent={Transition}
+      maxWidth="xs"
+      PaperProps={{
+        style: {
+          borderRadius: "12px",
+          padding: "20px",
+        },
+      }}
+    >
+      <DialogTitle
+        variant="h3"
+        style={{
+          textAlign: "center",
+          fontWeight: "bold",
+          color: "#000",
+        }}
+      >
+        User Profile
+      </DialogTitle>
 
-      <DialogContent>
-        <Grid container spacing={2} alignItems="center" justifyContent="center">
-          <Grid item xs={12} style={{ textAlign: "center" }}>
+      <DialogContent dividers>
+        <Grid
+          container
+          justifyContent="center"
+          alignItems="center"
+          spacing={2}
+          style={{ marginBottom: "20px" }}
+        >
+          <Grid item xs={12}>
             <Avatar
               alt="profile user"
               src={avataruser}
-              style={{ width: 120, height: 120, marginBottom: "20px" }}
+              sx={{
+                width: 140,
+                height: 140,
+                margin: "0 auto",
+                border: "2px solid #1677ff",
+              }}
             />
           </Grid>
-
-          <Grid
-            item
-            xs={12}
-            md={6}
-            style={{ display: "flex", alignItems: "center" }}
-          >
-            <AccountCircleIcon style={{ marginRight: "10px" }} />
-            <div>
-              <Typography variant="h5">Full Name</Typography>
-              <Typography variant="body1">
-                {profiledata.first_name} {profiledata.last_name}
-              </Typography>
-            </div>
+          <Grid item xs={12} md={6}>
+            <InfoItem
+              icon={<AccountCircleIcon />}
+              label="Name"
+              value={`${profiledata.firstName} ${profiledata.lastName}`}
+            />
           </Grid>
-
-          <Grid
-            item
-            xs={12}
-            md={6}
-            style={{ display: "flex", alignItems: "center" }}
-          >
-            <BadgeIcon style={{ marginRight: "10px" }} />
-            <div>
-              <Typography variant="h5">User ID</Typography>
-              <Typography variant="body1">{profiledata.id}</Typography>
-            </div>
+          <Grid item xs={12} md={6}>
+            <InfoItem
+              icon={<BadgeIcon />}
+              label="Cnic"
+              value={profiledata.cnic}
+            />
           </Grid>
-
-          <Grid
-            item
-            xs={12}
-            md={6}
-            style={{ display: "flex", alignItems: "center" }}
-          >
-            <EmailIcon style={{ marginRight: "10px" }} />
-            <div>
-              <Typography variant="h5">Email</Typography>
-              <Typography variant="body1">{profiledata.email}</Typography>
-            </div>
+          <Grid item xs={12} md={6}>
+            <InfoItem
+              icon={<EmailIcon />}
+              label="Email"
+              value={profiledata.email}
+            />
           </Grid>
-
-          <Grid
-            item
-            xs={12}
-            md={6}
-            style={{ display: "flex", alignItems: "center" }}
-          >
-            <PhoneIcon style={{ marginRight: "10px" }} />
-            <div>
-              <Typography variant="h5">Contact</Typography>
-              <Typography variant="body1">{profiledata.contact}</Typography>
-            </div>
+          <Grid item xs={12} md={6}>
+            <InfoItem
+              icon={<PhoneIcon />}
+              label="Contact"
+              value={profiledata.contact}
+            />
           </Grid>
-
-          <Grid
-            item
-            xs={12}
-            md={6}
-            style={{ display: "flex", alignItems: "center" }}
-          >
-            <EventIcon style={{ marginRight: "10px" }} />
-            <div>
-              <Typography variant="h5">Created At</Typography>
-              <Typography variant="body1">{profiledata.created_at}</Typography>
-            </div>
+          <Grid item xs={12} md={6}>
+            <InfoItem
+              icon={<AccessTimeIcon />}
+              label="User Since:"
+              value={profiledata.createdOn}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <InfoItem
+              icon={<SupervisorAccountIcon />}
+              label="User Type"
+              value={profiledata.usertype}
+            />
           </Grid>
         </Grid>
       </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} variant="contained">
+      <DialogActions style={{ justifyContent: "center" }}>
+        <Button
+          onClick={onClose}
+          variant="contained"
+          color="primary"
+          style={{
+            borderRadius: "20px",
+            padding: "10px 20px",
+            fontWeight: "bold",
+          }}
+        >
           Close
         </Button>
       </DialogActions>
@@ -111,10 +134,47 @@ const ViewProfileDialog = ({ open, onClose, profiledata }) => {
   );
 };
 
-export default ViewProfileDialog;
+const InfoItem = ({ icon, label, value }) => (
+  <div style={{ display: "flex", alignItems: "center", marginBottom: "15px" }}>
+    {icon &&
+      React.cloneElement(icon, {
+        style: { marginRight: "10px", color: "#1677ff" },
+      })}
+    <div>
+      <Typography
+        variant="subtitle1"
+        gutterBottom
+        style={{ color: "#000", fontWeight: "bold" }}
+      >
+        {label}
+      </Typography>
+      <Typography variant="body2" style={{ color: "#000" }}>
+        {value}
+      </Typography>
+    </div>
+  </div>
+);
 
 ViewProfileDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  profiledata: PropTypes.object.isRequired,
+  profiledata: PropTypes.shape({
+    firstName: PropTypes.string,
+    lastName: PropTypes.string,
+    id: PropTypes.string,
+    email: PropTypes.string,
+    contact: PropTypes.string,
+    createdOn: PropTypes.string,
+    cnic: PropTypes.string,
+
+    usertype: PropTypes.string,
+  }).isRequired,
 };
+
+InfoItem.propTypes = {
+  icon: PropTypes.element,
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+};
+
+export default ViewProfileDialog;

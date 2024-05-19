@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import {
   Button,
   Dialog,
@@ -11,11 +11,16 @@ import {
   IconButton,
   TextField,
   Grid,
+  Slide,
 } from "@mui/material";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import axios from "axios";
 import PropTypes from "prop-types";
+
+const Transition = forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 const EditProfileDialog = ({ open, onClose, user }) => {
   const [values, setValues] = useState({
@@ -82,6 +87,13 @@ const EditProfileDialog = ({ open, onClose, user }) => {
       open={open}
       onClose={onClose}
       aria-describedby="edit-profile-dialog"
+      PaperProps={{
+        style: {
+          borderRadius: "12px",
+          padding: "4px",
+        },
+      }}
+      TransitionComponent={Transition}
     >
       <Box sx={{ p: 2 }}>
         <DialogTitle variant="h3">Edit Profile</DialogTitle>

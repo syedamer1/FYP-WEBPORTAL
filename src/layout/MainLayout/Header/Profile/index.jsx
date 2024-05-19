@@ -80,6 +80,7 @@ const Profile = () => {
     email: "johnsmith@example.com",
     contact: "09123456789",
     password: "121212121",
+    createdOn: "02-12-2024",
   };
 
   return (
