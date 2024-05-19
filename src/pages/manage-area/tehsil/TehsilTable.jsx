@@ -79,7 +79,8 @@ const TehsilTable = () => {
     try {
       if (deleteTehsilId) {
         await axios.delete(
-         import.meta.env.VITE_REACT_APP_BASEURL + '/tehsil/delete/${deleteTehsilId}` // Updated API endpoint
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/tehsil/delete/${deleteTehsilId}"
         );
         refetch();
       }
