@@ -36,7 +36,10 @@ function EditProvinceDialog({ open, onClose, province, refresh }) {
 
   const handleSubmit = async () => {
     try {
-      await axios.put(`http://localhost:8080/province/update`, formData);
+      await axios.put(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/province/update",
+        formData
+      );
       refresh();
       onClose();
     } catch (error) {

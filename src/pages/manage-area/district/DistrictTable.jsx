@@ -51,7 +51,9 @@ const DistrictTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const response = await axios.get("http://localhost:8080/district/get"); // Updated API endpoint
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/district/get"
+      ); // Updated API endpoint
 
       return {
         data: response.data,
@@ -77,7 +79,8 @@ const DistrictTable = () => {
     try {
       if (deleteDistrictId) {
         await axios.delete(
-          `http://localhost:8080/district/delete/${deleteDistrictId}` // Updated API endpoint
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/district/delete/${deleteDistrictId}"
         );
         console.log("District deleted");
         refetch();

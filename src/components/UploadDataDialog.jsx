@@ -43,7 +43,7 @@ const UploadDataDialog = ({ open, onClose }) => {
     formData.append("file", selectedFile);
 
     axios
-      .post("http://localhost:8080/upload", formData)
+      .post(import.meta.env.VITE_REACT_APP_BASEURL + "/upload", formData)
       .then((response) => {
         console.log(response.data); // Handle response from backend
         handleClose(); // Close dialog after successful upload

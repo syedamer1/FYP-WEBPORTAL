@@ -69,7 +69,10 @@ const EditProfileDialog = ({ open, onClose, user }) => {
       };
 
       try {
-        await axios.put("http://localhost:8080/user/update", payload);
+        await axios.put(
+          import.meta.env.VITE_REACT_APP_BASEURL + "/user/update",
+          payload
+        );
         onClose();
       } catch (error) {
         console.error("Error updating user profile:", error);

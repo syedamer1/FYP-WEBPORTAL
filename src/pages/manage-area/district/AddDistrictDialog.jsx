@@ -26,7 +26,7 @@ const AddDistrictDialog = ({ open, onClose, refresh }) => {
     const fetchDivisionOptions = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/division/getIdAndName"
+          import.meta.env.VITE_REACT_APP_BASEURL + "/division/getIdAndName"
         );
         setDivisionOptions(response.data);
       } catch (error) {
@@ -60,7 +60,10 @@ const AddDistrictDialog = ({ open, onClose, refresh }) => {
 
   const handleSubmit = async () => {
     try {
-      await axios.post("http://localhost:8080/district/add", formData);
+      await axios.post(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/district/add",
+        formData
+      );
       setFormData({
         name: "",
         division: { id: "", name: "" },

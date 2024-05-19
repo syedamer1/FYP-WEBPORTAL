@@ -52,7 +52,9 @@ const HospitalTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const fetchURL = new URL("http://localhost:8080/hospital/get");
+      const fetchURL = new URL(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/hospital/get"
+      );
 
       // fetchURL.searchParams.set(
       //   "start",
@@ -119,7 +121,8 @@ const HospitalTable = () => {
     try {
       if (deleteHospitalId) {
         await axios.delete(
-          `http://localhost:8080/hospital/delete/${deleteHospitalId}`
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/hospital/delete/${deleteHospitalId}"
         );
         refetch();
       }

@@ -52,7 +52,9 @@ const ProvinceTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const fetchURL = new URL("http://localhost:8080/province/get");
+      const fetchURL = new URL(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/province/get"
+      );
 
       const response = await axios.get(fetchURL.href);
 
@@ -112,7 +114,8 @@ const ProvinceTable = () => {
     try {
       if (deleteProvinceId) {
         await axios.delete(
-          `http://localhost:8080/province/delete/${deleteProvinceId}`
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/province/delete/${deleteProvinceId}"
         );
         refetch();
       }

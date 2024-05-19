@@ -32,7 +32,7 @@ const EditDistrictDialog = ({ open, onClose, district, refresh }) => {
     const fetchDivisionOptions = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/division/getIdAndName"
+          import.meta.env.VITE_REACT_APP_BASEURL + "/division/getIdAndName"
         );
         setDivisionOptions(response.data);
       } catch (error) {
@@ -71,7 +71,10 @@ const EditDistrictDialog = ({ open, onClose, district, refresh }) => {
       division: { id: formData.division.id },
     };
     try {
-      await axios.put(`http://localhost:8080/district/update`, submitData);
+      await axios.put(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/district/update",
+        submitData
+      );
       onClose();
       refresh();
     } catch (error) {

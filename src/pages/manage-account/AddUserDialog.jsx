@@ -67,7 +67,7 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
           hospitalData,
         ] = await Promise.all(
           endpoints.map((endpoint) =>
-            axios.get(`http://localhost:8080/${endpoint}`)
+            axios.get(import.meta.env.VITE_REACT_APP_BASEURL + "/${endpoint}")
           )
         );
 
@@ -137,7 +137,10 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
           : null,
     };
     try {
-      await axios.post("http://localhost:8080/user/add", submitData);
+      await axios.post(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/user/add",
+        submitData
+      );
       setFormData({ ...initialState });
       setSelectedArea(null);
       refresh();

@@ -26,7 +26,7 @@ const AddTehsilDialog = ({ open, onClose, refresh }) => {
     const fetchDistrictOptions = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/district/getIdAndName"
+          import.meta.env.VITE_REACT_APP_BASEURL + "/district/getIdAndName"
         );
         setDistrictOptions(response.data);
       } catch (error) {
@@ -60,7 +60,10 @@ const AddTehsilDialog = ({ open, onClose, refresh }) => {
 
   const handleSubmit = async () => {
     try {
-      await axios.post("http://localhost:8080/tehsil/add", formData);
+      await axios.post(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/tehsil/add",
+        formData
+      );
       setFormData({
         name: "",
         district: { id: "", name: "" },

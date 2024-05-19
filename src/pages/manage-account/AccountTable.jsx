@@ -52,9 +52,10 @@ const AccountTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const fetchURL = new URL("http://localhost:8080/user/get");
+      const fetchURL = new URL(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/user/get"
+      );
       const response = await axios.get(fetchURL.href);
-
       return {
         data: response.data,
         meta: response.meta,
@@ -113,7 +114,8 @@ const AccountTable = () => {
     try {
       if (deleteAccountId) {
         await axios.delete(
-          `http://localhost:8080/account/delete/${deleteAccountId}` // Change to account API endpoint
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/account/delete/${deleteAccountId}"
         );
         refetch();
       }

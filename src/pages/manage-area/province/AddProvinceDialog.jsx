@@ -23,7 +23,10 @@ function AddProvinceDialog({ open, onClose, refresh }) {
 
   const handleSubmit = async () => {
     try {
-      await axios.post("http://localhost:8080/province/add", formData);
+      await axios.post(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/province/add",
+        formData
+      );
       refresh();
       onClose();
     } catch (error) {

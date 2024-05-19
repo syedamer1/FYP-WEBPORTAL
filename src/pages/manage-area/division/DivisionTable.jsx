@@ -52,7 +52,9 @@ const DivisionTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const response = await axios.get("http://localhost:8080/division/get");
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/division/get"
+      );
 
       return {
         data: response.data,
@@ -78,7 +80,8 @@ const DivisionTable = () => {
     try {
       if (deleteDivisionId) {
         await axios.delete(
-          `http://localhost:8080/division/delete/${deleteDivisionId}`
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/division/delete/${deleteDivisionId}"
         );
         refetch();
       }

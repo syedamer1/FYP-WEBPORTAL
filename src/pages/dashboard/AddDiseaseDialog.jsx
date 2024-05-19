@@ -26,7 +26,7 @@ function AddDiseaseDialog({ open, onClose }) {
   const handleSubmit = () => {
     console.log(formData);
     axios
-      .post("http://localhost:8080/disease/add", formData)
+      .post(import.meta.env.VITE_REACT_APP_BASEURL + "/disease/add", formData)
       .then((response) => {
         console.log("Data sent successfully", response.data);
         onClose();

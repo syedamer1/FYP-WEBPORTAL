@@ -51,7 +51,9 @@ const TehsilTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const response = await axios.get("http://localhost:8080/tehsil/get"); // Updated API endpoint
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/tehsil/get"
+      ); // Updated API endpoint
 
       return {
         data: response.data,
@@ -77,7 +79,7 @@ const TehsilTable = () => {
     try {
       if (deleteTehsilId) {
         await axios.delete(
-          `http://localhost:8080/tehsil/delete/${deleteTehsilId}` // Updated API endpoint
+         import.meta.env.VITE_REACT_APP_BASEURL + '/tehsil/delete/${deleteTehsilId}` // Updated API endpoint
         );
         refetch();
       }

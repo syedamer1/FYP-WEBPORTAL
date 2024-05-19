@@ -27,7 +27,7 @@ const AddHospitalDialog = ({ open, onClose, refresh }) => {
     const fetchTehsilOptions = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/tehsil/getIdAndName"
+          import.meta.env.VITE_REACT_APP_BASEURL + "/tehsil/getIdAndName"
         );
         setTehsilOptions(response.data);
       } catch (error) {
@@ -61,7 +61,10 @@ const AddHospitalDialog = ({ open, onClose, refresh }) => {
 
   const handleSubmit = async () => {
     try {
-      await axios.post("http://localhost:8080/hospital/add", formData);
+      await axios.post(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/hospital/add",
+        formData
+      );
       setFormData({
         name: "",
         code: "",

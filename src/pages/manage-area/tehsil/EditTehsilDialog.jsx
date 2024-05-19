@@ -32,7 +32,7 @@ const EditTehsilDialog = ({ open, onClose, tehsil, refresh }) => {
     const fetchDistrictOptions = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/district/getIdAndName"
+          import.meta.env.VITE_REACT_APP_BASEURL + "/district/getIdAndName"
         );
         setDistrictOptions(response.data);
       } catch (error) {
@@ -71,7 +71,10 @@ const EditTehsilDialog = ({ open, onClose, tehsil, refresh }) => {
       district: { id: formData.district.id },
     };
     try {
-      await axios.put(`http://localhost:8080/tehsil/update`, submitData);
+      await axios.put(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/tehsil/update",
+        submitData
+      );
       onClose();
       refresh();
     } catch (error) {
