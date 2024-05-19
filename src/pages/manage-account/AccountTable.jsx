@@ -115,7 +115,8 @@ const AccountTable = () => {
       if (deleteAccountId) {
         await axios.delete(
           import.meta.env.VITE_REACT_APP_BASEURL +
-            "/account/delete/${deleteAccountId}"
+            "/account/delete/" +
+            deleteAccountId
         );
         refetch();
       }

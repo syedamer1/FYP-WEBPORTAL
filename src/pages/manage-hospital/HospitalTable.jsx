@@ -122,7 +122,8 @@ const HospitalTable = () => {
       if (deleteHospitalId) {
         await axios.delete(
           import.meta.env.VITE_REACT_APP_BASEURL +
-            "/hospital/delete/${deleteHospitalId}"
+            "/hospital/delete/" +
+            deleteHospitalId
         );
         refetch();
       }

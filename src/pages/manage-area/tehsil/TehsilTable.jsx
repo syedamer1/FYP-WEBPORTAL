@@ -53,7 +53,7 @@ const TehsilTable = () => {
     queryFn: async () => {
       const response = await axios.get(
         import.meta.env.VITE_REACT_APP_BASEURL + "/tehsil/get"
-      ); // Updated API endpoint
+      );
 
       return {
         data: response.data,

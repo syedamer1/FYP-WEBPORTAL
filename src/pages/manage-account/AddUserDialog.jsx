@@ -67,7 +67,7 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
           hospitalData,
         ] = await Promise.all(
           endpoints.map((endpoint) =>
-            axios.get(import.meta.env.VITE_REACT_APP_BASEURL + "/${endpoint}")
+            axios.get(import.meta.env.VITE_REACT_APP_BASEURL + "/" + endpoint)
           )
         );
 

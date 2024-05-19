@@ -115,7 +115,8 @@ const ProvinceTable = () => {
       if (deleteProvinceId) {
         await axios.delete(
           import.meta.env.VITE_REACT_APP_BASEURL +
-            "/province/delete/${deleteProvinceId}"
+            "/province/delete/" +
+            deleteProvinceId
         );
         refetch();
       }

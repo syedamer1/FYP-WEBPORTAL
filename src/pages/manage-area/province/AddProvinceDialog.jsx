@@ -43,7 +43,6 @@ function AddProvinceDialog({ open, onClose, refresh }) {
             {/* Province Name */}
             <Grid item xs={12}>
               <TextField
-                autoFocus
                 margin="dense"
                 value={formData.name}
                 label="Name"

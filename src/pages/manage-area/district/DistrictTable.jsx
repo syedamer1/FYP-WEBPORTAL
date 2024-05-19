@@ -80,7 +80,8 @@ const DistrictTable = () => {
       if (deleteDistrictId) {
         await axios.delete(
           import.meta.env.VITE_REACT_APP_BASEURL +
-            "/district/delete/${deleteDistrictId}"
+            "/district/delete/" +
+            deleteDistrictId
         );
         console.log("District deleted");
         refetch();

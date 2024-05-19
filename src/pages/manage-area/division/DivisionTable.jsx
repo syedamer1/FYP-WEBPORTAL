@@ -81,7 +81,8 @@ const DivisionTable = () => {
       if (deleteDivisionId) {
         await axios.delete(
           import.meta.env.VITE_REACT_APP_BASEURL +
-            "/division/delete/${deleteDivisionId}"
+            "/division/delete/" +
+            deleteDivisionId
         );
         refetch();
       }

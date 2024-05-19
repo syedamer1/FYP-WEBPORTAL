@@ -47,7 +47,7 @@ const EditUserDialog = ({ open, onClose, refresh, account }) => {
       try {
         const responses = await Promise.all(
           Object.values(endpoints).map((endpoint) =>
-            axios.get(import.meta.env.VITE_REACT_APP_BASEURL + "/${endpoint}")
+            axios.get(import.meta.env.VITE_REACT_APP_BASEURL + "/" + endpoint)
           )
         );
 

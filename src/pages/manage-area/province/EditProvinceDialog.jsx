@@ -56,7 +56,6 @@ function EditProvinceDialog({ open, onClose, province, refresh }) {
             {/* Province Name */}
             <Grid item xs={12}>
               <TextField
-                autoFocus
                 margin="dense"
                 label="Name"
                 type="text"
