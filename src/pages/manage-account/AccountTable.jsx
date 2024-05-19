@@ -19,6 +19,7 @@ import {
 import EditUserDialog from "./EditUserDialog";
 import AddUserDialog from "./AddUserDialog";
 import DeleteConfirmation from "@components/DeleteConfirmation";
+import OverLayLoader from "@components/OverLayLoader";
 
 const AccountTable = () => {
   const [deleteAccountId, setDeleteAccountId] = useState(null);
@@ -311,6 +312,7 @@ const AccountTable = () => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ marginTop: "30px" }}>
           <MaterialReactTable table={table} />
+          <OverLayLoader loading={isLoading} />
           <AddUserDialog
             open={isAddUserDialogOpen}
             onClose={toggleAddUserDialog}
