@@ -53,7 +53,7 @@ const DistrictTable = () => {
     queryFn: async () => {
       const response = await axios.get(
         import.meta.env.VITE_REACT_APP_BASEURL + "/district/get"
-      ); // Updated API endpoint
+      );
 
       return {
         data: response.data,
@@ -138,7 +138,7 @@ const DistrictTable = () => {
           },
           {
             accessorFn: (row) =>
-              row.updatedOn === "null" ? "Not Updated" : row.updatedOn, // Assuming district has updatedOn attribute
+              row.updatedOn === "null" ? "Not Updated" : row.updatedOn,
             id: "updatedOn",
             header: "Updated On",
             filterVariant: "date",
