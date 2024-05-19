@@ -274,6 +274,7 @@ const HospitalTable = () => {
       showAlertBanner: false,
       showProgressBars: isRefetching,
       sorting,
+      showLoadingOverlay: false,
     },
   });
 
