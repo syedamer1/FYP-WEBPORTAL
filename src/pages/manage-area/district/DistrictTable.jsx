@@ -19,7 +19,7 @@ import {
 import EditDistrictDialog from "./EditDistrictDialog.jsx"; // Assuming you have an EditDistrictDialog component
 import AddDistrictDialog from "./AddDistrictDialog.jsx"; // Assuming you have an AddDistrictDialog component
 import DeleteConfirmation from "@components/DeleteConfirmation";
-import OverLayLoader from "@components/OverlayLoader";
+import OverLayLoader from "@components/OverLayLoader";
 const DistrictTable = () => {
   const [deleteDistrictId, setDeleteDistrictId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

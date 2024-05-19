@@ -19,7 +19,7 @@ import {
 import EditProvinceDialog from "./EditProvinceDialog";
 import AddProvinceDialog from "./AddProvinceDialog";
 import DeleteConfirmation from "@components/DeleteConfirmation";
-import OverlayLoader from "@components/OverlayLoader";
+import OverLayLoader from "@components/OverLayLoader";
 const ProvinceTable = () => {
   const [deleteProvinceId, setDeleteProvinceId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -260,7 +260,7 @@ const ProvinceTable = () => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ marginTop: "30px" }}>
           <MaterialReactTable table={table} />
-          <OverlayLoader loading={isLoading} />
+          <OverLayLoader loading={isLoading} />
           <AddProvinceDialog
             open={isAddProvinceDialogOpen}
             onClose={toggleAddProvinceDialog}

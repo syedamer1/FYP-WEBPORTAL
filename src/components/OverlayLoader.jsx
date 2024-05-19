@@ -16,7 +16,7 @@ const Overlay = styled("div")({
   pointerEvents: "auto",
 });
 
-const OverlayLoader = ({ loading, children }) => {
+const OverLayLoader = ({ loading, children }) => {
   return (
     <>
       {loading && (
@@ -29,9 +29,9 @@ const OverlayLoader = ({ loading, children }) => {
   );
 };
 
-OverlayLoader.propTypes = {
+OverLayLoader.propTypes = {
   loading: PropTypes.bool.isRequired,
   children: PropTypes.node,
 };
 
-export default OverlayLoader;
+export default OverLayLoader;
