@@ -28,7 +28,6 @@ const OverLayLoader = ({ loading, children }) => {
     </>
   );
 };
-
 OverLayLoader.propTypes = {
   loading: PropTypes.bool.isRequired,
   children: PropTypes.node,

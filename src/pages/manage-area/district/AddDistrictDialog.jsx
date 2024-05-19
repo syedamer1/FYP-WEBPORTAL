@@ -77,35 +77,40 @@ const AddDistrictDialog = ({ open, onClose, refresh }) => {
       <Box sx={{ p: 2 }}>
         <DialogTitle variant="h3">Add District</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                margin="dense"
-                name="name"
-                label="Name"
-                type="text"
-                fullWidth
-                variant="outlined"
-                value={formData.name}
-                onChange={handleInputChange}
-              />
+          <Box component="form" noValidate>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  margin="dense"
+                  name="name"
+                  label="Name"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Autocomplete
+                  fullWidth
+                  disablePortal
+                  id="division-autocomplete"
+                  value={formData.division}
+                  onChange={handleDivisionChange}
+                  options={divisionOptions}
+                  getOptionLabel={(option) => option.name || ""}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Division"
+                      variant="outlined"
+                    />
+                  )}
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <Autocomplete
-                fullWidth
-                disablePortal
-                id="division-autocomplete"
-                value={formData.division}
-                onChange={handleDivisionChange}
-                options={divisionOptions}
-                getOptionLabel={(option) => option.name || ""}
-                renderInput={(params) => (
-                  <TextField {...params} label="Division" variant="outlined" />
-                )}
-                gutterBottom
-              />
-            </Grid>
-          </Grid>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
