@@ -50,6 +50,7 @@ function AddProvinceDialog({ open, onClose, refresh }) {
                 fullWidth
                 variant="outlined"
                 onChange={handleChange}
+                name="name"
               />
             </Grid>
           </Grid>

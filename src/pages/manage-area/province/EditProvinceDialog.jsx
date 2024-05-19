@@ -63,6 +63,7 @@ function EditProvinceDialog({ open, onClose, province, refresh }) {
                 variant="outlined"
                 value={formData.name}
                 onChange={handleChange}
+                name="name"
               />
             </Grid>
           </Grid>

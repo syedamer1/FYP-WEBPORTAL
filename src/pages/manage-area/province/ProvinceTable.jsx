@@ -157,7 +157,7 @@ const ProvinceTable = () => {
           },
           {
             id: "created_on",
-            accessorFn: (row) => new Date(row.created_on),
+            accessorFn: (row) => new Date(row.createdOn),
             header: "Created On",
             filterVariant: "date",
             filterFn: "lessThan",
@@ -167,7 +167,7 @@ const ProvinceTable = () => {
           {
             id: "updated_on",
             accessorFn: (row) =>
-              row.updated_on == "null" ? "Not Updated" : row.updated_on,
+              row.updatedOn == "null" ? "Not Updated" : row.updatedOn,
             header: "Updated On",
             filterVariant: "date",
             filterFn: "lessThan",
