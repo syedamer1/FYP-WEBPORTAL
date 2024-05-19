@@ -80,7 +80,7 @@ const AddDivisionDialog = ({ open, onClose, refresh }) => {
           <DialogTitle variant="h3">Add Division</DialogTitle>
           <DialogContent>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
                 <TextField
                   margin="dense"
                   name="name"
@@ -92,7 +92,7 @@ const AddDivisionDialog = ({ open, onClose, refresh }) => {
                   onChange={handleInputChange}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
                 <Autocomplete
                   fullWidth
                   disablePortal

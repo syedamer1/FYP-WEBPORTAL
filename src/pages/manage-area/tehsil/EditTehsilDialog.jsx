@@ -88,7 +88,7 @@ const EditTehsilDialog = ({ open, onClose, tehsil, refresh }) => {
         <DialogTitle variant="h3">Edit Tehsil</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <TextField
                 margin="dense"
                 name="name"
@@ -100,7 +100,7 @@ const EditTehsilDialog = ({ open, onClose, tehsil, refresh }) => {
                 onChange={(e) => handleInputChange(e, "name")}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <Autocomplete
                 fullWidth
                 disablePortal

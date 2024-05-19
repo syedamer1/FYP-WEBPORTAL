@@ -82,7 +82,7 @@ const AddDistrictDialog = ({ open, onClose, refresh }) => {
         <DialogContent>
           <Box component="form" noValidate>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
                 <TextField
                   margin="dense"
                   name="name"
@@ -94,7 +94,7 @@ const AddDistrictDialog = ({ open, onClose, refresh }) => {
                   onChange={handleInputChange}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
                 <Autocomplete
                   fullWidth
                   disablePortal
