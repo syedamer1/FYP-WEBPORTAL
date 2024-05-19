@@ -44,12 +44,14 @@ const Dashboard = () => {
   ];
   const [selectedDisease, setSelectedDisease] = useState(null);
   const [disease, setDisease] = useState(["COVID-19", "Influenza", "Ebola"]);
-  const [fetching, setFetching] = useState(true);
+  const [fetching, setFetching] = useState(false);
 
   useEffect(() => {
-    setFetching(true);
-    fetchDisease$({ setDisease });
-    setFetching(false);
+    if (!fetching) {
+      setFetching(true);
+      fetchDisease$({ setDisease });
+      setFetching(false);
+    }
   }, [disease]);
 
   return (
