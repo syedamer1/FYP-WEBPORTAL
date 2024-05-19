@@ -220,8 +220,8 @@ const AccountTable = () => {
       },
       {
         accessorFn: (row) =>
-          row.updated_on == "null" ? "Not Updated" : row.updated_on,
-        id: "updated_on",
+          row.updatedOn == "null" ? "Not Updated" : row.updatedOn,
+        id: "updatedOn",
         header: "Updated On",
         filterVariant: "date",
         filterFn: "lessThan",
