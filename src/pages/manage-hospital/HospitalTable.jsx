@@ -19,7 +19,7 @@ import {
 import EditHospitalDialog from "./EditHospitalDialog";
 import AddHospitalDialog from "./AddHospitalDialog";
 import DeleteConfirmation from "@components/DeleteConfirmation";
-
+import OverLayLoader from "@components/OverLayLoader";
 const HospitalTable = () => {
   const [deleteHospitalId, setDeleteHospitalId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -282,6 +282,7 @@ const HospitalTable = () => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ marginTop: "30px" }}>
           <MaterialReactTable table={table} />
+          <OverLayLoader loading={isLoading} />
           <AddHospitalDialog
             open={isAddHospitalDialogOpen}
             onClose={toggleAddHospitalDialog}

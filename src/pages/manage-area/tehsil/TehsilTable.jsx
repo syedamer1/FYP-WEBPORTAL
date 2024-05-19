@@ -19,6 +19,7 @@ import {
 import EditTehsilDialog from "./EditTehsilDialog.jsx"; // Assuming you have an EditTehsilDialog component
 import AddTehsilDialog from "./AddTehsilDialog.jsx"; // Assuming you have an AddTehsilDialog component
 import DeleteConfirmation from "@components/DeleteConfirmation";
+import OverLayLoader from "@components/OverlayLoader";
 
 const TehsilTable = () => {
   const [deleteTehsilId, setDeleteTehsilId] = useState(null);
@@ -230,6 +231,7 @@ const TehsilTable = () => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ marginTop: "30px" }}>
           <MaterialReactTable table={table} />
+          <OverLayLoader loading={isLoading} />
           <DeleteConfirmation
             open={isDeleteDialogOpen}
             onClose={toggleDeleteDialog}

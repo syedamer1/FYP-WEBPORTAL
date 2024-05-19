@@ -19,6 +19,7 @@ import {
 import EditDivisionDialog from "./EditDivisionDialog.jsx";
 import AddDivisionDialog from "./AddDivisionDialog.jsx";
 import DeleteConfirmation from "@components/DeleteConfirmation";
+import OverlayLoader from "@components/OverlayLoader";
 
 const DivisionTable = () => {
   const [deleteDivisionId, setDeleteDivisionId] = useState(null);
@@ -231,6 +232,8 @@ const DivisionTable = () => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ marginTop: "30px" }}>
           <MaterialReactTable table={table} />
+          <OverlayLoader loading={isLoading} />
+
           <DeleteConfirmation
             open={isDeleteDialogOpen}
             onClose={toggleDeleteDialog}

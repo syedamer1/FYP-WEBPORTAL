@@ -19,7 +19,7 @@ import {
 import EditDistrictDialog from "./EditDistrictDialog.jsx"; // Assuming you have an EditDistrictDialog component
 import AddDistrictDialog from "./AddDistrictDialog.jsx"; // Assuming you have an AddDistrictDialog component
 import DeleteConfirmation from "@components/DeleteConfirmation";
-
+import OverLayLoader from "@components/OverlayLoader";
 const DistrictTable = () => {
   const [deleteDistrictId, setDeleteDistrictId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -232,6 +232,7 @@ const DistrictTable = () => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ marginTop: "30px" }}>
           <MaterialReactTable table={table} />
+          <OverLayLoader loading={isLoading} />
           <DeleteConfirmation
             open={isDeleteDialogOpen}
             onClose={toggleDeleteDialog}
