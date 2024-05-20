@@ -45,7 +45,10 @@ const UploadDataDialog = ({ open, onClose }) => {
     formData.append("diseaseId", 1);
 
     axios
-      .post(import.meta.env.VITE_REACT_APP_BASEURL + "patient/upload", formData)
+      .post(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/patient/upload",
+        formData
+      )
       .then((response) => {
         console.log(response.data);
         handleClose();

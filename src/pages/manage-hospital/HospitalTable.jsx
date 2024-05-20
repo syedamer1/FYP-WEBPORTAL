@@ -182,8 +182,8 @@ const HospitalTable = () => {
             size: 150,
           },
           {
-            accessorFn: (row) => new Date(row.created_on),
-            id: "created_on",
+            accessorFn: (row) => new Date(row.createdOn),
+            id: "createdOn",
             header: "Created On",
             filterVariant: "date",
             filterFn: "lessThan",
