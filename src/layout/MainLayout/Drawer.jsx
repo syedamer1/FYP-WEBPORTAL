@@ -175,8 +175,8 @@ const FilterDrawer = ({ open, onClose }) => {
       sx={{
         "& .MuiDrawer-paper": {
           boxSizing: "border-box",
-          width: open ? 290 : 0,
-          minWidth: 290,
+          width: open ? 300 : 0,
+          minWidth: 300,
           borderRight: `1px solid ${theme.palette.divider}`,
           backgroundImage: "none",
           boxShadow: "none",
