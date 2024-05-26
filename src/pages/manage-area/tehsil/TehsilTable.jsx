@@ -115,13 +115,18 @@ const TehsilTable = () => {
           },
           {
             id: "name",
+            accessorFn: (row) => (row.name != null ? row.name : "No  Name"),
+
             accessorKey: "name",
             header: "Name",
             size: 150,
           },
           {
             id: "district.name",
-            accessorFn: (row) => row.district.name, // Assuming tehsil has a district attribute
+            accessorFn: (row) =>
+              row.district && row.district.name != null
+                ? row.district.name
+                : "No District Name",
             header: "District Name",
             size: 150,
           },
@@ -136,7 +141,7 @@ const TehsilTable = () => {
           },
           {
             accessorFn: (row) =>
-              row.updatedOn === "null" ? "Not Updated" : row.updatedOn, // Assuming tehsil has updatedOn attribute
+              row.updatedOn === null ? "Not Updated" : row.updatedOn,
             id: "updatedOn",
             header: "Updated On",
             filterVariant: "date",

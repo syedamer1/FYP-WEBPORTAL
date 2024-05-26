@@ -156,7 +156,7 @@ const ProvinceTable = () => {
             size: 150,
           },
           {
-            id: "created_on",
+            id: "createdOn",
             accessorFn: (row) => new Date(row.createdOn),
             header: "Created On",
             filterVariant: "date",
@@ -165,9 +165,9 @@ const ProvinceTable = () => {
             Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
           },
           {
-            id: "updated_on",
+            id: "updatedOn",
             accessorFn: (row) =>
-              row.updatedOn == "null" ? "Not Updated" : row.updatedOn,
+              row.updatedOn === null ? "Not Updated" : row.updatedOn,
             header: "Updated On",
             filterVariant: "date",
             filterFn: "lessThan",

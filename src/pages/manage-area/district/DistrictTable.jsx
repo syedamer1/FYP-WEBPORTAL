@@ -123,7 +123,7 @@ const DistrictTable = () => {
           },
           {
             id: "division.name",
-            accessorFn: (row) => row.division.name, // Assuming district has a division attribute
+            accessorFn: (row) => row.division.name,
             header: "Division Name",
             size: 150,
           },
@@ -138,7 +138,7 @@ const DistrictTable = () => {
           },
           {
             accessorFn: (row) =>
-              row.updatedOn === "null" ? "Not Updated" : row.updatedOn,
+              row.updatedOn === null ? "Not Updated" : row.updatedOn,
             id: "updatedOn",
             header: "Updated On",
             filterVariant: "date",
