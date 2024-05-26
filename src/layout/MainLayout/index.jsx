@@ -3,21 +3,22 @@ import { Box, Toolbar } from "@mui/material";
 import Breadcrumbs from "@components/Breadcrumbs";
 import Header from "./Header";
 import { Outlet, useLocation } from "react-router-dom";
-import Drawer from "./Drawer";
+import FilterDrawer from "./Drawer";
 import CustomButton from "@components/CustomButtom";
 import pageinfo from "./pageinfo";
 
 const MainLayout = () => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setFilterDrawerOpen] = useState(false);
   const location = useLocation();
 
-  const toggleDrawer = () => {
-    setDrawerOpen(!drawerOpen);
+  const toggleFilterDrawer = () => {
+    setFilterDrawerOpen(!drawerOpen);
   };
 
   const shouldShowButton =
     location.pathname.includes("dashboard") ||
-    location.pathname.includes("predictive-analytics");
+    location.pathname.includes("predictive-analytics") ||
+    location.pathname.includes("/");
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
@@ -28,12 +29,15 @@ const MainLayout = () => {
       >
         <Toolbar />
         {shouldShowButton && (
-          <CustomButton onButtonClick={toggleDrawer} buttonOpen={drawerOpen} />
+          <CustomButton
+            onButtonClick={toggleFilterDrawer}
+            buttonOpen={drawerOpen}
+          />
         )}
         <Breadcrumbs pageinfo={pageinfo} />
         <Outlet />
       </Box>
-      <Drawer open={drawerOpen} onClose={toggleDrawer} />
+      <FilterDrawer open={drawerOpen} onClose={toggleFilterDrawer} />
     </Box>
   );
 };

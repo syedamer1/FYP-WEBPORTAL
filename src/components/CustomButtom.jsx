@@ -6,7 +6,7 @@ import {
   ArrowLeft as ArrowLeftIcon,
 } from "@mui/icons-material";
 
-const MyStyledButton = styled(Button)(({ open }) => ({
+const MyStyledButton = styled(Button)(() => ({
   color: "white",
   borderRadius: "0px 8px 8px 0px",
   padding: "0px",
@@ -14,7 +14,7 @@ const MyStyledButton = styled(Button)(({ open }) => ({
   width: "1.1rem",
   height: "40vh",
   position: "fixed",
-  left: open ? 290 : 0,
+  left: 0,
   top: "50%",
   transform: "translateY(-50%)",
   transition: "left 0.3s ease-in-out",
