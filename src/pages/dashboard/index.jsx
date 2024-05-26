@@ -23,7 +23,8 @@ import {
 } from "@mui/icons-material";
 import AddDiseaseDialog from "./AddDiseaseDialog";
 import { styled } from "@mui/material/styles";
-import fetchDisease$ from "./_request";
+import axios from "axios";
+
 const Dashboard = () => {
   const CustomIconButton = styled(IconButton)({
     fontSize: "1.25rem",
@@ -43,17 +44,22 @@ const Dashboard = () => {
     { value: 1010120, name: "Decrease Patients" },
   ];
   const [selectedDisease, setSelectedDisease] = useState(null);
-  const [disease, setDisease] = useState(["COVID-19", "Influenza", "Ebola"]);
-  const [fetching, setFetching] = useState(false);
+  const [disease, setDisease] = useState(null);
+
+  const fetchDisease = async () => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/disease/get"
+      );
+      setDisease(response.data.map((disease) => disease.name));
+    } catch (error) {
+      console.error("Error fetching disease names:", error);
+    }
+  };
 
   useEffect(() => {
-    if (!fetching) {
-      setFetching(true);
-      fetchDisease$({ setDisease });
-      setFetching(false);
-    }
-  }, [disease]);
-
+    fetchDisease();
+  }, []);
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
       {/* row 1 */}
