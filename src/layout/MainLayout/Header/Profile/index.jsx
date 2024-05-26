@@ -56,16 +56,13 @@ const Profile = () => {
     setOpen(false);
   };
 
-  const handleEditProfile = () => {
-    setEditProfileOpen(true);
+  const handleEditProfileToggle = () => {
     setOpen(false);
-  };
-
-  const handleEditProfileClose = () => {
-    setEditProfileOpen(false);
+    setEditProfileOpen((prevEditProfileOpen) => !prevEditProfileOpen);
   };
 
   const handleLogout = () => {
+    setOpen(false);
     navigate("/login");
   };
 
@@ -203,28 +200,40 @@ const Profile = () => {
                         <ListItemText primary="View Profile" />
                       </ListItemButton>
                       <Divider sx={{ my: 0.5 }} />
-                      <ListItemButton component={Link} to="/manage-account">
+                      <ListItemButton
+                        component={Link}
+                        to="/manage-account"
+                        onClick={() => setOpen(false)}
+                      >
                         <ListItemIcon sx={{ minWidth: 24 }}>
                           <ManageAccountIcon color="gray" />
                         </ListItemIcon>
                         <ListItemText primary="Manage Account" />
                       </ListItemButton>
                       <Divider sx={{ my: 0.5 }} />
-                      <ListItemButton component={Link} to="/manage-hospital">
+                      <ListItemButton
+                        component={Link}
+                        to="/manage-hospital"
+                        onClick={() => setOpen(false)}
+                      >
                         <ListItemIcon sx={{ minWidth: 24 }}>
                           <ManageHospitalIcon color="gray" />
                         </ListItemIcon>
                         <ListItemText primary="Manage Hospital" />
                       </ListItemButton>
                       <Divider sx={{ my: 0.5 }} />
-                      <ListItemButton component={Link} to="/manage-area">
+                      <ListItemButton
+                        component={Link}
+                        to="/manage-area"
+                        onClick={() => setOpen(false)}
+                      >
                         <ListItemIcon sx={{ minWidth: 24 }}>
                           <ManageAreaIcon color="gray" />
                         </ListItemIcon>
                         <ListItemText primary="Manage Area" />
                       </ListItemButton>
                       <Divider sx={{ my: 0.5 }} />
-                      <ListItemButton onClick={handleEditProfile}>
+                      <ListItemButton onClick={handleEditProfileToggle}>
                         <ListItemIcon sx={{ minWidth: 24 }}>
                           <EditProfileIcon color="gray" />
                         </ListItemIcon>
@@ -252,7 +261,7 @@ const Profile = () => {
       />
       <EditProfileDialog
         open={editProfileOpen}
-        onClose={handleEditProfileClose}
+        onClose={handleEditProfileToggle}
         user={profileData}
       />
     </Box>
