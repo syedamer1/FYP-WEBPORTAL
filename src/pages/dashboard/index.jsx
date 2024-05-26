@@ -30,15 +30,12 @@ const Dashboard = () => {
     fontSize: "1.25rem",
   });
 
-  const [IsAddDiseaseOpen, setIsAddDiseaseOpen] = useState(false);
+  const [AddDiseaseDialogOpen, setAddDiseaseDialogOpen] = useState(false);
 
-  const handleIsAddDiseaseOpen = () => {
-    setIsAddDiseaseOpen(true);
+  const toggleAddDiseaseDialog = () => {
+    setAddDiseaseDialogOpen((prev) => !prev);
   };
 
-  const handleIsAddDiseaseClose = () => {
-    setIsAddDiseaseOpen(false);
-  };
   const chartData = [
     { value: 3055448, name: "Recovered Patients" },
     { value: 1010120, name: "Decrease Patients" },
@@ -51,7 +48,7 @@ const Dashboard = () => {
       const response = await axios.get(
         import.meta.env.VITE_REACT_APP_BASEURL + "/disease/get"
       );
-      setDisease(response.data.map((disease) => disease.name));
+      setDisease(response.data);
     } catch (error) {
       console.error("Error fetching disease names:", error);
     }
@@ -86,6 +83,7 @@ const Dashboard = () => {
               }}
               id="Disease-autocomplete"
               options={disease}
+              getOptionLabel={(option) => option.name}
               value={selectedDisease}
               onChange={(event, newValue) => setSelectedDisease(newValue)}
               renderInput={(params) => (
@@ -103,7 +101,7 @@ const Dashboard = () => {
                           title="Add Disease"
                         >
                           <CustomIconButton
-                            onClick={handleIsAddDiseaseOpen}
+                            onClick={toggleAddDiseaseDialog}
                             size="small"
                             sx={{
                               top: "50%",
@@ -121,8 +119,8 @@ const Dashboard = () => {
             />
 
             <AddDiseaseDialog
-              open={IsAddDiseaseOpen}
-              onClose={handleIsAddDiseaseClose}
+              open={AddDiseaseDialogOpen}
+              onClose={toggleAddDiseaseDialog}
             />
           </Grid>
         </Grid>
