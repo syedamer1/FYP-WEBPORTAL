@@ -41,7 +41,7 @@ const Dashboard = () => {
     { value: 1010120, name: "Decrease Patients" },
   ];
   const [selectedDisease, setSelectedDisease] = useState(null);
-  const [disease, setDisease] = useState(null);
+  const [disease, setDisease] = useState([]);
 
   const fetchDisease = async () => {
     try {
@@ -94,7 +94,6 @@ const Dashboard = () => {
                     ...params.InputProps,
                     startAdornment: (
                       <>
-                        {" "}
                         <Tooltip
                           disableFocusListener
                           disableTouchListener
@@ -178,7 +177,7 @@ const Dashboard = () => {
         <Grid container alignItems="center" justifyContent="space-between">
           <Grid item>
             <Typography variant="h5">
-              Pie Graph - Population Statistics{" "}
+              Pie Graph - Population Statistics
             </Typography>
           </Grid>
         </Grid>
@@ -193,7 +192,6 @@ const Dashboard = () => {
         <Grid container alignItems="center" justifyContent="space-between">
           <Grid item>
             <Typography variant="h5">
-              {" "}
               Line Race - Hospital Patient Count
             </Typography>
           </Grid>
@@ -209,9 +207,7 @@ const Dashboard = () => {
       <Grid item xs={12} md={5} lg={4}>
         <Grid container alignItems="center" justifyContent="space-between">
           <Grid item>
-            <Typography variant="h5">
-              Scatter Aggregate Bar - Gender{" "}
-            </Typography>
+            <Typography variant="h5">Scatter Aggregate Bar - Gender</Typography>
           </Grid>
           <Button variant="contained" color="primary">
             Export as PNG

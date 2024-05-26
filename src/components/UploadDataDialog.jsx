@@ -225,18 +225,16 @@ const UploadDataDialog = ({ open, onClose }) => {
                     borderRadius={2}
                     padding={1}
                   >
-                    <UploadFileIcon sx={{ marginRight: 1, fontSize: 30 }} />{" "}
-                    {/* Increase the icon size */}
+                    <UploadFileIcon sx={{ marginRight: 1, fontSize: 30 }} />
                     <Box>
                       <Typography variant="h5" fontWeight="bold">
                         {selectedFile.name}
                       </Typography>
-                      {/* Make the file name bold and bigger */}
                       <Typography
                         variant="body2"
                         sx={{ marginRight: 1, fontSize: 16 }}
                       >
-                        {selectedFile.type} {/* Show format under the name */}
+                        {selectedFile.type}
                       </Typography>
                     </Box>
                     <Button

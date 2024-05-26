@@ -102,6 +102,7 @@ const Navigation = () => {
             width: itemWidth,
             whiteSpace: "nowrap",
             textAlign: "left",
+            cursor: "pointer",
             boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
             "&:hover": {
               backgroundColor: theme.palette.primary.lighter,

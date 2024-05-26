@@ -1,4 +1,9 @@
 /* eslint-disable no-unused-vars */
+import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import axios from "axios";
+import { debounce } from "lodash";
+
 import {
   Box,
   Divider,
@@ -9,12 +14,16 @@ import {
   Typography,
   useTheme,
   Chip,
+  Button,
 } from "@mui/material";
 import TuneIcon from "@mui/icons-material/Tune";
-import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { debounce } from "lodash";
+import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+
 const FilterDrawer = ({ open, onClose }) => {
   const [provinces, setProvinces] = useState([]);
   const [divisions, setDivisions] = useState([]);
@@ -27,6 +36,9 @@ const FilterDrawer = ({ open, onClose }) => {
   const [selectedDistricts, setSelectedDistricts] = useState([]);
   const [selectedTehsils, setSelectedTehsils] = useState([]);
   const [selectedHospitals, setSelectedHospitals] = useState([]);
+  const [selectedSymptoms, setSelectedSymptoms] = useState([]);
+  const [startAdmissionDate, setStartAdmissionDate] = useState(null);
+  const [endAdmissionDate, setEndAdmissionDate] = useState(null);
 
   const theme = useTheme();
 
@@ -152,18 +164,37 @@ const FilterDrawer = ({ open, onClose }) => {
     setSelectedHospitals(values);
   };
 
+  const handleSymptomsSelect = (event, values) => {
+    setSelectedSymptoms(values);
+  };
+
   const patientSymptomsData = [
-    { label: "Headache", id: 1 },
-    { label: "Dizziness", id: 2 },
-    { label: "Nausea", id: 3 },
+    { id: 1, name: "Blood", attrName: "blood" },
+    { id: 2, name: "Chronic Disease", attrName: "chronicdisease" },
+    { id: 3, name: "Diabetes", attrName: "diabetes" },
+    { id: 4, name: "High Fever", attrName: "highFever" },
+    { id: 5, name: "Fever", attrName: "fever" },
+    { id: 6, name: "Hypertension", attrName: "hypertension" },
+    { id: 7, name: "Cardiac", attrName: "cardiac" },
+    { id: 8, name: "Weakness/Pain", attrName: "weaknessPain" },
+    { id: 9, name: "Respiratory", attrName: "respiratory" },
+    { id: 10, name: "Cancer", attrName: "cancer" },
+    { id: 11, name: "Thyroid", attrName: "thyroid" },
+    { id: 12, name: "Prostate", attrName: "prostate" },
+    { id: 13, name: "Kidney", attrName: "kidney" },
+    { id: 14, name: "Neuro", attrName: "neuro" },
+    { id: 15, name: "Nausea", attrName: "nausea" },
+    { id: 16, name: "Asymptomatic", attrName: "asymptomatic" },
+    { id: 17, name: "Gastrointestinal", attrName: "gastrointestinal" },
+    { id: 18, name: "Ortho", attrName: "ortho" },
+    {
+      id: 19,
+      name: "Respiratory (Chronic Disease)",
+      attrName: "respiratoryCD",
+    },
+    { id: 20, name: "Cardiac (Chronic Disease)", attrName: "cardiacsCD" },
+    { id: 21, name: "Kidney (Chronic Disease)", attrName: "kidneyCD" },
   ];
-
-  const diseaseSymptomsData = [
-    { label: "Fever", id: 1 },
-    { label: "Cough", id: 2 },
-    { label: "Fatigue", id: 3 },
-  ];
-
   return (
     <Drawer
       anchor="left"
@@ -193,6 +224,17 @@ const FilterDrawer = ({ open, onClose }) => {
           <Typography variant="h3" sx={{ marginTop: 1.5 }} gutterBottom>
             Filters Drawer
           </Typography>
+          <IconButton
+            onClick={onClose}
+            sx={{
+              marginLeft: "auto",
+              "&:hover": {
+                color: "red",
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
         </Box>
         <Typography variant="h5" gutterBottom>
           Province
@@ -500,6 +542,30 @@ const FilterDrawer = ({ open, onClose }) => {
         />
         <Divider />
         <Typography variant="h5" gutterBottom>
+          Admission Date
+        </Typography>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DemoContainer components={["DatePicker", "DatePicker"]}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <DatePicker
+                label="Start Date"
+                value={startAdmissionDate}
+                onChange={(newStartAdmissionDate) =>
+                  setStartAdmissionDate(newStartAdmissionDate)
+                }
+              />
+              <DatePicker
+                label="End Date"
+                value={endAdmissionDate}
+                onChange={(newEndDate) => setEndAdmissionDate(newEndDate)}
+                sx={{ mb: 2 }}
+              />
+            </Box>
+          </DemoContainer>
+        </LocalizationProvider>
+
+        <Divider />
+        <Typography variant="h5" gutterBottom>
           Gender
         </Typography>
         <Autocomplete
@@ -536,80 +602,21 @@ const FilterDrawer = ({ open, onClose }) => {
         />
         <Divider />
         <Typography variant="h5" gutterBottom>
-          Disease Symptoms
-        </Typography>
-        <Autocomplete
-          multiple
-          options={diseaseSymptomsData}
-          disableCloseOnSelect
-          getOptionLabel={(option) => option.label}
-          renderTags={(value, getTagProps) =>
-            value.map((option, index) => (
-              <Chip
-                key={index}
-                label={option.name}
-                size="small"
-                {...getTagProps({ index })}
-              />
-            ))
-          }
-          renderOption={(props, option, { selected }) => (
-            <li {...props}>
-              <Checkbox
-                style={{
-                  marginRight: 8,
-                  transform: "scale(1)",
-                  color: theme.palette.secondary[300],
-                }}
-                checked={selected}
-              />
-              {option.label}
-            </li>
-          )}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select Disease Symptoms"
-              sx={{ width: "235px" }}
-            />
-          )}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              p: 1,
-            },
-            "& .MuiAutocomplete-tag": {
-              bgcolor: "primary.lighter",
-              border: "1px solid",
-              borderColor: "primary.light",
-              "& .MuiSvgIcon-root": {
-                color: "primary.main",
-                "&:hover": {
-                  color: "primary.dark",
-                },
-              },
-            },
-            mb: 2,
-          }}
-        />
-        <Divider />
-        <Typography variant="h5" gutterBottom>
           Patient Symptoms
         </Typography>
         <Autocomplete
+          gutterBottom
           multiple
-          options={patientSymptomsData}
+          options={patientSymptomsData.filter(
+            (sym) =>
+              !selectedSymptoms.some(
+                (selectedSymptom) => selectedSymptom.id === sym.id
+              )
+          )}
           disableCloseOnSelect
-          getOptionLabel={(option) => option.label}
-          renderTags={(value, getTagProps) =>
-            value.map((option, index) => (
-              <Chip
-                key={index}
-                label={option.name}
-                size="small"
-                {...getTagProps({ index })}
-              />
-            ))
-          }
+          getOptionLabel={(option) => option.name}
+          value={selectedSymptoms}
+          onChange={handleSymptomsSelect}
           renderOption={(props, option, { selected }) => (
             <li {...props}>
               <Checkbox
@@ -620,9 +627,19 @@ const FilterDrawer = ({ open, onClose }) => {
                 }}
                 checked={selected}
               />
-              {option.label}
+              {option.name}
             </li>
           )}
+          renderTags={(value, getTagProps) =>
+            value.map((option, index) => (
+              <Chip
+                key={index}
+                label={option.name}
+                size="small"
+                {...getTagProps({ index })}
+              />
+            ))
+          }
           renderInput={(params) => (
             <TextField
               {...params}
@@ -648,6 +665,24 @@ const FilterDrawer = ({ open, onClose }) => {
             mb: 2,
           }}
         />
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={onClose}
+            sx={{ width: "120px", minWidth: "120px" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            sx={{ width: "120px", minWidth: "120px" }}
+          >
+            Apply Filters
+          </Button>
+        </Box>
       </Box>
     </Drawer>
   );
