@@ -5,7 +5,6 @@ import {
   Divider,
   Toolbar,
   Typography,
-  Tooltip,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
@@ -91,15 +90,9 @@ function Header() {
               marginLeft: 2,
             }}
           />
-          <Tooltip
-            disableFocusListener
-            disableTouchListener
-            title="Open Setting"
-          >
-            <Box sx={{ flexGrow: 0 }}>
-              <Profile />
-            </Box>
-          </Tooltip>
+          <Box sx={{ flexGrow: 0 }}>
+            <Profile />
+          </Box>
         </Toolbar>
       </Container>
     </AppBar>

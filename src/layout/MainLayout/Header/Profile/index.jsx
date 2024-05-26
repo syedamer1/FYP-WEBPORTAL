@@ -17,6 +17,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Tooltip,
 } from "@mui/material";
 
 import { useTheme } from "@mui/material/styles";
@@ -82,28 +83,35 @@ const Profile = () => {
 
   return (
     <Box sx={{ flexShrink: 0, ml: "auto" }}>
-      <ButtonBase
-        sx={{
-          p: 0.25,
-          bgcolor: open ? "grey.300" : "transparent",
-          borderRadius: 1,
-          "&:hover": { bgcolor: "secondary.lighter" },
-        }}
-        aria-label="open profile"
-        ref={anchorRef}
-        aria-controls={open ? "profile-grow" : undefined}
-        aria-haspopup="true"
-        onClick={handleToggle}
-      >
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ p: 0.5 }}>
-          <Avatar
-            alt="profile user"
-            src={avataruser}
-            sx={{ width: 32, height: 32 }}
-          />
-          <Typography variant="subtitle1">Ayesha Khan</Typography>
-        </Stack>
-      </ButtonBase>
+      <Tooltip disableFocusListener disableTouchListener title="Open Setting">
+        <ButtonBase
+          sx={{
+            p: 0.25,
+            bgcolor: open ? "grey.300" : "transparent",
+            borderRadius: 1,
+            "&:hover": { bgcolor: "secondary.lighter" },
+          }}
+          aria-label="open profile"
+          ref={anchorRef}
+          aria-controls={open ? "profile-grow" : undefined}
+          aria-haspopup="true"
+          onClick={handleToggle}
+        >
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            sx={{ p: 0.5 }}
+          >
+            <Avatar
+              alt="profile user"
+              src={avataruser}
+              sx={{ width: 32, height: 32 }}
+            />
+            <Typography variant="subtitle1">Ayesha Khan</Typography>
+          </Stack>
+        </ButtonBase>
+      </Tooltip>
       <Popper
         placement="bottom-end"
         open={open}
