@@ -1,4 +1,4 @@
-import { useState, forwardRef } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import {
   Dialog,
   Autocomplete,
@@ -17,6 +17,8 @@ import Slide from "@mui/material/Slide";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import axios from "axios";
+import debounce from "lodash/debounce";
+
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -29,19 +31,137 @@ const UploadDataDialog = ({ open, onClose }) => {
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const divisionsData = ["Division A", "Division B", "Division C"];
-  const districtsData = ["District A", "District B", "District C"];
-  const tehsilsData = ["Tehsil A", "Tehsil B", "Tehsil C"];
-  const provincesData = ["Province A", "Province B", "Province C"];
-  const hospitalsData = ["Hospital A", "Hospital B", "Hospital C"];
+  const [provincesData, setProvincesData] = useState([]);
+  const [divisionsData, setDivisionsData] = useState([]);
+  const [districtsData, setDistrictsData] = useState([]);
+  const [tehsilsData, setTehsilsData] = useState([]);
+  const [hospitalsData, setHospitalsData] = useState([]);
+
+  const fetchProvinces = debounce(async () => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/province/get"
+      );
+      setProvincesData(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }, 300);
+
+  const fetchDivisions = debounce(async (provinceIds) => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL +
+          "/division/getDivisionsByProvinceIds",
+        {
+          params: { provinceIds: provinceIds.join(",") },
+        }
+      );
+      setDivisionsData(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }, 300);
+
+  const fetchDistricts = debounce(async (divisionIds) => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL +
+          "/district/getDistrictsByDivisionIds",
+        {
+          params: { divisionIds: divisionIds.join(",") },
+        }
+      );
+      setDistrictsData(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }, 300);
+
+  const fetchTehsils = debounce(async (districtIds) => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL +
+          "/tehsil/getTehsilsByDistrictIds",
+        {
+          params: { districtIds: districtIds.join(",") },
+        }
+      );
+      setTehsilsData(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }, 300);
+
+  const fetchHospitals = debounce(async (tehsilIds) => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL +
+          "/hospital/getHospitalsByTehsilIds",
+        {
+          params: { tehsilIds: tehsilIds.join(",") },
+        }
+      );
+      setHospitalsData(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }, 300);
+
+  useEffect(() => {
+    fetchProvinces();
+  }, []);
+
+  const handleProvinceSelect = (event, newValue) => {
+    setSelectedProvince(newValue);
+    setSelectedDivision(null);
+    setSelectedDistrict(null);
+    setSelectedTehsil(null);
+    setSelectedHospital(null);
+    if (newValue) {
+      fetchDivisions([newValue.id]);
+    }
+  };
+
+  const handleDivisionSelect = (event, newValue) => {
+    setSelectedDivision(newValue);
+    setSelectedDistrict(null);
+    setSelectedTehsil(null);
+    setSelectedHospital(null);
+    if (newValue) {
+      fetchDistricts([newValue.id]);
+    }
+  };
+
+  const handleDistrictSelect = (event, newValue) => {
+    setSelectedDistrict(newValue);
+    setSelectedTehsil(null);
+    setSelectedHospital(null);
+    if (newValue) {
+      fetchTehsils([newValue.id]);
+    }
+  };
+
+  const handleTehsilSelect = (event, newValue) => {
+    setSelectedTehsil(newValue);
+    setSelectedHospital(null);
+    if (newValue) {
+      fetchHospitals([newValue.id]);
+    }
+  };
+
+  const handleHospitalSelect = (event, newValue) => {
+    setSelectedHospital(newValue);
+  };
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
   };
+
   const handleUpload = () => {
     const formData = new FormData();
     formData.append("file", selectedFile);
-    formData.append("hospitalId", 1);
+    formData.append("hospitalId", selectedHospital?.id || 1);
     formData.append("diseaseId", 1);
 
     axios
@@ -57,6 +177,7 @@ const UploadDataDialog = ({ open, onClose }) => {
         console.error("Error:", error);
       });
   };
+
   const handleClose = () => {
     setSelectedDivision(null);
     setSelectedDistrict(null);
@@ -66,6 +187,7 @@ const UploadDataDialog = ({ open, onClose }) => {
     setSelectedFile(null);
     onClose();
   };
+
   return (
     <Dialog
       TransitionComponent={Transition}
@@ -85,13 +207,8 @@ const UploadDataDialog = ({ open, onClose }) => {
                 id="province-autocomplete"
                 options={provincesData}
                 value={selectedProvince}
-                onChange={(event, newValue) => {
-                  setSelectedProvince(newValue);
-                  setSelectedDivision(null);
-                  setSelectedDistrict(null);
-                  setSelectedTehsil(null);
-                  setSelectedHospital(null);
-                }}
+                onChange={handleProvinceSelect}
+                getOptionLabel={(option) => option.name}
                 renderInput={(params) => (
                   <TextField {...params} label="Province" />
                 )}
@@ -103,12 +220,8 @@ const UploadDataDialog = ({ open, onClose }) => {
                 id="division-autocomplete"
                 options={divisionsData}
                 value={selectedDivision}
-                onChange={(event, newValue) => {
-                  setSelectedDivision(newValue);
-                  setSelectedDistrict(null);
-                  setSelectedTehsil(null);
-                  setSelectedHospital(null);
-                }}
+                onChange={handleDivisionSelect}
+                getOptionLabel={(option) => option.name}
                 disabled={!selectedProvince}
                 renderInput={(params) => (
                   <TextField
@@ -125,11 +238,8 @@ const UploadDataDialog = ({ open, onClose }) => {
                 id="district-autocomplete"
                 options={districtsData}
                 value={selectedDistrict}
-                onChange={(event, newValue) => {
-                  setSelectedDistrict(newValue);
-                  setSelectedTehsil(null);
-                  setSelectedHospital(null);
-                }}
+                onChange={handleDistrictSelect}
+                getOptionLabel={(option) => option.name}
                 disabled={!selectedDivision}
                 renderInput={(params) => (
                   <TextField
@@ -146,10 +256,8 @@ const UploadDataDialog = ({ open, onClose }) => {
                 id="tehsil-autocomplete"
                 options={tehsilsData}
                 value={selectedTehsil}
-                onChange={(event, newValue) => {
-                  setSelectedTehsil(newValue);
-                  setSelectedHospital(null);
-                }}
+                onChange={handleTehsilSelect}
+                getOptionLabel={(option) => option.name}
                 disabled={!selectedDistrict}
                 renderInput={(params) => (
                   <TextField
@@ -166,7 +274,8 @@ const UploadDataDialog = ({ open, onClose }) => {
                 id="hospital-autocomplete"
                 options={hospitalsData}
                 value={selectedHospital}
-                onChange={(event, newValue) => setSelectedHospital(newValue)}
+                onChange={handleHospitalSelect}
+                getOptionLabel={(option) => option.name}
                 disabled={!selectedTehsil}
                 renderInput={(params) => (
                   <TextField

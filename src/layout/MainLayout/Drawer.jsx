@@ -25,6 +25,8 @@ import { IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
 const FilterDrawer = ({ open, onClose }) => {
+  const theme = useTheme();
+
   const [provinces, setProvinces] = useState([]);
   const [divisions, setDivisions] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -39,8 +41,19 @@ const FilterDrawer = ({ open, onClose }) => {
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [startAdmissionDate, setStartAdmissionDate] = useState(null);
   const [endAdmissionDate, setEndAdmissionDate] = useState(null);
+  const [selectedGender, setSelectedGender] = useState(null);
 
-  const theme = useTheme();
+  const [filterRequest, setFilterRequest] = useState({
+    provinceIds: null,
+    divisionIds: null,
+    districtIds: null,
+    tehsilIds: null,
+    hospitalIds: null,
+    symptoms: [],
+    admissionStartDate: null,
+    admissionEndDate: null,
+    gender: null,
+  });
 
   const fetchProvinces = debounce(async () => {
     try {
@@ -195,6 +208,40 @@ const FilterDrawer = ({ open, onClose }) => {
     { id: 20, name: "Cardiac (Chronic Disease)", attrName: "cardiacsCD" },
     { id: 21, name: "Kidney (Chronic Disease)", attrName: "kidneyCD" },
   ];
+
+  const handleFilterSubmit = () => {
+    setFilterRequest({
+      provinceIds:
+        selectedProvinces.length != 0
+          ? selectedProvinces.map((province) => province.id)
+          : null,
+      divisionIds:
+        selectedDivisions.length != 0
+          ? selectedDivisions.map((division) => division.id)
+          : null,
+      districtIds:
+        selectedDistricts.length != 0
+          ? selectedDistricts.map((district) => district.id)
+          : null,
+      tehsilIds:
+        selectedTehsils.length != 0
+          ? selectedTehsils.map((tehsil) => tehsil.id)
+          : null,
+      hospitalIds:
+        selectedHospitals.length != 0
+          ? selectedHospitals.map((hospital) => hospital.id)
+          : null,
+      symptoms:
+        selectedSymptoms.length != 0
+          ? selectedSymptoms.map((symptom) => symptom.attrName)
+          : null,
+      admissionStartDate:
+        startAdmissionDate != null ? startAdmissionDate : null,
+      admissionEndDate: endAdmissionDate,
+      gender: null,
+    });
+  };
+
   return (
     <Drawer
       anchor="left"
@@ -575,6 +622,10 @@ const FilterDrawer = ({ open, onClose }) => {
           options={[
             { label: "Male", id: 1 },
             { label: "Female", id: 2 },
+            {
+              label: "Both",
+              id: 3,
+            },
           ]}
           renderTags={(value, getTagProps) =>
             value.map((option, index) => (
@@ -679,6 +730,7 @@ const FilterDrawer = ({ open, onClose }) => {
             color="primary"
             type="submit"
             sx={{ width: "120px", minWidth: "120px" }}
+            onclick={handleFilterSubmit}
           >
             Apply Filters
           </Button>
