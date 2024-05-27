@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   Button,
@@ -15,164 +16,144 @@ import {
   Typography,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { useState } from "react";
+import axios from "axios";
+import { useUser } from "../../context/UserContext"; // import useUser hook
 
-const Form = () => {
-  const [userEmail, setUserEmail] = useState("example@example.com");
-  const [userPassword, setUserPassword] = useState("password123");
-  const [isChecked, setIsChecked] = useState(false);
-  const [showUserPassword, setShowUserPassword] = useState(false);
-  const [loginError, setLoginError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+const LoginSchema = Yup.object().shape({
+  email: Yup.string().email("Invalid email").required("Email is required"),
+  password: Yup.string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+});
 
+const LoginForm = () => {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const { updateUser } = useUser(); // get updateUser function from context
 
-  const isEmailValid = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
-  const isPasswordValid = (password) => {
-    return password.length >= 6;
-  };
-
-  const handleInputChange = ({ target: { name, value } }) => {
-    if (name === "email") {
-      setUserEmail(value);
-    } else if (name === "password") {
-      setUserPassword(value);
-    }
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setIsLoading(true);
-
+  const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      setLoginError(null);
-      setTimeout(() => {
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL +
+          "/user/login?email=" +
+          values.email +
+          "&password=" +
+          values.password
+      );
+
+      if (response.data) {
+        updateUser(response.data); // update user context with response data
         navigate("/dashboard");
-        setIsLoading(false);
-      }, 1000);
-    } catch (err) {
-      setIsLoading(false);
-      setLoginError(err.message);
+      } else {
+        console.error("Invalid credentials");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
     }
-  };
-
-  const toggleShowPassword = () => {
-    setShowUserPassword(!showUserPassword);
-  };
-
-  const preventMouseDownPassword = (event) => {
-    event.preventDefault();
+    setSubmitting(false);
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Stack spacing={1}>
-              <InputLabel htmlFor="user-email">Email Address</InputLabel>
-              <OutlinedInput
-                id="user-email"
-                type="email"
-                value={userEmail}
-                name="email"
-                onChange={handleInputChange}
-                placeholder="Enter email address"
-                fullWidth
-                error={Boolean(userEmail && !isEmailValid(userEmail))}
-              />
-              {userEmail && !isEmailValid(userEmail) && (
-                <FormHelperText error>Your email is not valid</FormHelperText>
-              )}
-            </Stack>
-          </Grid>
-          <Grid item xs={12}>
-            <Stack spacing={1}>
-              <InputLabel htmlFor="user-password">Password</InputLabel>
-              <OutlinedInput
-                fullWidth
-                error={Boolean(userPassword && !isPasswordValid(userPassword))}
-                id="user-password"
-                type={showUserPassword ? "text" : "password"}
-                value={userPassword}
-                name="password"
-                onChange={handleInputChange}
-                endAdornment={
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={toggleShowPassword}
-                      onMouseDown={preventMouseDownPassword}
-                      edge="end"
-                      size="large"
-                    >
-                      {showUserPassword ? <Visibility /> : <VisibilityOff />}
-                    </IconButton>
-                  </InputAdornment>
-                }
-                placeholder="Enter password"
-              />
-              {userPassword && !isPasswordValid(userPassword) && (
-                <FormHelperText error>
-                  Your password is not valid
-                </FormHelperText>
-              )}
-            </Stack>
-          </Grid>
-
-          <Grid item xs={12} sx={{ mt: -1 }}>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-              spacing={2}
-            >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={isChecked}
-                    onChange={(event) => setIsChecked(event.target.checked)}
-                    name="checked"
-                    color="primary"
-                    size="small"
-                  />
-                }
-                label={<Typography variant="h6">Keep me signed in</Typography>}
-              />
-              <Link
-                variant="h6"
-                component={RouterLink}
-                to=""
-                color="text.primary"
-              >
-                Forgot Password?
-              </Link>
-            </Stack>
-          </Grid>
-          {loginError && (
+    <Formik
+      initialValues={{ email: "amir@gmail.com", password: "1234567" }}
+      validationSchema={LoginSchema}
+      onSubmit={handleSubmit}
+    >
+      {({ isSubmitting }) => (
+        <Form>
+          <Grid container spacing={3}>
             <Grid item xs={12}>
-              <FormHelperText error>{loginError}</FormHelperText>
+              <Stack spacing={1}>
+                <InputLabel htmlFor="user-email">
+                  Email Address <span style={{ color: "red" }}>*</span>
+                </InputLabel>
+                <Field
+                  as={OutlinedInput}
+                  id="user-email"
+                  type="email"
+                  name="email"
+                  placeholder="Enter email address"
+                  fullWidth
+                />
+                <ErrorMessage name="email" component={FormHelperText} error />
+              </Stack>
             </Grid>
-          )}
-          <Grid item xs={12}>
-            <Button
-              disableElevation
-              fullWidth
-              size="large"
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={isLoading}
-            >
-              {isLoading ? "Logging in..." : "Login"}
-            </Button>
+            <Grid item xs={12}>
+              <Stack spacing={1}>
+                <InputLabel htmlFor="user-password">
+                  Password <span style={{ color: "red" }}>*</span>
+                </InputLabel>
+                <Field
+                  as={OutlinedInput}
+                  id="user-password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Enter password"
+                  fullWidth
+                  endAdornment={
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        edge="end"
+                        size="large"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <Visibility /> : <VisibilityOff />}
+                      </IconButton>
+                    </InputAdornment>
+                  }
+                />
+                <ErrorMessage
+                  name="password"
+                  component={FormHelperText}
+                  error
+                />
+              </Stack>
+            </Grid>
+            <Grid item xs={12} sx={{ mt: -1 }}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                spacing={2}
+              >
+                <FormControlLabel
+                  control={
+                    <Checkbox name="checked" color="primary" size="small" />
+                  }
+                  label={
+                    <Typography variant="h6">Keep me signed in</Typography>
+                  }
+                />
+                <Link
+                  variant="h6"
+                  component={RouterLink}
+                  to=""
+                  color="text.primary"
+                >
+                  Forgot Password?
+                </Link>
+              </Stack>
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                disableElevation
+                fullWidth
+                size="large"
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Logging in..." : "Login"}
+              </Button>
+            </Grid>
           </Grid>
-        </Grid>
-      </form>
-    </>
+        </Form>
+      )}
+    </Formik>
   );
 };
 
-export default Form;
+export default LoginForm;

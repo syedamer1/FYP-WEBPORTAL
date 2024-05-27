@@ -21,6 +21,10 @@ import {
 } from "@mui/icons-material";
 
 import avataruser from "@assets/images/users/avatar-1.png";
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-GB"); // This formats the date as DD/MM/YYYY
+};
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -103,7 +107,7 @@ const ViewProfileDialog = ({ open, onClose, profiledata }) => {
             <InfoItem
               icon={<AccessTimeIcon />}
               label="User Since:"
-              value={profiledata.createdOn}
+              value={formatDate(profiledata.createdOn)}
             />
           </Grid>
           <Grid item xs={12} md={6}>

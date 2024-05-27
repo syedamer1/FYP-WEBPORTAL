@@ -8,7 +8,6 @@ import {
   ClickAwayListener,
   Divider,
   Grid,
-  IconButton,
   Paper,
   Popper,
   Stack,
@@ -19,7 +18,6 @@ import {
   ListItemText,
   Tooltip,
 } from "@mui/material";
-
 import { useTheme } from "@mui/material/styles";
 import {
   LocationCityOutlined as ManageAreaIcon,
@@ -34,9 +32,12 @@ import EditProfileDialog from "./EditProfileDialog";
 import CustomCard from "@components/CustomCard";
 import Transitions from "@components/animation/Transitions";
 import ViewProfileDialog from "./ViewProfileDialog";
+import { useUser } from "@context/UserContext";
+
 const Profile = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const { user, updateUser } = useUser();
   const [viewProfileOpen, setViewProfileOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
@@ -63,23 +64,32 @@ const Profile = () => {
   };
 
   const handleLogout = () => {
+    // Clear user data from local storage
+    localStorage.removeItem("user");
+
+    // Set user context to null
+    updateUser({
+      id: null,
+      firstName: "",
+      lastName: "",
+      usertype: "",
+      contact: "",
+      cnic: "",
+      email: "",
+      password: "",
+      province: null,
+      division: null,
+      district: null,
+      tehsil: null,
+      hospital: null,
+      createdOn: null,
+    });
+
     setOpen(false);
     navigate("/login");
   };
 
   const anchorRef = useRef(null);
-
-  const profileData = {
-    id: 123,
-    usertype: "Super Administrator",
-    firstName: "Ayesha",
-    lastName: "Ali",
-    cnic: "123123-1323123-13",
-    email: "johnsmith@example.com",
-    contact: "09123456789",
-    password: "121212121",
-    createdOn: "02-12-2024",
-  };
 
   return (
     <Box sx={{ flexShrink: 0, ml: "auto" }}>
@@ -108,7 +118,7 @@ const Profile = () => {
               src={avataruser}
               sx={{ width: 32, height: 32 }}
             />
-            <Typography variant="subtitle1">Ayesha Khan</Typography>
+            <Typography variant="subtitle1">{`${user.firstName} ${user.lastName}`}</Typography>
           </Stack>
         </ButtonBase>
       </Tooltip>
@@ -169,24 +179,12 @@ const Profile = () => {
                               sx={{ width: 32, height: 32 }}
                             />
                             <Stack>
-                              <Typography variant="h6">Ayesha Khan</Typography>
+                              <Typography variant="h6">{`${user.firstName} ${user.lastName}`}</Typography>
                               <Typography variant="body2" color="textSecondary">
-                                Super Administrator
+                                {user.usertype}
                               </Typography>
                             </Stack>
                           </Stack>
-                        </Grid>
-                        <Grid item>
-                          <IconButton
-                            size="large"
-                            color="secondary"
-                            onClick={handleLogout}
-                          >
-                            <LogoutIcon
-                              sx={{ display: { xs: "none", md: "block" } }}
-                              style={{ fontSize: "2rem", color: "gray" }}
-                            />
-                          </IconButton>
                         </Grid>
                       </Grid>
                     </CardContent>
@@ -265,12 +263,13 @@ const Profile = () => {
       <ViewProfileDialog
         open={viewProfileOpen}
         onClose={() => setViewProfileOpen(false)}
-        profiledata={profileData}
+        profiledata={user}
       />
       <EditProfileDialog
         open={editProfileOpen}
         onClose={handleEditProfileToggle}
-        user={profileData}
+        user={user}
+        updateUser={updateUser}
       />
     </Box>
   );
