@@ -53,13 +53,13 @@ const UploadDataDialog = ({ open, onClose }) => {
     }
   }, 300);
 
-  const fetchDivisions = debounce(async (provinceId) => {
+  const fetchDivisions = debounce(async (provinceIds) => {
     try {
       const response = await axios.get(
         import.meta.env.VITE_REACT_APP_BASEURL +
           "/division/getDivisionsByProvinceIds",
         {
-          params: { provinceIds: provinceId },
+          params: { provinceIds: provinceIds.join(",") },
         }
       );
       setDivisionOptions(response.data);
@@ -68,13 +68,13 @@ const UploadDataDialog = ({ open, onClose }) => {
     }
   }, 300);
 
-  const fetchDistricts = debounce(async (divisionId) => {
+  const fetchDistricts = debounce(async (divisionIds) => {
     try {
       const response = await axios.get(
         import.meta.env.VITE_REACT_APP_BASEURL +
           "/district/getDistrictsByDivisionIds",
         {
-          params: { divisionIds: divisionId },
+          params: { divisionIds: divisionIds.join(",") },
         }
       );
       setDistrictOptions(response.data);
@@ -83,13 +83,13 @@ const UploadDataDialog = ({ open, onClose }) => {
     }
   }, 300);
 
-  const fetchTehsils = debounce(async (districtId) => {
+  const fetchTehsils = debounce(async (districtIds) => {
     try {
       const response = await axios.get(
         import.meta.env.VITE_REACT_APP_BASEURL +
           "/tehsil/getTehsilsByDistrictIds",
         {
-          params: { districtIds: districtId },
+          params: { districtIds: districtIds.join(",") },
         }
       );
       setTehsilOptions(response.data);
@@ -98,13 +98,13 @@ const UploadDataDialog = ({ open, onClose }) => {
     }
   }, 300);
 
-  const fetchHospitals = debounce(async (tehsilId) => {
+  const fetchHospitals = debounce(async (tehsilIds) => {
     try {
       const response = await axios.get(
         import.meta.env.VITE_REACT_APP_BASEURL +
           "/hospital/getHospitalsByTehsilIds",
         {
-          params: { tehsilIds: tehsilId },
+          params: { tehsilIds: tehsilIds.join(",") },
         }
       );
       setHospitalOptions(response.data);
