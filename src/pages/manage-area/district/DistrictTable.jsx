@@ -16,10 +16,12 @@ import {
   MaterialReactTable,
   useMaterialReactTable,
 } from "material-react-table";
-import EditDistrictDialog from "./EditDistrictDialog.jsx"; // Assuming you have an EditDistrictDialog component
-import AddDistrictDialog from "./AddDistrictDialog.jsx"; // Assuming you have an AddDistrictDialog component
+import EditDistrictDialog from "./EditDistrictDialog.jsx";
+import AddDistrictDialog from "./AddDistrictDialog.jsx";
 import DeleteConfirmation from "@components/DeleteConfirmation";
 import OverLayLoader from "@components/OverlayLoader";
+import { formatDate } from "@utility";
+
 const DistrictTable = () => {
   const [deleteDistrictId, setDeleteDistrictId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -128,23 +130,31 @@ const DistrictTable = () => {
             size: 150,
           },
           {
-            accessorFn: (row) => new Date(row.createdOn),
+            accessorFn: (row) =>
+              row.createdOn ? formatDate(row.createdOn) : "Not Created",
             id: "createdOn",
             header: "Created On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.createdOn
+                ? formatDate(cell.row.original.createdOn)
+                : "Not Created",
           },
+
           {
             accessorFn: (row) =>
-              row.updatedOn === null ? "Not Updated" : row.updatedOn,
+              row.updatedOn ? formatDate(row.updatedOn) : "Not Updated",
             id: "updatedOn",
             header: "Updated On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.updatedOn
+                ? formatDate(cell.row.original.updatedOn)
+                : "Not Updated",
           },
           {
             id: "actions",

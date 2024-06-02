@@ -64,10 +64,8 @@ const Profile = () => {
   };
 
   const handleLogout = () => {
-    // Clear user data from local storage
     localStorage.removeItem("user");
 
-    // Set user context to null
     updateUser({
       id: null,
       firstName: "",
@@ -206,39 +204,43 @@ const Profile = () => {
                         <ListItemText primary="View Profile" />
                       </ListItemButton>
                       <Divider sx={{ my: 0.5 }} />
-                      <ListItemButton
-                        component={Link}
-                        to="/manage-account"
-                        onClick={() => setOpen(false)}
-                      >
-                        <ListItemIcon sx={{ minWidth: 24 }}>
-                          <ManageAccountIcon color="gray" />
-                        </ListItemIcon>
-                        <ListItemText primary="Manage Account" />
-                      </ListItemButton>
-                      <Divider sx={{ my: 0.5 }} />
-                      <ListItemButton
-                        component={Link}
-                        to="/manage-hospital"
-                        onClick={() => setOpen(false)}
-                      >
-                        <ListItemIcon sx={{ minWidth: 24 }}>
-                          <ManageHospitalIcon color="gray" />
-                        </ListItemIcon>
-                        <ListItemText primary="Manage Hospital" />
-                      </ListItemButton>
-                      <Divider sx={{ my: 0.5 }} />
-                      <ListItemButton
-                        component={Link}
-                        to="/manage-area"
-                        onClick={() => setOpen(false)}
-                      >
-                        <ListItemIcon sx={{ minWidth: 24 }}>
-                          <ManageAreaIcon color="gray" />
-                        </ListItemIcon>
-                        <ListItemText primary="Manage Area" />
-                      </ListItemButton>
-                      <Divider sx={{ my: 0.5 }} />
+                      {user.usertype === "Super Administrator" && (
+                        <>
+                          <ListItemButton
+                            component={Link}
+                            to="/manage-account"
+                            onClick={() => setOpen(false)}
+                          >
+                            <ListItemIcon sx={{ minWidth: 24 }}>
+                              <ManageAccountIcon color="gray" />
+                            </ListItemIcon>
+                            <ListItemText primary="Manage Account" />
+                          </ListItemButton>
+                          <Divider sx={{ my: 0.5 }} />
+                          <ListItemButton
+                            component={Link}
+                            to="/manage-hospital"
+                            onClick={() => setOpen(false)}
+                          >
+                            <ListItemIcon sx={{ minWidth: 24 }}>
+                              <ManageHospitalIcon color="gray" />
+                            </ListItemIcon>
+                            <ListItemText primary="Manage Hospital" />
+                          </ListItemButton>
+                          <Divider sx={{ my: 0.5 }} />
+                          <ListItemButton
+                            component={Link}
+                            to="/manage-area"
+                            onClick={() => setOpen(false)}
+                          >
+                            <ListItemIcon sx={{ minWidth: 24 }}>
+                              <ManageAreaIcon color="gray" />
+                            </ListItemIcon>
+                            <ListItemText primary="Manage Area" />
+                          </ListItemButton>
+                          <Divider sx={{ my: 0.5 }} />
+                        </>
+                      )}
                       <ListItemButton onClick={handleEditProfileToggle}>
                         <ListItemIcon sx={{ minWidth: 24 }}>
                           <EditProfileIcon color="gray" />

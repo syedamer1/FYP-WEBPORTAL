@@ -20,7 +20,11 @@ import EditHospitalDialog from "./EditHospitalDialog";
 import AddHospitalDialog from "./AddHospitalDialog";
 import DeleteConfirmation from "@components/DeleteConfirmation";
 import OverLayLoader from "@components/OverlayLoader";
+import { PeopleAltOutlined as PeopleAltOutlinedIcon } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { formatDate } from "@utility";
 const HospitalTable = () => {
+  const navigate = useNavigate();
   const [deleteHospitalId, setDeleteHospitalId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAddHospitalDialogOpen, setIsAddHospitalDialogOpen] = useState(false);
@@ -163,6 +167,35 @@ const HospitalTable = () => {
             size: 150,
           },
           {
+            id: "patients",
+            header: "Patients",
+            size: 200,
+            Cell: ({ row }) => (
+              <Box sx={{ display: "flex", gap: "0.5rem" }}>
+                <Button
+                  variant="contained"
+                  sx={{
+                    color: "#ffffff",
+                    borderColor: "#4caf50",
+                    backgroundColor: "#4caf50",
+                    "&:hover": {
+                      backgroundColor: "#388e3c",
+                      borderColor: "#388e3c",
+                    },
+                  }}
+                  startIcon={
+                    <PeopleAltOutlinedIcon sx={{ color: "#ffffff" }} />
+                  }
+                  onClick={() =>
+                    navigate(`/patient-records?hospitalId=${row.original.id}`)
+                  }
+                >
+                  View Patients
+                </Button>
+              </Box>
+            ),
+          },
+          {
             id: "code",
             accessorKey: "code",
             header: "Code",
@@ -182,23 +215,31 @@ const HospitalTable = () => {
             size: 150,
           },
           {
-            accessorFn: (row) => new Date(row.createdOn),
+            accessorFn: (row) =>
+              row.createdOn ? formatDate(row.createdOn) : "Not Created",
             id: "createdOn",
             header: "Created On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.createdOn
+                ? formatDate(cell.row.original.createdOn)
+                : "Not Created",
           },
+
           {
             accessorFn: (row) =>
-              row.updatedOn == "null" ? "Not Updated" : row.updatedOn,
+              row.updatedOn ? formatDate(row.updatedOn) : "Not Updated",
             id: "updatedOn",
             header: "Updated On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.updatedOn
+                ? formatDate(cell.row.original.updatedOn)
+                : "Not Updated",
           },
           {
             id: "actions",

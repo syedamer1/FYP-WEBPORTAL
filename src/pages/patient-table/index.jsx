@@ -2,9 +2,12 @@ import MainCard from "@components/CustomCard";
 import PatientTable from "./PatientTable";
 import { Grid, Typography } from "@mui/material/";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import PropTypes from "prop-types";
+import { useParams } from "react-router-dom";
 
 const PatientRecords = () => {
   const queryClient = new QueryClient();
+  const { hospitalId } = useParams();
 
   return (
     <>
@@ -18,7 +21,7 @@ const PatientRecords = () => {
           sx={{ display: { sm: "none", md: "block", lg: "none" } }}
         />
         <QueryClientProvider client={queryClient}>
-          <PatientTable />
+          <PatientTable hospitalId={hospitalId} />
         </QueryClientProvider>
       </MainCard>
     </>
@@ -26,3 +29,6 @@ const PatientRecords = () => {
 };
 
 export default PatientRecords;
+PatientRecords.propTypes = {
+  hospitalId: PropTypes.any,
+};

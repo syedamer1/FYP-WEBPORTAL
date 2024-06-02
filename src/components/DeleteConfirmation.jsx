@@ -72,8 +72,8 @@ export default function DeleteConfirmation({ open, onClose, onDelete }) {
             mb: 2,
             "&:hover": {
               boxShadow:
-                "0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12)", // MUI elevation shadow
-              backgroundColor: grey[500], // Keep the background color on hover
+                "0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12)",
+              backgroundColor: grey[500],
             },
           }}
         >
@@ -89,8 +89,8 @@ export default function DeleteConfirmation({ open, onClose, onDelete }) {
             mb: 2,
             "&:hover": {
               boxShadow:
-                "0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12)", // MUI elevation shadow
-              backgroundColor: red[500], // Keep the background color on hover
+                "0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12)",
+              backgroundColor: red[500],
             },
           }}
         >

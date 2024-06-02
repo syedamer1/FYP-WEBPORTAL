@@ -18,7 +18,7 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useState } from "react";
 import axios from "axios";
-import { useUser } from "../../context/UserContext"; // import useUser hook
+import { useUser } from "@context/UserContext";
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string().email("Invalid email").required("Email is required"),
@@ -30,7 +30,7 @@ const LoginSchema = Yup.object().shape({
 const LoginForm = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const { updateUser } = useUser(); // get updateUser function from context
+  const { updateUser } = useUser();
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
@@ -43,7 +43,7 @@ const LoginForm = () => {
       );
 
       if (response.data) {
-        updateUser(response.data); // update user context with response data
+        updateUser(response.data);
         navigate("/dashboard");
       } else {
         console.error("Invalid credentials");

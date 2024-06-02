@@ -20,6 +20,8 @@ import EditProvinceDialog from "./EditProvinceDialog";
 import AddProvinceDialog from "./AddProvinceDialog";
 import DeleteConfirmation from "@components/DeleteConfirmation";
 import OverLayLoader from "@components/OverlayLoader";
+import { formatDate } from "@utility";
+
 const ProvinceTable = () => {
   const [deleteProvinceId, setDeleteProvinceId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -55,7 +57,14 @@ const ProvinceTable = () => {
       const fetchURL = new URL(
         import.meta.env.VITE_REACT_APP_BASEURL + "/province/get"
       );
-
+      // fetchURL.searchParams.set(
+      //   "start",
+      //   `${pagination.pageIndex * pagination.pageSize}`
+      // );
+      // fetchURL.searchParams.set("size", `${pagination.pageSize}`);
+      // fetchURL.searchParams.set("filters", JSON.stringify(columnFilters ?? []));
+      // fetchURL.searchParams.set("globalFilter", globalFilter ?? "");
+      // fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
       const response = await axios.get(fetchURL.href);
 
       return {
@@ -156,23 +165,31 @@ const ProvinceTable = () => {
             size: 150,
           },
           {
+            accessorFn: (row) =>
+              row.createdOn ? formatDate(row.createdOn) : "Not Created",
             id: "createdOn",
-            accessorFn: (row) => new Date(row.createdOn),
             header: "Created On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.createdOn
+                ? formatDate(cell.row.original.createdOn)
+                : "Not Created",
           },
+
           {
-            id: "updatedOn",
             accessorFn: (row) =>
-              row.updatedOn === null ? "Not Updated" : row.updatedOn,
+              row.updatedOn ? formatDate(row.updatedOn) : "Not Updated",
+            id: "updatedOn",
             header: "Updated On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.updatedOn
+                ? formatDate(cell.row.original.updatedOn)
+                : "Not Updated",
           },
           {
             id: "actions",

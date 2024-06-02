@@ -12,7 +12,8 @@ import {
   useMaterialReactTable,
 } from "material-react-table";
 import OverLayLoader from "@components/OverlayLoader";
-const PatientTable = () => {
+import { formatDate } from "@utility";
+const PatientTable = ({ hospitalId = null }) => {
   const [deletePatientId, setDeletePatientId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAddPatientDialogOpen, setIsAddPatientDialogOpen] = useState(false);
@@ -43,9 +44,16 @@ const PatientTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const fetchURL = new URL(
-        import.meta.env.VITE_REACT_APP_BASEURL + "/patient/get"
-      );
+      let fetchURL;
+      if (hospitalId) {
+        fetchURL = new URL(
+          import.meta.env.VITE_REACT_APP_BASEURL + "/patient/getByHospitalId"
+        );
+      } else {
+        fetchURL = new URL(
+          import.meta.env.VITE_REACT_APP_BASEURL + "/patient/get"
+        );
+      }
 
       // fetchURL.searchParams.set(
       //   "start",
@@ -314,23 +322,30 @@ const PatientTable = () => {
             Cell: ({ cell }) => (cell.getValue() ? "Yes" : "No"),
           },
           {
-            accessorFn: (row) => new Date(row.created_on),
-            id: "created_on",
+            accessorFn: (row) =>
+              row.createdOn ? formatDate(row.createdOn) : "Not Created",
+            id: "createdOn",
             header: "Created On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.createdOn
+                ? formatDate(cell.row.original.createdOn)
+                : "Not Created",
           },
           {
             accessorFn: (row) =>
-              row.updatedOn == "null" ? "Not Updated" : row.updatedOn,
+              row.updatedOn ? formatDate(row.updatedOn) : "Not Updated",
             id: "updatedOn",
             header: "Updated On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.updatedOn
+                ? formatDate(cell.row.original.updatedOn)
+                : "Not Updated",
           },
         ],
       },

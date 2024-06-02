@@ -2,7 +2,16 @@ import MainCard from "@components/CustomCard";
 import AccountTable from "./AccountTable";
 import { Grid, Typography } from "@mui/material/";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useUser } from "@context/UserContext";
+import { Navigate } from "react-router-dom";
+
 const ManageAccount = () => {
+  const { user } = useUser();
+
+  if (user.usertype !== "Super Administrator" || user.usertype === null) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const queryClient = new QueryClient();
   return (
     <>

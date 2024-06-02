@@ -12,7 +12,8 @@ import {
   BusinessOutlined,
   LocationCityOutlined,
 } from "@mui/icons-material";
-
+import { useUser } from "@context/UserContext";
+import { Navigate } from "react-router-dom";
 const a11yProps = (index) => {
   return {
     id: `tab-${index}`,
@@ -38,10 +39,15 @@ const TabPanel = (props) => {
 };
 
 const ManageArea = () => {
+  const { user } = useUser();
+
   const [value, setValue] = useState(0);
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+  if (user.usertype !== "Super Administrator" || user.usertype === null) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const provinceQueryClient = new QueryClient();
   const divisionQueryClient = new QueryClient();

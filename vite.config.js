@@ -11,6 +11,7 @@ export default defineConfig({
       '@pages': '/src/pages',
       '@layout': '/src/layout',
       '@context': '/src/context',
+      '@utility': '/src/utility',
     },
   },
 })

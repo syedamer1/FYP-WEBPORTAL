@@ -16,10 +16,11 @@ import {
   MaterialReactTable,
   useMaterialReactTable,
 } from "material-react-table";
-import EditTehsilDialog from "./EditTehsilDialog.jsx"; // Assuming you have an EditTehsilDialog component
-import AddTehsilDialog from "./AddTehsilDialog.jsx"; // Assuming you have an AddTehsilDialog component
+import EditTehsilDialog from "./EditTehsilDialog.jsx";
+import AddTehsilDialog from "./AddTehsilDialog.jsx";
 import DeleteConfirmation from "@components/DeleteConfirmation";
 import OverLayLoader from "@components/OverlayLoader";
+import { formatDate } from "@utility";
 
 const TehsilTable = () => {
   const [deleteTehsilId, setDeleteTehsilId] = useState(null);
@@ -131,46 +132,58 @@ const TehsilTable = () => {
             size: 150,
           },
           {
-            accessorFn: (row) => new Date(row.createdOn),
+            accessorFn: (row) =>
+              row.createdOn ? formatDate(row.createdOn) : "Not Created",
             id: "createdOn",
             header: "Created On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.createdOn
+                ? formatDate(cell.row.original.createdOn)
+                : "Not Created",
           },
           {
             accessorFn: (row) =>
-              row.updatedOn === null ? "Not Updated" : row.updatedOn,
+              row.updatedOn ? formatDate(row.updatedOn) : "Not Updated",
             id: "updatedOn",
             header: "Updated On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.updatedOn
+                ? formatDate(cell.row.original.updatedOn)
+                : "Not Updated",
           },
           {
             id: "actions",
             header: "Actions",
             size: 200,
             Cell: ({ row }) => (
-              <Box sx={{ display: "flex", gap: "0.5rem" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: "0.5rem",
+                }}
+              >
                 <Button
                   variant="outlined"
                   color="primary"
                   startIcon={<EditIcon />}
                   onClick={() => toggleEditTehsilDialog(row.original)}
                 >
-                  Edit
-                </Button>
+                  Edit{" "}
+                </Button>{" "}
                 <Button
                   variant="outlined"
                   color="error"
                   startIcon={<DeleteIcon />}
                   onClick={() => handleDeleteTehsil(row.original.id)}
                 >
-                  Delete
-                </Button>
+                  Delete{" "}
+                </Button>{" "}
               </Box>
             ),
           },
@@ -183,7 +196,9 @@ const TehsilTable = () => {
   const table = useMaterialReactTable({
     columns,
     data,
-    initialState: { showColumnFilters: true },
+    initialState: {
+      showColumnFilters: true,
+    },
     manualFiltering: true,
     manualPagination: true,
     manualSorting: true,
@@ -204,22 +219,27 @@ const TehsilTable = () => {
         >
           <Box>
             <Button
-              startIcon={<AddLocationIcon sx={{ fontSize: "0.5rem" }} />}
+              startIcon={
+                <AddLocationIcon
+                  sx={{
+                    fontSize: "0.5rem",
+                  }}
+                />
+              }
               variant="contained"
               onClick={toggleAddTehsilDialog}
             >
-              Add Tehsil
-            </Button>
+              Add Tehsil{" "}
+            </Button>{" "}
           </Box>
-
           <Box>
             <Tooltip arrow title="Refresh Data">
               <IconButton onClick={() => refetch()}>
                 <RefreshIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </Box>
+              </IconButton>{" "}
+            </Tooltip>{" "}
+          </Box>{" "}
+        </Box>{" "}
       </>
     ),
     rowCount: 500,
@@ -238,19 +258,23 @@ const TehsilTable = () => {
   return (
     <>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Box sx={{ marginTop: "30px" }}>
-          <MaterialReactTable table={table} />
-          <OverLayLoader loading={isLoading} />
+        <Box
+          sx={{
+            marginTop: "30px",
+          }}
+        >
+          <MaterialReactTable table={table} />{" "}
+          <OverLayLoader loading={isLoading} />{" "}
           <DeleteConfirmation
             open={isDeleteDialogOpen}
             onClose={toggleDeleteDialog}
             onDelete={deleteTehsilFromServer}
-          />
+          />{" "}
           <AddTehsilDialog
             open={isAddTehsilDialogOpen}
             onClose={toggleAddTehsilDialog}
             refresh={refetch}
-          />
+          />{" "}
           {isEditTehsilDialogOpen && selectedTehsil && (
             <EditTehsilDialog
               open={isEditTehsilDialogOpen}
@@ -258,9 +282,9 @@ const TehsilTable = () => {
               tehsil={selectedTehsil}
               refresh={refetch}
             />
-          )}
-        </Box>
-      </LocalizationProvider>
+          )}{" "}
+        </Box>{" "}
+      </LocalizationProvider>{" "}
     </>
   );
 };
