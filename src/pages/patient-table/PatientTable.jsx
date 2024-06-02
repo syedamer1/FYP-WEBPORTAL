@@ -47,12 +47,13 @@ const PatientTable = ({ hospitalId = null }) => {
       let fetchURL;
       if (hospitalId) {
         fetchURL = new URL(
-          import.meta.env.VITE_REACT_APP_BASEURL + "/patient/getByHospitalId"
+          `${
+            import.meta.env.VITE_REACT_APP_BASEURL
+          }/patient/getPatientsByHospitalId/${hospitalId}`
         );
       } else {
-        fetchURL = new URL(
-          import.meta.env.VITE_REACT_APP_BASEURL + "/patient/get"
-        );
+        fetchURL = new URL();
+        `${import.meta.env.VITE_REACT_APP_BASEURL}/patient/get`;
       }
 
       // fetchURL.searchParams.set(

@@ -8,6 +8,7 @@ import { useParams } from "react-router-dom";
 const PatientRecords = () => {
   const queryClient = new QueryClient();
   const { hospitalId } = useParams();
+  console.log("hospitalId:", hospitalId);
 
   return (
     <>

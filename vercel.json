@@ -7,7 +7,7 @@
     { "src": "/predictive-analytics", "dest": "/" },
     { "src": "/manage-hospital", "dest": "/" },
     { "src": "/patient-records", "dest": "/" },
-    { "src": "/patient-records?hospital/:hospitalIds", "dest": "/" },
+    { "src": "/patient-records/:hospitalId", "dest": "/" },
     { "src": "/404NotFound", "dest": "/" },
     { "src": "/*", "dest": "/404NotFound" }
   ]
