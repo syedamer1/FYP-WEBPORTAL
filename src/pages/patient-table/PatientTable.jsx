@@ -52,8 +52,9 @@ const PatientTable = ({ hospitalId = null }) => {
           }/patient/getPatientsByHospitalId/${hospitalId}`
         );
       } else {
-        fetchURL = new URL();
-        `${import.meta.env.VITE_REACT_APP_BASEURL}/patient/get`;
+        fetchURL = new URL(
+          `${import.meta.env.VITE_REACT_APP_BASEURL}/patient/get`
+        );
       }
 
       // fetchURL.searchParams.set(
