@@ -23,31 +23,30 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { useUser } from "@context/UserContext";
+import DrawerAutoComplete from "@components/DrawerAutoComplete";
+import dayjs from "dayjs";
 
 const FilterDrawer = ({ open, onClose }) => {
   const theme = useTheme();
 
-  const [provinces, setProvinces] = useState([]);
-  const [divisions, setDivisions] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [tehsils, setTehsils] = useState([]);
-  const [hospitals, setHospitals] = useState([]);
-
-  const [selectedProvinces, setSelectedProvinces] = useState([]);
-  const [selectedDivisions, setSelectedDivisions] = useState([]);
-  const [selectedDistricts, setSelectedDistricts] = useState([]);
-  const [selectedTehsils, setSelectedTehsils] = useState([]);
-  const [selectedHospitals, setSelectedHospitals] = useState([]);
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [startAdmissionDate, setStartAdmissionDate] = useState(null);
   const [endAdmissionDate, setEndAdmissionDate] = useState(null);
   const [selectedGender, setSelectedGender] = useState(null);
+  const [selectedDivisions, setSelectedDivisions] = useState([]);
+  const [selectedDistricts, setSelectedDistricts] = useState([]);
+  const [selectedTehsils, setSelectedTehsils] = useState([]);
+  const [selectedProvinces, setSelectedProvinces] = useState([]);
+  const [selectedHospitals, setSelectedHospitals] = useState([]);
+
+  const [provinceOptions, setProvinceOptions] = useState([]);
+  const [divisionOptions, setDivisionOptions] = useState([]);
+  const [districtOptions, setDistrictOptions] = useState([]);
+  const [tehsilOptions, setTehsilOptions] = useState([]);
+  const [hospitalOptions, setHospitalOptions] = useState([]);
 
   const [filterRequest, setFilterRequest] = useState({
-    provinceIds: null,
-    divisionIds: null,
-    districtIds: null,
-    tehsilIds: null,
     hospitalIds: null,
     symptoms: [],
     admissionStartDate: null,
@@ -55,19 +54,20 @@ const FilterDrawer = ({ open, onClose }) => {
     gender: null,
   });
 
+  const { user } = useUser();
+
   const fetchProvinces = debounce(async () => {
     try {
       const response = await axios.get(
-        import.meta.env.VITE_REACT_APP_BASEURL + "/province/get"
+        import.meta.env.VITE_REACT_APP_BASEURL + "/province/getIdAndName"
       );
-      setProvinces(response.data);
+      setProvinceOptions(response.data);
     } catch (err) {
       console.log(err);
     }
   }, 300);
 
   const fetchDivisions = debounce(async (provinceIds) => {
-    console.log(provinceIds);
     try {
       const response = await axios.get(
         import.meta.env.VITE_REACT_APP_BASEURL +
@@ -76,7 +76,7 @@ const FilterDrawer = ({ open, onClose }) => {
           params: { provinceIds: provinceIds.join(",") },
         }
       );
-      setDivisions(response.data);
+      setDivisionOptions(response.data);
     } catch (err) {
       console.log(err);
     }
@@ -91,7 +91,7 @@ const FilterDrawer = ({ open, onClose }) => {
           params: { divisionIds: divisionIds.join(",") },
         }
       );
-      setDistricts(response.data);
+      setDistrictOptions(response.data);
     } catch (err) {
       console.log(err);
     }
@@ -106,7 +106,7 @@ const FilterDrawer = ({ open, onClose }) => {
           params: { districtIds: districtIds.join(",") },
         }
       );
-      setTehsils(response.data);
+      setTehsilOptions(response.data);
     } catch (err) {
       console.log(err);
     }
@@ -121,64 +121,96 @@ const FilterDrawer = ({ open, onClose }) => {
           params: { tehsilIds: tehsilIds.join(",") },
         }
       );
-      setHospitals(response.data);
+      setHospitalOptions(response.data);
     } catch (err) {
       console.log(err);
     }
   }, 300);
 
   useEffect(() => {
-    fetchProvinces();
-  }, []);
+    if (user.usertype === userType.superAdmin) {
+      fetchProvinces();
+    } else if (user.usertype === userType.provinceAdmin) {
+      fetchDivisions([user.province.id]);
+    } else if (user.usertype === userType.divisionAdmin) {
+      fetchDistricts([user.division.id]);
+    } else if (user.usertype === userType.districtAdmin) {
+      fetchTehsils([user.district.id]);
+    } else if (user.usertype === userType.tehsilAdmin) {
+      fetchHospitals([user.tehsil.id]);
+    }
+  }, [user]);
 
-  const handleProvinceSelect = (event, values) => {
-    setSelectedProvinces(values);
-    if (!values || values.length === 0) {
-      setSelectedDivisions([]);
-      setSelectedDistricts([]);
-      setSelectedTehsils([]);
-      setHospitals([]);
+  const handleProvinceSelect = (event, newValue) => {
+    setSelectedProvinces(newValue);
+    setSelectedDivisions([]);
+    setSelectedDistricts([]);
+    setSelectedTehsils([]);
+    setSelectedHospitals([]);
+    if (newValue.length) {
+      setDivisionOptions([]);
+      fetchDivisions(newValue.map((province) => province.id));
     } else {
-      fetchDivisions(values.map((province) => province.id));
+      setDivisionOptions([]);
     }
   };
 
-  const handleDivisionSelect = (event, values) => {
-    setSelectedDivisions(values);
-    if (!values || values.length === 0) {
-      setSelectedDistricts([]);
-      setSelectedTehsils([]);
-      setHospitals([]);
+  const handleDivisionSelect = (event, newValue) => {
+    setSelectedDivisions(newValue);
+    setSelectedDistricts([]);
+    setSelectedTehsils([]);
+    setSelectedHospitals([]);
+    if (newValue.length) {
+      setDistrictOptions([]);
+      fetchDistricts(newValue.map((division) => division.id));
     } else {
-      fetchDistricts(values.map((division) => division.id));
+      setDistrictOptions([]);
     }
   };
 
-  const handleDistrictSelect = (event, values) => {
-    setSelectedDistricts(values);
-    if (!values || values.length === 0) {
-      setSelectedTehsils([]);
-      setHospitals([]);
+  const handleDistrictSelect = (event, newValue) => {
+    setSelectedDistricts(newValue);
+    setSelectedTehsils([]);
+    setSelectedHospitals([]);
+    if (newValue.length) {
+      setTehsilOptions([]);
+      fetchTehsils(newValue.map((district) => district.id));
     } else {
-      fetchTehsils(values.map((district) => district.id));
+      setTehsilOptions([]);
     }
   };
 
-  const handleTehsilSelect = (event, values) => {
-    setSelectedTehsils(values);
-    if (!values || values.length === 0) {
-      setHospitals([]);
+  const handleTehsilSelect = (event, newValue) => {
+    setSelectedTehsils(newValue);
+    setSelectedHospitals([]);
+    if (newValue.length) {
+      setHospitalOptions([]);
+      fetchHospitals(newValue.map((tehsil) => tehsil.id));
     } else {
-      fetchHospitals(values.map((tehsil) => tehsil.id));
+      setHospitalOptions([]);
     }
   };
 
-  const handleHospitalSelect = (event, values) => {
-    setSelectedHospitals(values);
+  const handleHospitalSelect = (event, newValue) => {
+    setSelectedHospitals(newValue);
   };
 
-  const handleSymptomsSelect = (event, values) => {
-    setSelectedSymptoms(values);
+  const handleClose = () => {
+    setProvinceOptions([]);
+    setDivisionOptions([]);
+    setDistrictOptions([]);
+    setTehsilOptions([]);
+    setHospitalOptions([]);
+    setSelectedDivisions([]);
+    setSelectedDistricts([]);
+    setSelectedTehsils([]);
+    setSelectedProvinces([]);
+    setSelectedHospitals([]);
+    setStartAdmissionDate(null);
+    setEndAdmissionDate(null);
+    setSelectedSymptoms([]);
+    setSelectedGender(null);
+    onClose();
   };
 
   const patientSymptomsData = [
@@ -206,47 +238,48 @@ const FilterDrawer = ({ open, onClose }) => {
       attrName: "respiratoryCD",
     },
     { id: 20, name: "Cardiac (Chronic Disease)", attrName: "cardiacsCD" },
-    { id: 21, name: "Kidney (Chronic Disease)", attrName: "kidneyCD" },
   ];
 
+  const userType = {
+    superAdmin: "Super Administrator",
+    provinceAdmin: "Province Administrator",
+    divisionAdmin: "Division Administrator",
+    districtAdmin: "District Administrator",
+    tehsilAdmin: "Tehsil Administrator",
+    hospitalAdmin: "Hospital Administrator",
+  };
+
+  const handleSymptomsSelect = (event, values) => {
+    setSelectedSymptoms(values);
+  };
+
   const handleFilterSubmit = () => {
+    let hospitalIds =
+      selectedHospitals.length !== 0
+        ? selectedHospitals.map((hospital) => hospital.id)
+        : null;
+    if (hospitalIds == null && user.usertype === userType.hospitalAdmin) {
+      hospitalIds = [user.hospital.id];
+    }
     setFilterRequest({
-      provinceIds:
-        selectedProvinces.length != 0
-          ? selectedProvinces.map((province) => province.id)
-          : null,
-      divisionIds:
-        selectedDivisions.length != 0
-          ? selectedDivisions.map((division) => division.id)
-          : null,
-      districtIds:
-        selectedDistricts.length != 0
-          ? selectedDistricts.map((district) => district.id)
-          : null,
-      tehsilIds:
-        selectedTehsils.length != 0
-          ? selectedTehsils.map((tehsil) => tehsil.id)
-          : null,
-      hospitalIds:
-        selectedHospitals.length != 0
-          ? selectedHospitals.map((hospital) => hospital.id)
-          : null,
+      hospitalIds: hospitalIds,
       symptoms:
-        selectedSymptoms.length != 0
+        selectedSymptoms.length !== 0
           ? selectedSymptoms.map((symptom) => symptom.attrName)
           : null,
       admissionStartDate:
-        startAdmissionDate != null ? startAdmissionDate : null,
+        startAdmissionDate !== null ? startAdmissionDate : null,
       admissionEndDate: endAdmissionDate,
       gender: null,
     });
+    handleClose();
   };
 
   return (
     <Drawer
       anchor="left"
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       variant="temporary"
       ModalProps={{ keepMounted: true }}
       BackdropProps={{ invisible: true }}
@@ -283,311 +316,88 @@ const FilterDrawer = ({ open, onClose }) => {
             <CloseIcon />
           </IconButton>
         </Box>
-        <Typography variant="h5" gutterBottom>
-          Province
-        </Typography>
-        <Autocomplete
-          multiple
-          options={provinces.filter(
-            (province) => !selectedProvinces.includes(province)
-          )}
-          disableCloseOnSelect
-          getOptionLabel={(option) => option.name}
-          value={selectedProvinces}
-          onChange={handleProvinceSelect}
-          renderTags={(value, getTagProps) =>
-            value.map((option, index) => (
-              <Chip
-                key={index}
-                label={option.name}
-                size="small"
-                {...getTagProps({ index })}
-              />
-            ))
-          }
-          renderOption={(props, option, { selected }) => (
-            <li {...props}>
-              <Checkbox
-                style={{
-                  marginRight: 1,
-                  transform: "scale(1)",
-                  color: theme.palette.secondary[300],
-                }}
-                checked={selected}
-              />
-              {option.name}
-            </li>
-          )}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select Province"
-              sx={{ width: "235px" }}
+        {user.usertype === userType.superAdmin && (
+          <>
+            <DrawerAutoComplete
+              options={provinceOptions}
+              value={selectedProvinces}
+              onChange={handleProvinceSelect}
+              title="Province"
             />
-          )}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              p: 1,
-            },
-            "& .MuiAutocomplete-tag": {
-              bgcolor: "primary.lighter",
-              border: "1px solid",
-              borderColor: "primary.light",
-              "& .MuiSvgIcon-root": {
-                color: "primary.main",
-                "&:hover": {
-                  color: "primary.dark",
-                },
-              },
-            },
-            mb: 2,
-          }}
-        />
-        <Divider />
-        <Typography variant="h5" gutterBottom>
-          Division
-        </Typography>
-        <Autocomplete
-          multiple
-          options={divisions.filter(
-            (division) => !selectedDivisions.includes(division)
-          )}
-          disableCloseOnSelect
-          getOptionLabel={(option) => option.name}
-          value={selectedDivisions}
-          onChange={handleDivisionSelect}
-          renderOption={(props, option, { selected }) => (
-            <li {...props}>
-              <Checkbox
-                style={{
-                  marginRight: 8,
-                  transform: "scale(1)",
-                  color: theme.palette.secondary[300],
-                }}
-                checked={selected}
-              />
-              {option.name}
-            </li>
-          )}
-          renderTags={(value, getTagProps) =>
-            value.map((option, index) => (
-              <Chip
-                key={index}
-                label={option.name}
-                size="small"
-                {...getTagProps({ index })}
-              />
-            ))
-          }
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select Division"
-              sx={{ width: "235px" }}
+          </>
+        )}
+        {(user.usertype === userType.superAdmin ||
+          user.usertype === userType.provinceAdmin) && (
+          <>
+            <DrawerAutoComplete
+              options={divisionOptions}
+              value={selectedDivisions}
+              onChange={handleDivisionSelect}
+              title="Division"
+              disabled={
+                selectedProvinces.length === 0 &&
+                user.usertype === userType.superAdmin
+              }
             />
-          )}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              p: 1,
-            },
-            "& .MuiAutocomplete-tag": {
-              bgcolor: "primary.lighter",
-              border: "1px solid",
-              borderColor: "primary.light",
-              "& .MuiSvgIcon-root": {
-                color: "primary.main",
-                "&:hover": {
-                  color: "primary.dark",
-                },
-              },
-            },
-            mb: 2,
-          }}
-        />
-        <Divider />
-        <Typography variant="h5" gutterBottom>
-          District
-        </Typography>
-        <Autocomplete
-          multiple
-          options={districts.filter(
-            (district) => !selectedDistricts.includes(district)
-          )}
-          disableCloseOnSelect
-          getOptionLabel={(option) => option.name}
-          value={selectedDistricts}
-          onChange={handleDistrictSelect}
-          renderTags={(value, getTagProps) =>
-            value.map((option, index) => (
-              <Chip
-                key={index}
-                label={option.name}
-                size="small"
-                {...getTagProps({ index })}
-              />
-            ))
-          }
-          renderOption={(props, option, { selected }) => (
-            <li {...props}>
-              <Checkbox
-                style={{
-                  marginRight: 8,
-                  transform: "scale(1)",
-                  color: theme.palette.secondary[300],
-                }}
-                checked={selected}
-              />
-              {option.name}
-            </li>
-          )}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select District"
-              sx={{ width: "235px" }}
+          </>
+        )}
+        {(user.usertype === userType.superAdmin ||
+          user.usertype === userType.provinceAdmin ||
+          user.usertype === userType.divisionAdmin) && (
+          <>
+            <DrawerAutoComplete
+              options={districtOptions}
+              value={selectedDistricts}
+              onChange={handleDistrictSelect}
+              title="District"
+              disabled={
+                selectedDivisions.length === 0 &&
+                (user.usertype === userType.superAdmin ||
+                  user.usertype === userType.provinceAdmin)
+              }
             />
-          )}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              p: 1,
-            },
-            "& .MuiAutocomplete-tag": {
-              bgcolor: "primary.lighter",
-              border: "1px solid",
-              borderColor: "primary.light",
-              "& .MuiSvgIcon-root": {
-                color: "primary.main",
-                "&:hover": {
-                  color: "primary.dark",
-                },
-              },
-            },
-            mb: 2,
-          }}
-        />
-        <Divider />
-        <Typography variant="h5" gutterBottom>
-          Tehsil
-        </Typography>
-        <Autocomplete
-          multiple
-          options={tehsils.filter(
-            (tehsil) => !selectedTehsils.includes(tehsil)
-          )}
-          disableCloseOnSelect
-          getOptionLabel={(option) => option.name}
-          value={selectedTehsils}
-          onChange={handleTehsilSelect}
-          renderTags={(value, getTagProps) =>
-            value.map((option, index) => (
-              <Chip
-                key={index}
-                label={option.name}
-                size="small"
-                {...getTagProps({ index })}
-              />
-            ))
-          }
-          renderOption={(props, option, { selected }) => (
-            <li {...props}>
-              <Checkbox
-                style={{
-                  marginRight: 8,
-                  transform: "scale(1)",
-                  color: theme.palette.secondary[300],
-                }}
-                checked={selected}
-              />
-              {option.name}
-            </li>
-          )}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select Tehsil"
-              sx={{ width: "235px" }}
+          </>
+        )}
+        {(user.usertype === userType.superAdmin ||
+          user.usertype === userType.provinceAdmin ||
+          user.usertype === userType.divisionAdmin ||
+          user.usertype === userType.districtAdmin) && (
+          <>
+            <DrawerAutoComplete
+              options={tehsilOptions}
+              value={selectedTehsils}
+              onChange={handleTehsilSelect}
+              title="Tehsil"
+              disabled={
+                selectedDistricts.length === 0 &&
+                (user.usertype === userType.superAdmin ||
+                  user.usertype === userType.provinceAdmin ||
+                  user.usertype === userType.divisionAdmin)
+              }
             />
-          )}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              p: 1,
-            },
-            "& .MuiAutocomplete-tag": {
-              bgcolor: "primary.lighter",
-              border: "1px solid",
-              borderColor: "primary.light",
-              "& .MuiSvgIcon-root": {
-                color: "primary.main",
-                "&:hover": {
-                  color: "primary.dark",
-                },
-              },
-            },
-            mb: 2,
-          }}
-        />
-        <Divider />
-        <Typography variant="h5" gutterBottom>
-          Hospital
-        </Typography>
-        <Autocomplete
-          multiple
-          options={hospitals.filter(
-            (hospital) => !selectedHospitals.includes(hospital)
-          )}
-          disableCloseOnSelect
-          getOptionLabel={(option) => option.name}
-          value={selectedHospitals}
-          onChange={(event, value) => setSelectedHospitals(value)}
-          renderTags={(value, getTagProps) =>
-            value.map((option, index) => (
-              <Chip
-                key={index}
-                label={option.name}
-                size="small"
-                {...getTagProps({ index })}
-              />
-            ))
-          }
-          renderOption={(props, option, { selected }) => (
-            <li {...props}>
-              <Checkbox
-                style={{
-                  marginRight: 8,
-                  transform: "scale(1)",
-                  color: theme.palette.secondary[300],
-                }}
-                checked={selected}
-              />
-              {option.name}
-            </li>
-          )}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select Hospital"
-              sx={{ width: "235px" }}
+          </>
+        )}
+        {(user.usertype === userType.superAdmin ||
+          user.usertype === userType.provinceAdmin ||
+          user.usertype === userType.divisionAdmin ||
+          user.usertype === userType.districtAdmin ||
+          user.usertype === userType.tehsilAdmin) && (
+          <>
+            <DrawerAutoComplete
+              options={hospitalOptions}
+              value={selectedHospitals}
+              onChange={handleHospitalSelect}
+              title="Hospital"
+              disabled={
+                selectedTehsils.length === 0 &&
+                (user.usertype === userType.superAdmin ||
+                  user.usertype === userType.provinceAdmin ||
+                  user.usertype === userType.divisionAdmin ||
+                  user.usertype === userType.districtAdmin)
+              }
             />
-          )}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              p: 1,
-            },
-            "& .MuiAutocomplete-tag": {
-              bgcolor: "primary.lighter",
-              border: "1px solid",
-              borderColor: "primary.light",
-              "& .MuiSvgIcon-root": {
-                color: "primary.main",
-                "&:hover": {
-                  color: "primary.dark",
-                },
-              },
-            },
-            mb: 2,
-          }}
-        />
-        <Divider />
+          </>
+        )}
         <Typography variant="h5" gutterBottom>
           Admission Date
         </Typography>
@@ -600,12 +410,14 @@ const FilterDrawer = ({ open, onClose }) => {
                 onChange={(newStartAdmissionDate) =>
                   setStartAdmissionDate(newStartAdmissionDate)
                 }
+                maxDate={dayjs()}
               />
               <DatePicker
                 label="End Date"
                 value={endAdmissionDate}
                 onChange={(newEndDate) => setEndAdmissionDate(newEndDate)}
                 sx={{ mb: 2 }}
+                maxDate={dayjs()}
               />
             </Box>
           </DemoContainer>
@@ -652,75 +464,17 @@ const FilterDrawer = ({ open, onClose }) => {
           }}
         />
         <Divider />
-        <Typography variant="h5" gutterBottom>
-          Patient Symptoms
-        </Typography>
-        <Autocomplete
-          gutterBottom
-          multiple
-          options={patientSymptomsData.filter(
-            (sym) =>
-              !selectedSymptoms.some(
-                (selectedSymptom) => selectedSymptom.id === sym.id
-              )
-          )}
-          disableCloseOnSelect
-          getOptionLabel={(option) => option.name}
+        <DrawerAutoComplete
+          options={patientSymptomsData}
           value={selectedSymptoms}
           onChange={handleSymptomsSelect}
-          renderOption={(props, option, { selected }) => (
-            <li {...props}>
-              <Checkbox
-                style={{
-                  marginRight: 8,
-                  transform: "scale(1)",
-                  color: theme.palette.secondary[300],
-                }}
-                checked={selected}
-              />
-              {option.name}
-            </li>
-          )}
-          renderTags={(value, getTagProps) =>
-            value.map((option, index) => (
-              <Chip
-                key={index}
-                label={option.name}
-                size="small"
-                {...getTagProps({ index })}
-              />
-            ))
-          }
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select Patient Symptoms"
-              sx={{ width: "235px" }}
-            />
-          )}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              p: 1,
-            },
-            "& .MuiAutocomplete-tag": {
-              bgcolor: "primary.lighter",
-              border: "1px solid",
-              borderColor: "primary.light",
-              "& .MuiSvgIcon-root": {
-                color: "primary.main",
-                "&:hover": {
-                  color: "primary.dark",
-                },
-              },
-            },
-            mb: 2,
-          }}
+          title="Symptoms"
         />
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
           <Button
             variant="contained"
             color="secondary"
-            onClick={onClose}
+            onClick={handleClose}
             sx={{ width: "120px", minWidth: "120px" }}
           >
             Cancel
@@ -730,7 +484,7 @@ const FilterDrawer = ({ open, onClose }) => {
             color="primary"
             type="submit"
             sx={{ width: "120px", minWidth: "120px" }}
-            onclick={handleFilterSubmit}
+            onClick={handleFilterSubmit}
           >
             Apply Filters
           </Button>

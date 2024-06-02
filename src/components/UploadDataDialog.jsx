@@ -125,18 +125,17 @@ const UploadDataDialog = ({ open, onClose }) => {
   };
 
   useEffect(() => {
-    if (user.usertype === userType.superAdmin) fetchProvinces();
-    else if (
-      user.usertype === userType.divisionAdmin ||
-      user.usertype === userType.provinceAdmin
-    )
+    if (user.usertype === userType.superAdmin) {
+      fetchProvinces();
+    } else if (user.usertype === userType.provinceAdmin) {
       fetchDivisions([user.province.id]);
-    else if (user.usertype === userType.districtAdmin)
+    } else if (user.usertype === userType.divisionAdmin) {
       fetchDistricts([user.division.id]);
-    else if (user.usertype === userType.tehsilAdmin)
+    } else if (user.usertype === userType.districtAdmin) {
       fetchTehsils([user.district.id]);
-    else if (user.usertype === userType.hospitalAdmin)
+    } else if (user.usertype === userType.tehsilAdmin) {
       fetchHospitals([user.tehsil.id]);
+    }
     fetchDisease();
   }, []);
 
@@ -197,7 +196,10 @@ const UploadDataDialog = ({ open, onClose }) => {
   const handleUpload = () => {
     const formData = new FormData();
     formData.append("file", selectedFile);
-    formData.append("hospitalId", selectedHospital?.id);
+    formData.append(
+      "hospitalId",
+      selectedHospital.id != null ? selectedHospital.id : user.hospital.id
+    );
     formData.append("diseaseId", selectedDisease?.id);
 
     axios
@@ -281,8 +283,7 @@ const UploadDataDialog = ({ open, onClose }) => {
                 handleProvinceSelect
               )}
             {(user.usertype === userType.superAdmin ||
-              user.usertype === userType.provinceAdmin ||
-              user.usertype === userType.divisionAdmin) &&
+              user.usertype === userType.provinceAdmin) &&
               renderAutocomplete(
                 "Division",
                 divisionOptions,
@@ -292,8 +293,7 @@ const UploadDataDialog = ({ open, onClose }) => {
               )}
             {(user.usertype === userType.superAdmin ||
               user.usertype === userType.provinceAdmin ||
-              user.usertype === userType.divisionAdmin ||
-              user.usertype === userType.districtAdmin) &&
+              user.usertype === userType.divisionAdmin) &&
               renderAutocomplete(
                 "District",
                 districtOptions,
@@ -306,8 +306,7 @@ const UploadDataDialog = ({ open, onClose }) => {
             {(user.usertype === userType.superAdmin ||
               user.usertype === userType.provinceAdmin ||
               user.usertype === userType.divisionAdmin ||
-              user.usertype === userType.districtAdmin ||
-              user.usertype === userType.tehsilAdmin) &&
+              user.usertype === userType.districtAdmin) &&
               renderAutocomplete(
                 "Tehsil",
                 tehsilOptions,
@@ -322,8 +321,7 @@ const UploadDataDialog = ({ open, onClose }) => {
               user.usertype === userType.provinceAdmin ||
               user.usertype === userType.divisionAdmin ||
               user.usertype === userType.districtAdmin ||
-              user.usertype === userType.tehsilAdmin ||
-              user.usertype === userType.hospitalAdmin) &&
+              user.usertype === userType.tehsilAdmin) &&
               renderAutocomplete(
                 "Hospital",
                 hospitalOptions,

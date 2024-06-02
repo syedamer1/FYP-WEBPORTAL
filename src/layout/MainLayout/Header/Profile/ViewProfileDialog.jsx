@@ -165,7 +165,7 @@ ViewProfileDialog.propTypes = {
   profiledata: PropTypes.shape({
     firstName: PropTypes.string,
     lastName: PropTypes.string,
-    id: PropTypes.string,
+    id: PropTypes.number,
     email: PropTypes.string,
     contact: PropTypes.string,
     createdOn: PropTypes.string,
