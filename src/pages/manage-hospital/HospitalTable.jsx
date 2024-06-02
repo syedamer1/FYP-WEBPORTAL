@@ -187,7 +187,9 @@ const HospitalTable = () => {
                     <PeopleAltOutlinedIcon sx={{ color: "#ffffff" }} />
                   }
                   onClick={() =>
-                    navigate(`/patient-records/${row.original.id}`)
+                    navigate(
+                      `/manage-hospital/patient-records/${row.original.id}`
+                    )
                   }
                 >
                   View Patients

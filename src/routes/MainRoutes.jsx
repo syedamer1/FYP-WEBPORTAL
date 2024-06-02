@@ -48,7 +48,7 @@ const MainRoutes = {
       element: <PatientRecords />,
     },
     {
-      path: "patient-records/:hospitalId",
+      path: "/manage-hospital/patient-records/:hospitalId",
       element: <PatientRecords />,
     },
   ],
