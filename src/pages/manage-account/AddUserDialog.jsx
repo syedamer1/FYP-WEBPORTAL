@@ -102,7 +102,13 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
 
   const handleSubmit = async (values, { setSubmitting }) => {
     const submitData = {
-      ...values,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      cnic: formData.cnic,
+      email: formData.email,
+      contact: formData.contact,
+      password: formData.password,
+      usertype: formData.usertype,
       tehsil:
         values.usertype === "Tehsil Administrator"
           ? { id: selectedArea.id }
