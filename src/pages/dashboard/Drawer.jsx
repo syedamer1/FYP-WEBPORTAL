@@ -206,6 +206,7 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
     setEndAdmissionDate(null);
     setSelectedSymptoms([]);
     setSelectedGender(null);
+    handleFilterValue(null);
     onClose();
   };
 
@@ -266,9 +267,9 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
       admissionStartDate:
         startAdmissionDate !== null ? startAdmissionDate : null,
       admissionEndDate: endAdmissionDate !== null ? endAdmissionDate : null,
-      gender: selectedGender.id,
-      ageStart: ageRange[0],
-      ageEnd: ageRange[1],
+      gender: selectedGender != null ? selectedGender.id : null,
+      ageStart: ageRange != null ? ageRange[0] : 0,
+      ageEnd: ageRange != null ? ageRange[0] : 1,
     };
     handleFilterValue(filters);
     handleClose();
