@@ -11,6 +11,7 @@ import {
   TextField,
   Autocomplete,
   Checkbox,
+  Slider,
   Typography,
   useTheme,
   Chip,
@@ -27,7 +28,7 @@ import { useUser } from "@context/UserContext";
 import DrawerAutoComplete from "@components/DrawerAutoComplete";
 import dayjs from "dayjs";
 
-const FilterDrawer = ({ open, onClose }) => {
+const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
   const theme = useTheme();
 
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
@@ -39,21 +40,13 @@ const FilterDrawer = ({ open, onClose }) => {
   const [selectedTehsils, setSelectedTehsils] = useState([]);
   const [selectedProvinces, setSelectedProvinces] = useState([]);
   const [selectedHospitals, setSelectedHospitals] = useState([]);
+  const [ageRange, setAgeRange] = useState([0, 100]);
 
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [divisionOptions, setDivisionOptions] = useState([]);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [tehsilOptions, setTehsilOptions] = useState([]);
   const [hospitalOptions, setHospitalOptions] = useState([]);
-
-  const [filterRequest, setFilterRequest] = useState({
-    hospitalIds: null,
-    symptoms: [],
-    admissionStartDate: null,
-    admissionEndDate: null,
-    gender: null,
-  });
-
   const { user } = useUser();
 
   const fetchProvinces = debounce(async () => {
@@ -194,6 +187,9 @@ const FilterDrawer = ({ open, onClose }) => {
   const handleHospitalSelect = (event, newValue) => {
     setSelectedHospitals(newValue);
   };
+  const handleAgeRangeChange = (event, newValue) => {
+    setAgeRange(newValue);
+  };
 
   const handleClose = () => {
     setProvinceOptions([]);
@@ -257,21 +253,24 @@ const FilterDrawer = ({ open, onClose }) => {
     let hospitalIds =
       selectedHospitals.length !== 0
         ? selectedHospitals.map((hospital) => hospital.id)
-        : null;
-    if (hospitalIds == null && user.usertype === userType.hospitalAdmin) {
+        : [];
+    if (hospitalIds == [] && user.usertype === userType.hospitalAdmin) {
       hospitalIds = [user.hospital.id];
     }
-    setFilterRequest({
+    const filters = {
       hospitalIds: hospitalIds,
       symptoms:
         selectedSymptoms.length !== 0
           ? selectedSymptoms.map((symptom) => symptom.attrName)
-          : null,
+          : [],
       admissionStartDate:
         startAdmissionDate !== null ? startAdmissionDate : null,
-      admissionEndDate: endAdmissionDate,
-      gender: null,
-    });
+      admissionEndDate: endAdmissionDate !== null ? endAdmissionDate : null,
+      gender: selectedGender.id,
+      ageStart: ageRange[0],
+      ageEnd: ageRange[1],
+    };
+    handleFilterValue(filters);
     handleClose();
   };
 
@@ -424,7 +423,50 @@ const FilterDrawer = ({ open, onClose }) => {
         </LocalizationProvider>
 
         <Divider />
-        <Typography variant="h5" gutterBottom>
+        <Box
+          sx={{ width: 225, display: "flex", flexDirection: "column", gap: 2 }}
+        >
+          <Typography variant="h5" gutterBottom>
+            Age Range
+          </Typography>
+          <Slider
+            value={ageRange}
+            onChange={(event, newValue) => setAgeRange(newValue)}
+            valueLabelDisplay="auto"
+            aria-labelledby="age-range-slider"
+            getAriaValueText={(value) => `${value}`}
+            min={1}
+            max={100}
+          />
+          <Box sx={{ display: "flex", gap: 4, alignItems: "center" }}>
+            <TextField
+              label="Start Age"
+              variant="outlined"
+              value={ageRange[0]}
+              sx={{ width: 100 }} // Adjust the width as needed
+              onChange={(event) => {
+                const value = parseInt(event.target.value);
+                if (!isNaN(value)) {
+                  setAgeRange([value, ageRange[1]]);
+                }
+              }}
+            />
+            <TextField
+              label="End Age"
+              variant="outlined"
+              value={ageRange[1]}
+              sx={{ width: 100 }} // Adjust the width as needed
+              onChange={(event) => {
+                const value = parseInt(event.target.value);
+                if (!isNaN(value)) {
+                  setAgeRange([ageRange[0], value]);
+                }
+              }}
+            />
+          </Box>
+        </Box>
+
+        <Typography sx={{ marginTop: 2 }} variant="h5" gutterBottom>
           Gender
         </Typography>
         <Autocomplete
@@ -433,17 +475,15 @@ const FilterDrawer = ({ open, onClose }) => {
           id="basic-autocomplete"
           options={[
             { label: "Male", id: 1 },
-            { label: "Female", id: 2 },
-            {
-              label: "Both",
-              id: 3,
-            },
+            { label: "Female", id: 0 },
+            { label: "Both", id: 2 },
           ]}
+          getOptionLabel={(option) => option.label}
           renderTags={(value, getTagProps) =>
             value.map((option, index) => (
               <Chip
                 key={index}
-                label={option.name}
+                label={option.label}
                 size="small"
                 {...getTagProps({ index })}
               />
@@ -456,6 +496,8 @@ const FilterDrawer = ({ open, onClose }) => {
               sx={{ width: "235px" }}
             />
           )}
+          onChange={(event, value) => setSelectedGender(value)}
+          value={selectedGender}
           sx={{
             "& .MuiOutlinedInput-root": {
               p: 1,
@@ -497,6 +539,7 @@ const FilterDrawer = ({ open, onClose }) => {
 FilterDrawer.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  handleFilterValue: PropTypes.any.isRequired,
 };
 
 export default FilterDrawer;

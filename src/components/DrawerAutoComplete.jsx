@@ -24,7 +24,7 @@ const DrawerAutoComplete = ({
         {title}
       </Typography>
       <Autocomplete
-        disabled={disabled} // Setting disabled attribute based on disabled prop
+        disabled={disabled}
         multiple
         options={options.filter((v) => !value.some((val) => val.id === v.id))}
         disableCloseOnSelect

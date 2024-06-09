@@ -40,7 +40,7 @@ const Login = () => {
       >
         <Grid item xs={12} sx={{ ml: 3, mt: 3 }}>
           <Typography variant="h4" color="black">
-            Logo
+            MediAnalytics
           </Typography>
         </Grid>
         <Grid item xs={12}>
