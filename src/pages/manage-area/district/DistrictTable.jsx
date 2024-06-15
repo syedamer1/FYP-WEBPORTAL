@@ -85,7 +85,6 @@ const DistrictTable = () => {
             "/district/delete/" +
             deleteDistrictId
         );
-        console.log("District deleted");
         refetch();
       }
     } catch (error) {

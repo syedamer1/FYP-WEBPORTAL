@@ -19,7 +19,7 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import axios from "axios";
 import debounce from "lodash/debounce";
 import { useUser } from "@context/UserContext";
-
+import userType from "@utility";
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -125,19 +125,31 @@ const UploadDataDialog = ({ open, onClose }) => {
   };
 
   useEffect(() => {
-    if (user.usertype === userType.superAdmin) {
-      fetchProvinces();
-    } else if (user.usertype === userType.provinceAdmin) {
-      fetchDivisions([user.province.id]);
-    } else if (user.usertype === userType.divisionAdmin) {
-      fetchDistricts([user.division.id]);
-    } else if (user.usertype === userType.districtAdmin) {
-      fetchTehsils([user.district.id]);
-    } else if (user.usertype === userType.tehsilAdmin) {
-      fetchHospitals([user.tehsil.id]);
-    }
-    fetchDisease();
-  }, []);
+    const fetchOptions = async () => {
+      switch (user.usertype) {
+        case userType.superAdmin:
+          await fetchProvinces();
+          break;
+        case userType.provinceAdmin:
+          await fetchDivisions([user.province.id]);
+          break;
+        case userType.divisionAdmin:
+          await fetchDistricts([user.division.id]);
+          break;
+        case userType.districtAdmin:
+          await fetchTehsils([user.district.id]);
+          break;
+        case userType.tehsilAdmin:
+          await fetchHospitals([user.tehsil.id]);
+          break;
+        default:
+          break;
+      }
+      await fetchDisease();
+    };
+
+    fetchOptions();
+  }, [user]);
 
   const handleProvinceSelect = (event, newValue) => {
     setSelectedProvince(newValue);
@@ -252,15 +264,6 @@ const UploadDataDialog = ({ open, onClose }) => {
       />
     </Grid>
   );
-
-  const userType = {
-    superAdmin: "Super Administrator",
-    provinceAdmin: "Province Administrator",
-    divisionAdmin: "Division Administrator",
-    districtAdmin: "District Administrator",
-    tehsilAdmin: "Tehsil Administrator",
-    hospitalAdmin: "Hospital Administrator",
-  };
 
   return (
     <Dialog

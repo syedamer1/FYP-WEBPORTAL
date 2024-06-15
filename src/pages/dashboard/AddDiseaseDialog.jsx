@@ -24,7 +24,6 @@ function AddDiseaseDialog({ open, onClose }) {
   };
 
   const handleSubmit = () => {
-    console.log(formData);
     axios
       .post(import.meta.env.VITE_REACT_APP_BASEURL + "/disease/add", formData)
       .then((response) => {

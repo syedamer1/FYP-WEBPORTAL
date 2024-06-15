@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import * as React from "react";
+import PropTypes from "prop-types";
 import {
   Button,
   Container,
@@ -11,14 +10,14 @@ import {
   Typography,
 } from "@mui/material";
 
-import HighlightOffIcon from "@mui/icons-material/HighlightOff"; // Import the icon
+import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import { red, grey } from "@mui/material/colors";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function DeleteConfirmation({ open, onClose, onDelete }) {
+const DeleteConfirmation = ({ open, onClose, onDelete }) => {
   return (
     <Dialog
       open={open}
@@ -35,18 +34,11 @@ export default function DeleteConfirmation({ open, onClose, onDelete }) {
         },
       }}
     >
-      <DialogTitle
-        id="delete-confirmation-dialog-title"
-        sx={{ textAlign: "center" }}
-      >
+      <DialogTitle sx={{ textAlign: "center" }}>
         <HighlightOffIcon style={{ fontSize: 110, color: red[500] }} />
       </DialogTitle>
       <DialogContent
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
+        sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
       >
         <Container style={{ textAlign: "center" }}>
           <Typography variant="h2" align="center">
@@ -99,4 +91,12 @@ export default function DeleteConfirmation({ open, onClose, onDelete }) {
       </DialogActions>
     </Dialog>
   );
-}
+};
+
+DeleteConfirmation.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+};
+
+export default DeleteConfirmation;

@@ -1,18 +1,40 @@
+import dayjs from "dayjs";
+import advancedFormat from "dayjs/plugin/advancedFormat";
+
+dayjs.extend(advancedFormat);
+
 export function formatDate(dateString) {
-  if (!dateString || dateString === null) {
+  if (!dateString) {
     return null;
   }
   if (!dateString.includes("T")) {
     return null;
   }
-  const date = new Date(dateString);
-  const day = date.getDate().toString().padStart(2, "0");
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
+  const date = dayjs(dateString);
+  if (!date.isValid()) {
+    return null;
+  }
+  return date.format("DD/MM/YYYY");
 }
 
-export function formatDate2(dateString) {
-  const options = { year: "numeric", month: "long", day: "numeric" };
-  return new Date(dateString).toLocaleDateString("en-GB", options);
+export function formatDatetoWordDate(dateString) {
+  if (!dateString) {
+    return null;
+  }
+  const date = dayjs(dateString);
+  if (!date.isValid()) {
+    return null;
+  }
+  return date.format("D MMMM YYYY");
 }
+
+const userType = {
+  superAdmin: "Super Administrator",
+  provinceAdmin: "Province Administrator",
+  divisionAdmin: "Division Administrator",
+  districtAdmin: "District Administrator",
+  tehsilAdmin: "Tehsil Administrator",
+  hospitalAdmin: "Hospital Administrator",
+};
+
+export default userType;
