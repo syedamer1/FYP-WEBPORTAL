@@ -40,7 +40,7 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
   const [selectedTehsils, setSelectedTehsils] = useState([]);
   const [selectedProvinces, setSelectedProvinces] = useState([]);
   const [selectedHospitals, setSelectedHospitals] = useState([]);
-  const [ageRange, setAgeRange] = useState([0, 100]);
+  const [ageRange, setAgeRange] = useState([1, 100]);
 
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [divisionOptions, setDivisionOptions] = useState([]);
@@ -206,7 +206,7 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
     setEndAdmissionDate(null);
     setSelectedSymptoms([]);
     setSelectedGender(null);
-    setAgeRange([0, 100]);
+    setAgeRange([1, 100]);
     onClose();
   };
 
@@ -249,7 +249,7 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
     if (hospitalIds == [] && user.usertype === userType.hospitalAdmin) {
       hospitalIds = [user.hospital.id];
     }
-    const filters = {
+    handleFilterValue({
       hospitalIds: hospitalIds,
       symptoms:
         selectedSymptoms.length !== 0
@@ -259,10 +259,9 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
         startAdmissionDate !== null ? startAdmissionDate : null,
       admissionEndDate: endAdmissionDate !== null ? endAdmissionDate : null,
       gender: selectedGender != null ? selectedGender.id : null,
-      ageStart: ageRange != null ? ageRange[0] : 0,
-      ageEnd: ageRange != null ? ageRange[0] : 1,
-    };
-    handleFilterValue(filters);
+      ageStart: ageRange != null ? ageRange[0] : 1,
+      ageEnd: ageRange != null ? ageRange[1] : 100,
+    });
     handleClose();
   };
 
