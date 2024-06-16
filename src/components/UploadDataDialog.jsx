@@ -19,7 +19,7 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import axios from "axios";
 import debounce from "lodash/debounce";
 import { useUser } from "@context/UserContext";
-import userType from "@utility";
+import { userType } from "@utility";
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });

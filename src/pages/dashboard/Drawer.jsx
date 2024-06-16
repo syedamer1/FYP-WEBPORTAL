@@ -27,7 +27,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useUser } from "@context/UserContext";
 import DrawerAutoComplete from "@components/DrawerAutoComplete";
 import dayjs from "dayjs";
-import userType from "@utility";
+import { userType } from "@utility";
 const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
   const theme = useTheme();
 

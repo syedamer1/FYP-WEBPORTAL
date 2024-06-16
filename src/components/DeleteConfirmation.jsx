@@ -9,11 +9,11 @@ import {
   Slide,
   Typography,
 } from "@mui/material";
-
+import { forwardRef } from "react";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import { red, grey } from "@mui/material/colors";
 
-const Transition = React.forwardRef(function Transition(props, ref) {
+const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Typography, Tabs, Tab, Box } from "@mui/material/";
+import { Typography, Tabs, Tab } from "@mui/material/";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import CustomCard from "@components/CustomCard";
 import ProvinceTable from "./province/ProvinceTable";
@@ -14,29 +14,7 @@ import {
 } from "@mui/icons-material";
 import { useUser } from "@context/UserContext";
 import { Navigate } from "react-router-dom";
-const a11yProps = (index) => {
-  return {
-    id: `tab-${index}`,
-    "aria-controls": `tabpanel-${index}`,
-  };
-};
-
-const TabPanel = (props) => {
-  // eslint-disable-next-line react/prop-types
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`tabpanel-${index}`}
-      aria-labelledby={`tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 2 }}>{children}</Box>}
-    </div>
-  );
-};
+import { a11yProps, TabPanel } from "@components/TabPart";
 
 const ManageArea = () => {
   const { user } = useUser();
@@ -65,24 +43,28 @@ const ManageArea = () => {
           icon={<LocationOnOutlined />}
           iconPosition="start"
           {...a11yProps(0)}
+          sx={{ minHeight: "48px", minWidth: "100px" }}
         />
         <Tab
           label="Division"
           icon={<AccountTreeOutlined />}
           iconPosition="start"
           {...a11yProps(1)}
+          sx={{ minHeight: "48px", minWidth: "100px" }}
         />
         <Tab
           label="District"
           icon={<BusinessOutlined />}
           iconPosition="start"
           {...a11yProps(2)}
+          sx={{ minHeight: "48px", minWidth: "100px" }}
         />
         <Tab
           label="Tehsil"
           icon={<LocationCityOutlined />}
           iconPosition="start"
           {...a11yProps(3)}
+          sx={{ minHeight: "48px", minWidth: "100px" }}
         />
       </Tabs>
       <TabPanel value={value} index={0}>
