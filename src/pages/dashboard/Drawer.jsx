@@ -206,7 +206,7 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
     setEndAdmissionDate(null);
     setSelectedSymptoms([]);
     setSelectedGender(null);
-    handleFilterValue(null);
+    setAgeRange([0, 100]);
     onClose();
   };
 

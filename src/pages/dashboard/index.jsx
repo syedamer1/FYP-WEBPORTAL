@@ -122,7 +122,7 @@ const Dashboard = () => {
     }
   };
 
-  const fetchBarChartData = async (type) => {
+  const fetchBarChartData = async (type, updatedFilters = initialFilters) => {
     try {
       if (type == null || selectedDisease == null) {
         return;
@@ -132,7 +132,7 @@ const Dashboard = () => {
         `${
           import.meta.env.VITE_REACT_APP_BASEURL
         }/dashboard/getBarChartData/${type}/${user.id}/${selectedDisease.id}`,
-        filters
+        updatedFilters
       );
       setBarChartData(response.data);
     } catch (error) {
@@ -144,7 +144,7 @@ const Dashboard = () => {
   const [AddDiseaseDialogOpen, setAddDiseaseDialogOpen] = useState(false);
   const [selectedDisease, setSelectedDisease] = useState(null);
   const [disease, setDisease] = useState([]);
-  const [filters, setFilters] = useState({
+  const initialFilters = {
     hospitalIds: [],
     symptoms: [],
     admissionStartDate: null,
@@ -152,7 +152,8 @@ const Dashboard = () => {
     gender: null,
     ageStart: null,
     ageEnd: null,
-  });
+  };
+  const [filters, setFilters] = useState(initialFilters);
   const [statisticCardData, setStatisticCardData] = useState({
     patientsTotalCount: 0,
     patientsCount: 0,
@@ -176,14 +177,14 @@ const Dashboard = () => {
     }
   };
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (updatedFilters = initialFilters) => {
     try {
       if (selectedDisease != null && user != null) {
         const response = await axios.post(
           `${
             import.meta.env.VITE_REACT_APP_BASEURL
           }/dashboard/getDashboardData/${user.id}/${selectedDisease.id}`,
-          filters
+          updatedFilters
         );
         setStatisticCardData(response.data.statisticResponse);
       }
@@ -217,42 +218,50 @@ const Dashboard = () => {
   };
 
   const handleFilterValue = (filtersValue) => {
+    let updatedFilters;
+    setFilters((prevFilters) => {
+      updatedFilters = { ...prevFilters, ...filtersValue };
+    });
     setFilters(filtersValue);
     if (userType.superAdmin == user.usertype) {
       switch (value) {
         case 0:
-          fetchBarChartData("province");
+          fetchBarChartData("province", updatedFilters);
           break;
         case 1:
-          fetchBarChartData("division");
+          fetchBarChartData("division", updatedFilters);
           break;
         case 2:
-          fetchBarChartData("district");
+          fetchBarChartData("district"), updatedFilters;
           break;
         case 3:
-          fetchBarChartData("tehsil");
+          fetchBarChartData("tehsil", updatedFilters);
           break;
         case 4:
-          fetchBarChartData("hospital");
+          fetchBarChartData("hospital", updatedFilters);
+          break;
+        default:
           break;
       }
       return;
     }
     switch (value) {
       case 0:
-        fetchBarChartData("division");
+        fetchBarChartData("division", updatedFilters);
         break;
       case 1:
-        fetchBarChartData("district");
+        fetchBarChartData("district", updatedFilters);
         break;
       case 2:
-        fetchBarChartData("tehsil");
+        fetchBarChartData("tehsil", updatedFilters);
         break;
       case 3:
-        fetchBarChartData("hospital");
+        fetchBarChartData("hospital", updatedFilters);
         break;
       case 4:
-        fetchBarChartData("hospital");
+        fetchBarChartData("hospital", updatedFilters);
+        break;
+      default:
         break;
     }
     fetchDashboardData();
