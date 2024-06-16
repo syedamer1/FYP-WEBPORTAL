@@ -40,7 +40,7 @@ import {
   LocalHospitalOutlined,
 } from "@mui/icons-material";
 import { getTabIndices, userType } from "@utility";
-
+import { debounce } from "lodash";
 import { a11yProps, TabPanel } from "@components/TabPart";
 // import OrganDataChart from "./OrganDataChart";
 import BarChart from "./BarChart";
@@ -122,23 +122,26 @@ const Dashboard = () => {
     }
   };
 
-  const fetchBarChartData = async (type, updatedFilters = initialFilters) => {
-    try {
-      if (type == null || selectedDisease == null) {
-        return;
-      }
+  const fetchBarChartData = debounce(
+    async (type, updatedFilters = initialFilters) => {
+      try {
+        if (type == null || selectedDisease == null) {
+          return;
+        }
 
-      const response = await axios.post(
-        `${
-          import.meta.env.VITE_REACT_APP_BASEURL
-        }/dashboard/getBarChartData/${type}/${user.id}/${selectedDisease.id}`,
-        updatedFilters
-      );
-      setBarChartData(response.data);
-    } catch (error) {
-      console.error("Error fetching bar chart data:", error);
-    }
-  };
+        const response = await axios.post(
+          `${
+            import.meta.env.VITE_REACT_APP_BASEURL
+          }/dashboard/getBarChartData/${type}/${user.id}/${selectedDisease.id}`,
+          updatedFilters
+        );
+        setBarChartData(response.data);
+      } catch (error) {
+        console.error("Error fetching bar chart data:", error);
+      }
+    },
+    300
+  );
 
   const [drawerOpen, setFilterDrawerOpen] = useState(false);
   const [AddDiseaseDialogOpen, setAddDiseaseDialogOpen] = useState(false);
@@ -166,7 +169,7 @@ const Dashboard = () => {
 
   const { user } = useUser();
 
-  const fetchDisease = async () => {
+  const fetchDisease = debounce(async () => {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_REACT_APP_BASEURL}/disease/getIdAndName`
@@ -175,23 +178,26 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error fetching disease names:", error);
     }
-  };
+  }, 300);
 
-  const fetchDashboardData = async (updatedFilters = initialFilters) => {
-    try {
-      if (selectedDisease != null && user != null) {
-        const response = await axios.post(
-          `${
-            import.meta.env.VITE_REACT_APP_BASEURL
-          }/dashboard/getDashboardData/${user.id}/${selectedDisease.id}`,
-          updatedFilters
-        );
-        setStatisticCardData(response.data.statisticResponse);
+  const fetchDashboardData = debounce(
+    async (updatedFilters = initialFilters) => {
+      try {
+        if (selectedDisease != null && user != null) {
+          const response = await axios.post(
+            `${
+              import.meta.env.VITE_REACT_APP_BASEURL
+            }/dashboard/getDashboardData/${user.id}/${selectedDisease.id}`,
+            updatedFilters
+          );
+          setStatisticCardData(response.data.statisticResponse);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
       }
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    }
-  };
+    },
+    300
+  );
 
   useEffect(() => {
     fetchDashboardData();
