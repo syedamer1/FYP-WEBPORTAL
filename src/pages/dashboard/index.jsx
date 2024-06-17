@@ -590,9 +590,6 @@ const Dashboard = () => {
               <Typography variant="h5">
                 Scatter Aggregate Bar - Gender
               </Typography>
-              <Button variant="contained" color="primary">
-                Export as PNG
-              </Button>
               <CustomCard sx={{ mt: 2 }} content={false}>
                 <Box sx={{ p: 3, pb: 0 }}>
                   <ScatterAggregateBar />
