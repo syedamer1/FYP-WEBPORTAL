@@ -44,12 +44,14 @@ import { debounce } from "lodash";
 import { a11yProps, TabPanel } from "@components/TabPart";
 // import OrganDataChart from "./OrganDataChart";
 import BarChart from "./BarChart";
+import DynamicAreaTimeAxis from "./DynamicAreaTimeAxis";
 const CustomIconButton = styled(IconButton)({
   fontSize: "1.25rem",
 });
 
 const Dashboard = () => {
   const [BarChartData, setBarChartData] = useState([]);
+  const [DynamicTimeChartData, setDynamicTimeChartData] = useState([]);
   const [value, setValue] = useState(0);
 
   const handleChange = (event, newValue) => {
@@ -191,6 +193,9 @@ const Dashboard = () => {
             updatedFilters
           );
           setStatisticCardData(response.data.statisticResponse);
+          setDynamicTimeChartData(
+            response.data.dynamicTimeChartData.dataPoints
+          );
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -213,7 +218,7 @@ const Dashboard = () => {
       fetchBarChartData("hospital");
     }
     fetchDisease();
-  }, [selectedDisease]);
+  }, [selectedDisease == null]);
 
   const toggleFilterDrawer = () => {
     setFilterDrawerOpen(!drawerOpen);
@@ -335,6 +340,7 @@ const Dashboard = () => {
                 getOptionLabel={(option) => option.name}
                 value={selectedDisease}
                 onChange={(event, newValue) => setSelectedDisease(newValue)}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -363,6 +369,7 @@ const Dashboard = () => {
                   />
                 )}
               />
+
               <AddDiseaseDialog
                 open={AddDiseaseDialogOpen}
                 onClose={toggleAddDiseaseDialog}
@@ -558,6 +565,17 @@ const Dashboard = () => {
               </CustomCard>
             </Grid>
 
+            <Grid item xs={12} md={5} lg={4}>
+              <Typography variant="h5">
+                Dynamic Area Time Period - Patient Count
+              </Typography>
+              <CustomCard content={false} sx={{ mt: 1.5 }}>
+                <Box sx={{ pt: 1, pr: 2 }}>
+                  <DynamicAreaTimeAxis />
+                </Box>
+              </CustomCard>
+            </Grid>
+
             <Grid item xs={12} md={7} lg={8}>
               <Typography variant="h5">
                 Line Race - Hospital Patient Count
@@ -583,11 +601,11 @@ const Dashboard = () => {
             </Grid>
             <Grid item xs={12} md={5} lg={4}>
               <Typography variant="h5">
-                Dynamic TimeWise Patient Count
+                Dynamic Time Wise Patient Count
               </Typography>
               <CustomCard sx={{ mt: 2 }} content={false}>
                 <Box sx={{ p: 3, pb: 0 }}>
-                  <DynamicTimeChart />
+                  <DynamicTimeChart chartData={DynamicTimeChartData} />
                 </Box>
               </CustomCard>
             </Grid>
