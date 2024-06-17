@@ -23,7 +23,7 @@ const TopLoaderBar = () => (
 const CustomLoader = (Component) => (props) =>
   (
     <Suspense fallback={<TopLoaderBar />}>
-      <Component {...props} />{" "}
+      <Component {...props} />
     </Suspense>
   );
 

@@ -26,7 +26,7 @@ const AddDistrictDialog = ({ open, onClose, refresh }) => {
     const fetchDivisionOptions = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/division/getIdAndName"
+          import.meta.env.VITE_REACT_APP_BASEURL + "/division/getIdAndName"
         );
         setDivisionOptions(response.data);
       } catch (error) {
@@ -60,7 +60,10 @@ const AddDistrictDialog = ({ open, onClose, refresh }) => {
 
   const handleSubmit = async () => {
     try {
-      await axios.post("http://localhost:8080/district/add", formData);
+      await axios.post(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/district/add",
+        formData
+      );
       setFormData({
         name: "",
         division: { id: "", name: "" },
@@ -77,35 +80,40 @@ const AddDistrictDialog = ({ open, onClose, refresh }) => {
       <Box sx={{ p: 2 }}>
         <DialogTitle variant="h3">Add District</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                margin="dense"
-                name="name"
-                label="Name"
-                type="text"
-                fullWidth
-                variant="outlined"
-                value={formData.name}
-                onChange={handleInputChange}
-              />
+          <Box component="form" noValidate>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  margin="dense"
+                  name="name"
+                  label="Name"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Autocomplete
+                  fullWidth
+                  disablePortal
+                  id="division-autocomplete"
+                  value={formData.division}
+                  onChange={handleDivisionChange}
+                  options={divisionOptions}
+                  getOptionLabel={(option) => option.name || ""}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Division"
+                      variant="outlined"
+                    />
+                  )}
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <Autocomplete
-                fullWidth
-                disablePortal
-                id="division-autocomplete"
-                value={formData.division}
-                onChange={handleDivisionChange}
-                options={divisionOptions}
-                getOptionLabel={(option) => option.name || ""}
-                renderInput={(params) => (
-                  <TextField {...params} label="Division" variant="outlined" />
-                )}
-                gutterBottom
-              />
-            </Grid>
-          </Grid>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>

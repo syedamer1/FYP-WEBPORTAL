@@ -26,7 +26,7 @@ const AddTehsilDialog = ({ open, onClose, refresh }) => {
     const fetchDistrictOptions = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/district/getIdAndName"
+          import.meta.env.VITE_REACT_APP_BASEURL + "/district/getIdAndName"
         );
         setDistrictOptions(response.data);
       } catch (error) {
@@ -60,7 +60,10 @@ const AddTehsilDialog = ({ open, onClose, refresh }) => {
 
   const handleSubmit = async () => {
     try {
-      await axios.post("http://localhost:8080/tehsil/add", formData);
+      await axios.post(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/tehsil/add",
+        formData
+      );
       setFormData({
         name: "",
         district: { id: "", name: "" },
@@ -78,7 +81,7 @@ const AddTehsilDialog = ({ open, onClose, refresh }) => {
         <DialogTitle variant="h3">Add Tehsil</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <TextField
                 margin="dense"
                 name="name"
@@ -90,7 +93,7 @@ const AddTehsilDialog = ({ open, onClose, refresh }) => {
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <Autocomplete
                 fullWidth
                 disablePortal

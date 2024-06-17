@@ -1,6 +1,6 @@
 const pageinfo = [
   {
-    id: "dashboard",
+    id: "dashboard-root",
     title: "Dashboard",
     url: "/",
   },
@@ -25,14 +25,24 @@ const pageinfo = [
     url: "/manage-hospital",
   },
   {
-    id: "patient-data",
-    title: "Patient Data",
-    url: "/patient-data",
+    id: "patient-records",
+    title: "Patient Records",
+    url: "/patient-records",
   },
   {
     id: "predictive-analytics",
     title: "Predictive Analytics",
     url: "/predictive-analytics",
+  },
+  {
+    id: "patient-records-slash",
+    title: "Patient Records",
+    url: "/patient-records/",
+  },
+  {
+    id: "manage-hospital-patient-records",
+    title: "Patient Records",
+    url: "/manage-hospital/patient-records/:hospitalId",
   },
 ];
 

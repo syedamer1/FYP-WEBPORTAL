@@ -1,23 +1,19 @@
 import MainCard from "@components/CustomCard";
-import AccountTable from "./AccountTable";
+import PatientTable from "./PatientTable";
 import { Grid, Typography } from "@mui/material/";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useUser } from "@context/UserContext";
-import { Navigate } from "react-router-dom";
+import PropTypes from "prop-types";
+import { useParams } from "react-router-dom";
 
-const ManageAccount = () => {
-  const { user } = useUser();
-
-  if (user.usertype !== "Super Administrator" || user.usertype === null) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
+const PatientRecords = () => {
   const queryClient = new QueryClient();
+  const { hospitalId } = useParams();
+
   return (
     <>
       <MainCard>
         <Typography variant="h3" sx={{ marginBottom: 2 }}>
-          Manage Account
+          Patient Records
         </Typography>
         <Grid
           item
@@ -25,11 +21,14 @@ const ManageAccount = () => {
           sx={{ display: { sm: "none", md: "block", lg: "none" } }}
         />
         <QueryClientProvider client={queryClient}>
-          <AccountTable />
+          <PatientTable hospitalId={hospitalId} />
         </QueryClientProvider>
       </MainCard>
     </>
   );
 };
 
-export default ManageAccount;
+export default PatientRecords;
+PatientRecords.propTypes = {
+  hospitalId: PropTypes.any,
+};

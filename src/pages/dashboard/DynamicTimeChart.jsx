@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
-import * as echarts from 'echarts';
+import { useEffect, useRef } from "react";
+import * as echarts from "echarts";
+import PropTypes from "prop-types";
 
-const DynamicTimeChart = () => {
+const DynamicTimeChart = ({ chartData }) => {
   const chartRef = useRef(null);
 
   useEffect(() => {
@@ -9,98 +10,100 @@ const DynamicTimeChart = () => {
     const myChart = echarts.init(chartDom);
     let option;
 
-    function randomData() {
-      now = new Date(+now + oneDay);
-      value = value + Math.random() * 21 - 10;
-      return {
-        name: now.toString(),
-        value: [
-          [now.getFullYear(), now.getMonth() + 1, now.getDate()].join('/'),
-          Math.round(value)
-        ]
-      };
-    }
-
-    let data = [];
-    let now = new Date(1997, 9, 3);
-    let oneDay = 24 * 3600 * 1000;
-    let value = Math.random() * 1000;
-    for (let i = 0; i < 1000; i++) {
-      data.push(randomData());
-    }
-
     option = {
       title: {
-        text: ''
+        text: "Dynamic Data & Time Axis",
       },
       tooltip: {
-        trigger: 'axis',
+        trigger: "axis",
         formatter: function (params) {
           params = params[0];
           var date = new Date(params.name);
+
+          var monthNames = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+          ];
           return (
             date.getDate() +
-            '/' +
-            (date.getMonth() + 1) +
-            '/' +
+            "-" +
+            monthNames[date.getMonth()] +
+            "-" +
             date.getFullYear() +
-            ' : ' +
+            " | Patient : " +
             params.value[1]
           );
         },
         axisPointer: {
-          animation: false
-        }
+          animation: false,
+        },
       },
       xAxis: {
-        type: 'time',
+        type: "time",
         splitLine: {
-          show: false
-        }
+          show: false,
+        },
       },
       yAxis: {
-        type: 'value',
-        boundaryGap: [0, '100%'],
+        type: "value",
+        boundaryGap: [0, "100%"],
         splitLine: {
-          show: false
-        }
+          show: false,
+        },
       },
       series: [
         {
-          name: 'Fake Data',
-          type: 'line',
+          name: "Provided Data",
+          type: "line",
           showSymbol: false,
-          data: data
-        }
-      ]
+          data: chartData.map(([name, value]) => ({
+            name,
+            value: [name, value],
+          })),
+        },
+      ],
     };
-    setInterval(function () {
-      for (let i = 0; i < 5; i++) {
-        data.shift();
-        data.push(randomData());
-      }
-      myChart.setOption({
-        series: [
-          {
-            data: data
-          }
-        ]
-      });
-    }, 1000);
 
-    option && myChart.setOption(option);
+    myChart.setOption(option);
 
-
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       myChart.resize();
     });
-  }, []);
 
-  return <div id="main" ref={chartRef} style={{
-    width: '100%', position: "relative",
-    height: "70vh",
-    overflow: "hidden"
-  }} />;
+    return () => {
+      window.removeEventListener("resize", myChart.resize);
+      myChart.dispose();
+    };
+  }, [chartData]);
+
+  return (
+    <div
+      id="main"
+      ref={chartRef}
+      style={{
+        width: "100%",
+        position: "relative",
+        height: "70vh",
+        overflow: "hidden",
+      }}
+    />
+  );
+};
+
+DynamicTimeChart.propTypes = {
+  chartData: PropTypes.arrayOf(
+    PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number]))
+  ).isRequired,
 };
 
 export default DynamicTimeChart;

@@ -19,6 +19,8 @@ import {
 import EditProvinceDialog from "./EditProvinceDialog";
 import AddProvinceDialog from "./AddProvinceDialog";
 import DeleteConfirmation from "@components/DeleteConfirmation";
+import OverLayLoader from "@components/OverlayLoader";
+import { formatDate } from "@utility";
 
 const ProvinceTable = () => {
   const [deleteProvinceId, setDeleteProvinceId] = useState(null);
@@ -52,8 +54,17 @@ const ProvinceTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const fetchURL = new URL("http://localhost:8080/province/get");
-
+      const fetchURL = new URL(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/province/get"
+      );
+      // fetchURL.searchParams.set(
+      //   "start",
+      //   `${pagination.pageIndex * pagination.pageSize}`
+      // );
+      // fetchURL.searchParams.set("size", `${pagination.pageSize}`);
+      // fetchURL.searchParams.set("filters", JSON.stringify(columnFilters ?? []));
+      // fetchURL.searchParams.set("globalFilter", globalFilter ?? "");
+      // fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
       const response = await axios.get(fetchURL.href);
 
       return {
@@ -112,7 +123,9 @@ const ProvinceTable = () => {
     try {
       if (deleteProvinceId) {
         await axios.delete(
-          `http://localhost:8080/province/delete/${deleteProvinceId}`
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/province/delete/" +
+            deleteProvinceId
         );
         refetch();
       }
@@ -152,23 +165,31 @@ const ProvinceTable = () => {
             size: 150,
           },
           {
-            id: "created_on",
-            accessorFn: (row) => new Date(row.created_on),
+            accessorFn: (row) =>
+              row.createdOn ? formatDate(row.createdOn) : "Not Created",
+            id: "createdOn",
             header: "Created On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.createdOn
+                ? formatDate(cell.row.original.createdOn)
+                : "Not Created",
           },
+
           {
-            id: "updated_on",
             accessorFn: (row) =>
-              row.updated_on == "null" ? "Not Updated" : row.updated_on,
+              row.updatedOn ? formatDate(row.updatedOn) : "Not Updated",
+            id: "updatedOn",
             header: "Updated On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.updatedOn
+                ? formatDate(cell.row.original.updatedOn)
+                : "Not Updated",
           },
           {
             id: "actions",
@@ -252,6 +273,7 @@ const ProvinceTable = () => {
       showAlertBanner: false,
       showProgressBars: isRefetching,
       sorting,
+      showLoadingOverlay: false,
     },
   });
 
@@ -260,6 +282,7 @@ const ProvinceTable = () => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ marginTop: "30px" }}>
           <MaterialReactTable table={table} />
+          <OverLayLoader loading={isLoading} />
           <AddProvinceDialog
             open={isAddProvinceDialogOpen}
             onClose={toggleAddProvinceDialog}

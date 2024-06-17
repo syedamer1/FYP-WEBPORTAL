@@ -1,51 +1,93 @@
-import { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { Breadcrumbs as MuiBreadcrumbs, Grid, Typography, Link } from '@mui/material';
-import CustomCard from './CustomCard';
-
+import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import { Link as RouterLink, useLocation } from "react-router-dom";
+import {
+  Breadcrumbs as MuiBreadcrumbs,
+  Grid,
+  Typography,
+  Link,
+} from "@mui/material";
+import CustomCard from "./CustomCard";
 
 const Breadcrumbs = ({ pageinfo }) => {
   const location = useLocation();
-  const [currentItem, setCurrentItem] = useState(null);
+  const [breadcrumbItems, setBreadcrumbItems] = useState([]);
 
-  const findCurrentItem = (page) => {
-    page.forEach((item) => {
-      if (item.url && location.pathname.startsWith(item.url)) {
-        setCurrentItem(item);
+  const matchUrl = (url, pathname) => {
+    const dynamicSegmentRegex = /:[^\s/]+/g;
+    const regex = new RegExp(`^${url.replace(dynamicSegmentRegex, "[^/]+")}$`);
+    return regex.test(pathname);
+  };
+
+  const findBreadcrumbItems = (pages, pathname, breadcrumbTrail = []) => {
+    for (const item of pages) {
+      if (matchUrl(item.url, pathname)) {
+        breadcrumbTrail.push(item);
+        if (item.children) {
+          findBreadcrumbItems(item.children, pathname, breadcrumbTrail);
+        }
+        break;
+      } else if (pathname.startsWith(item.url) && item.url !== "/") {
+        breadcrumbTrail.push(item);
+        if (item.children) {
+          findBreadcrumbItems(item.children, pathname, breadcrumbTrail);
+        }
       }
-      if (item.children) {
-        findCurrentItem(item.children);
-      }
-    });
+    }
+    return breadcrumbTrail;
   };
 
   useEffect(() => {
-    findCurrentItem(pageinfo);
+    const breadcrumbTrail = findBreadcrumbItems(pageinfo, location.pathname);
+    setBreadcrumbItems(breadcrumbTrail);
   }, [location.pathname, pageinfo]);
 
   let breadcrumbContent;
 
-  if (currentItem) {
+  if (breadcrumbItems.length > 0) {
     breadcrumbContent = (
-      <CustomCard border={false} sx={{ mb: 3, bgcolor: 'transparent' }} content={false}>
-        <Grid container direction="column" justifyContent="flex-start" alignItems="flex-start" spacing={1}>
+      <CustomCard
+        border={false}
+        sx={{ mb: 3, bgcolor: "transparent" }}
+        content={false}
+      >
+        <Grid
+          container
+          direction="column"
+          justifyContent="flex-start"
+          alignItems="flex-start"
+          spacing={1}
+        >
           <Grid item>
             <MuiBreadcrumbs aria-label="breadcrumb">
-              <Link component={RouterLink} to="/" color="textSecondary" variant="h6" sx={{ textDecoration: 'none' }}>
+              <Link
+                component={RouterLink}
+                to="/"
+                color="textSecondary"
+                variant="h6"
+                sx={{ textDecoration: "none" }}
+              >
                 Home
               </Link>
-              {currentItem.url && (
+              {breadcrumbItems.map((item, index) => (
                 <Typography
+                  key={item.id}
                   component={RouterLink}
-                  to={currentItem.url}
+                  to={item.url}
                   variant="h6"
-                  sx={{ textDecoration: 'none', fontWeight: 'bold' }}
-                  color="black"
+                  sx={{
+                    textDecoration: "none",
+                    fontWeight:
+                      index === breadcrumbItems.length - 1 ? "bold" : "normal",
+                    color:
+                      index === breadcrumbItems.length - 1
+                        ? "black"
+                        : "textSecondary",
+                  }}
                 >
-                  {currentItem.title}
+                  {item.title}
                 </Typography>
-              )}
+              ))}
             </MuiBreadcrumbs>
           </Grid>
         </Grid>
@@ -57,8 +99,7 @@ const Breadcrumbs = ({ pageinfo }) => {
 };
 
 Breadcrumbs.propTypes = {
-  pageinfo: PropTypes.array,
-  title: PropTypes.bool
+  pageinfo: PropTypes.array.isRequired,
 };
 
 export default Breadcrumbs;

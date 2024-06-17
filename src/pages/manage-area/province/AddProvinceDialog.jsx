@@ -23,7 +23,10 @@ function AddProvinceDialog({ open, onClose, refresh }) {
 
   const handleSubmit = async () => {
     try {
-      await axios.post("http://localhost:8080/province/add", formData);
+      await axios.post(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/province/add",
+        formData
+      );
       refresh();
       onClose();
     } catch (error) {
@@ -40,7 +43,6 @@ function AddProvinceDialog({ open, onClose, refresh }) {
             {/* Province Name */}
             <Grid item xs={12}>
               <TextField
-                autoFocus
                 margin="dense"
                 value={formData.name}
                 label="Name"
@@ -48,6 +50,7 @@ function AddProvinceDialog({ open, onClose, refresh }) {
                 fullWidth
                 variant="outlined"
                 onChange={handleChange}
+                name="name"
               />
             </Grid>
           </Grid>

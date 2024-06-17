@@ -38,7 +38,7 @@ const EditHospitalDialog = ({ open, onClose, hospital, refresh }) => {
     const fetchTehsilOptions = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/tehsil/getIdAndName"
+          import.meta.env.VITE_REACT_APP_BASEURL + "/tehsil/getIdAndName"
         );
         setTehsilOptions(response.data);
       } catch (error) {
@@ -80,7 +80,10 @@ const EditHospitalDialog = ({ open, onClose, hospital, refresh }) => {
       tehsil: { id: formData.tehsil.id },
     };
     try {
-      await axios.put(`http://localhost:8080/hospital/update`, submitData);
+      await axios.put(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/hospital/update",
+        submitData
+      );
       onClose();
       refresh();
     } catch (error) {

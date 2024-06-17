@@ -32,7 +32,7 @@ const EditDivisionDialog = ({ open, onClose, division, refresh }) => {
     const fetchProvinceOptions = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/province/getIdAndName"
+          import.meta.env.VITE_REACT_APP_BASEURL + "/province/getIdAndName"
         );
         setProvinceOptions(response.data);
       } catch (error) {
@@ -71,7 +71,10 @@ const EditDivisionDialog = ({ open, onClose, division, refresh }) => {
       province: { id: formData.province.id },
     };
     try {
-      await axios.put(`http://localhost:8080/division/update`, submitData);
+      await axios.put(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/division/update",
+        submitData
+      );
       onClose();
       refresh();
     } catch (error) {
@@ -85,7 +88,7 @@ const EditDivisionDialog = ({ open, onClose, division, refresh }) => {
         <DialogTitle variant="h3">Edit Division</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <TextField
                 margin="dense"
                 name="name"
@@ -97,7 +100,7 @@ const EditDivisionDialog = ({ open, onClose, division, refresh }) => {
                 onChange={(e) => handleInputChange(e, "name")}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <Autocomplete
                 fullWidth
                 disablePortal

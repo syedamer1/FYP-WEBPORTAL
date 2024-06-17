@@ -1,4 +1,4 @@
-import { useState, forwardRef } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import {
   Dialog,
   Autocomplete,
@@ -17,6 +17,9 @@ import Slide from "@mui/material/Slide";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import axios from "axios";
+import debounce from "lodash/debounce";
+import { useUser } from "@context/UserContext";
+import { userType } from "@utility";
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -27,40 +30,241 @@ const UploadDataDialog = ({ open, onClose }) => {
   const [selectedTehsil, setSelectedTehsil] = useState(null);
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [selectedHospital, setSelectedHospital] = useState(null);
+  const [selectedDisease, setSelectedDisease] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const divisionsData = ["Division A", "Division B", "Division C"];
-  const districtsData = ["District A", "District B", "District C"];
-  const tehsilsData = ["Tehsil A", "Tehsil B", "Tehsil C"];
-  const provincesData = ["Province A", "Province B", "Province C"];
-  const hospitalsData = ["Hospital A", "Hospital B", "Hospital C"];
+  const [provinceOptions, setProvinceOptions] = useState([]);
+  const [divisionOptions, setDivisionOptions] = useState([]);
+  const [districtOptions, setDistrictOptions] = useState([]);
+  const [tehsilOptions, setTehsilOptions] = useState([]);
+  const [hospitalOptions, setHospitalOptions] = useState([]);
+  const [diseaseOptions, setDiseaseOptions] = useState([]);
+
+  const { user } = useUser();
+
+  const fetchProvinces = debounce(async () => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/province/getIdAndName"
+      );
+      setProvinceOptions(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }, 300);
+
+  const fetchDivisions = debounce(async (provinceIds) => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL +
+          "/division/getDivisionsByProvinceIds",
+        {
+          params: { provinceIds: provinceIds.join(",") },
+        }
+      );
+      setDivisionOptions(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }, 300);
+
+  const fetchDistricts = debounce(async (divisionIds) => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL +
+          "/district/getDistrictsByDivisionIds",
+        {
+          params: { divisionIds: divisionIds.join(",") },
+        }
+      );
+      setDistrictOptions(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }, 300);
+
+  const fetchTehsils = debounce(async (districtIds) => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL +
+          "/tehsil/getTehsilsByDistrictIds",
+        {
+          params: { districtIds: districtIds.join(",") },
+        }
+      );
+      setTehsilOptions(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }, 300);
+
+  const fetchHospitals = debounce(async (tehsilIds) => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL +
+          "/hospital/getHospitalsByTehsilIds",
+        {
+          params: { tehsilIds: tehsilIds.join(",") },
+        }
+      );
+      setHospitalOptions(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }, 300);
+
+  const fetchDisease = async () => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/disease/getIdAndName"
+      );
+      setDiseaseOptions(response.data);
+    } catch (error) {
+      console.error("Error fetching disease names:", error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      switch (user.usertype) {
+        case userType.superAdmin:
+          await fetchProvinces();
+          break;
+        case userType.provinceAdmin:
+          await fetchDivisions([user.province.id]);
+          break;
+        case userType.divisionAdmin:
+          await fetchDistricts([user.division.id]);
+          break;
+        case userType.districtAdmin:
+          await fetchTehsils([user.district.id]);
+          break;
+        case userType.tehsilAdmin:
+          await fetchHospitals([user.tehsil.id]);
+          break;
+        default:
+          break;
+      }
+      await fetchDisease();
+    };
+
+    fetchOptions();
+  }, [user]);
+
+  const handleProvinceSelect = (event, newValue) => {
+    setSelectedProvince(newValue);
+    setSelectedDivision(null);
+    setSelectedDistrict(null);
+    setSelectedTehsil(null);
+    setSelectedHospital(null);
+    if (newValue) {
+      fetchDivisions([newValue.id]);
+    } else {
+      setDivisionOptions([]);
+    }
+  };
+
+  const handleDivisionSelect = (event, newValue) => {
+    setSelectedDivision(newValue);
+    setSelectedDistrict(null);
+    setSelectedTehsil(null);
+    setSelectedHospital(null);
+    if (newValue) {
+      fetchDistricts([newValue.id]);
+    } else {
+      setDistrictOptions([]);
+    }
+  };
+
+  const handleDistrictSelect = (event, newValue) => {
+    setSelectedDistrict(newValue);
+    setSelectedTehsil(null);
+    setSelectedHospital(null);
+    if (newValue) {
+      fetchTehsils([newValue.id]);
+    } else {
+      setTehsilOptions([]);
+    }
+  };
+
+  const handleTehsilSelect = (event, newValue) => {
+    setSelectedTehsil(newValue);
+    setSelectedHospital(null);
+    if (newValue) {
+      fetchHospitals([newValue.id]);
+    } else {
+      setHospitalOptions([]);
+    }
+  };
+
+  const handleHospitalSelect = (event, newValue) => {
+    setSelectedHospital(newValue);
+  };
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
   };
+
   const handleUpload = () => {
     const formData = new FormData();
     formData.append("file", selectedFile);
+    formData.append(
+      "hospitalId",
+      selectedHospital.id != null ? selectedHospital.id : user.hospital.id
+    );
+    formData.append("diseaseId", selectedDisease?.id);
 
     axios
-      .post("http://localhost:8080/upload", formData)
+      .post(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/patient/upload",
+        formData
+      )
       .then((response) => {
-        console.log(response.data); // Handle response from backend
-        handleClose(); // Close dialog after successful upload
+        console.log(response.data);
+        handleClose();
       })
       .catch((error) => {
         console.error("Error:", error);
       });
   };
+
   const handleClose = () => {
+    setProvinceOptions([]);
+    setDivisionOptions([]);
+    setDistrictOptions([]);
+    setTehsilOptions([]);
+    setHospitalOptions([]);
+    setDiseaseOptions([]);
     setSelectedDivision(null);
     setSelectedDistrict(null);
     setSelectedTehsil(null);
     setSelectedProvince(null);
     setSelectedHospital(null);
     setSelectedFile(null);
+    setSelectedDisease(null);
     onClose();
   };
+
+  const renderAutocomplete = (
+    label,
+    options,
+    value,
+    onChange,
+    disabled = false
+  ) => (
+    <Grid item xs={12} md={4}>
+      <Autocomplete
+        disablePortal
+        options={options}
+        value={value}
+        onChange={onChange}
+        getOptionLabel={(option) => option.name}
+        renderInput={(params) => <TextField {...params} label={label} />}
+        disabled={disabled}
+      />
+    </Grid>
+  );
+
   return (
     <Dialog
       TransitionComponent={Transition}
@@ -74,104 +278,70 @@ const UploadDataDialog = ({ open, onClose }) => {
         </DialogTitle>
         <DialogContent sx={{ mb: 0 }}>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} md={4}>
-              <Autocomplete
-                disablePortal
-                id="province-autocomplete"
-                options={provincesData}
-                value={selectedProvince}
-                onChange={(event, newValue) => {
-                  setSelectedProvince(newValue);
-                  setSelectedDivision(null);
-                  setSelectedDistrict(null);
-                  setSelectedTehsil(null);
-                  setSelectedHospital(null);
-                }}
-                renderInput={(params) => (
-                  <TextField {...params} label="Province" />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Autocomplete
-                disablePortal
-                id="division-autocomplete"
-                options={divisionsData}
-                value={selectedDivision}
-                onChange={(event, newValue) => {
-                  setSelectedDivision(newValue);
-                  setSelectedDistrict(null);
-                  setSelectedTehsil(null);
-                  setSelectedHospital(null);
-                }}
-                disabled={!selectedProvince}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Division"
-                    disabled={!selectedProvince}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Autocomplete
-                disablePortal
-                id="district-autocomplete"
-                options={districtsData}
-                value={selectedDistrict}
-                onChange={(event, newValue) => {
-                  setSelectedDistrict(newValue);
-                  setSelectedTehsil(null);
-                  setSelectedHospital(null);
-                }}
-                disabled={!selectedDivision}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="District"
-                    disabled={!selectedDivision}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Autocomplete
-                disablePortal
-                id="tehsil-autocomplete"
-                options={tehsilsData}
-                value={selectedTehsil}
-                onChange={(event, newValue) => {
-                  setSelectedTehsil(newValue);
-                  setSelectedHospital(null);
-                }}
-                disabled={!selectedDistrict}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Tehsil"
-                    disabled={!selectedDistrict}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Autocomplete
-                disablePortal
-                id="hospital-autocomplete"
-                options={hospitalsData}
-                value={selectedHospital}
-                onChange={(event, newValue) => setSelectedHospital(newValue)}
-                disabled={!selectedTehsil}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Hospital"
-                    disabled={!selectedTehsil}
-                  />
-                )}
-              />
-            </Grid>
+            {user.usertype === userType.superAdmin &&
+              renderAutocomplete(
+                "Province",
+                provinceOptions,
+                selectedProvince,
+                handleProvinceSelect
+              )}
+            {(user.usertype === userType.superAdmin ||
+              user.usertype === userType.provinceAdmin) &&
+              renderAutocomplete(
+                "Division",
+                divisionOptions,
+                selectedDivision,
+                handleDivisionSelect,
+                !selectedProvince && user.usertype === userType.superAdmin
+              )}
+            {(user.usertype === userType.superAdmin ||
+              user.usertype === userType.provinceAdmin ||
+              user.usertype === userType.divisionAdmin) &&
+              renderAutocomplete(
+                "District",
+                districtOptions,
+                selectedDistrict,
+                handleDistrictSelect,
+                !selectedDivision &&
+                  (user.usertype === userType.superAdmin ||
+                    user.usertype === userType.provinceAdmin)
+              )}
+            {(user.usertype === userType.superAdmin ||
+              user.usertype === userType.provinceAdmin ||
+              user.usertype === userType.divisionAdmin ||
+              user.usertype === userType.districtAdmin) &&
+              renderAutocomplete(
+                "Tehsil",
+                tehsilOptions,
+                selectedTehsil,
+                handleTehsilSelect,
+                !selectedDistrict &&
+                  (user.usertype === userType.superAdmin ||
+                    user.usertype === userType.provinceAdmin ||
+                    user.usertype === userType.divisionAdmin)
+              )}
+            {(user.usertype === userType.superAdmin ||
+              user.usertype === userType.provinceAdmin ||
+              user.usertype === userType.divisionAdmin ||
+              user.usertype === userType.districtAdmin ||
+              user.usertype === userType.tehsilAdmin) &&
+              renderAutocomplete(
+                "Hospital",
+                hospitalOptions,
+                selectedHospital,
+                handleHospitalSelect,
+                !selectedTehsil &&
+                  (user.usertype === userType.superAdmin ||
+                    user.usertype === userType.provinceAdmin ||
+                    user.usertype === userType.divisionAdmin ||
+                    user.usertype === userType.districtAdmin)
+              )}
+            {renderAutocomplete(
+              "Disease",
+              diseaseOptions,
+              selectedDisease,
+              (event, newValue) => setSelectedDisease(newValue)
+            )}
             <Grid item xs={12}>
               <Box
                 border={2}
@@ -220,18 +390,16 @@ const UploadDataDialog = ({ open, onClose }) => {
                     borderRadius={2}
                     padding={1}
                   >
-                    <UploadFileIcon sx={{ marginRight: 1, fontSize: 30 }} />{" "}
-                    {/* Increase the icon size */}
+                    <UploadFileIcon sx={{ marginRight: 1, fontSize: 30 }} />
                     <Box>
                       <Typography variant="h5" fontWeight="bold">
                         {selectedFile.name}
                       </Typography>
-                      {/* Make the file name bold and bigger */}
                       <Typography
                         variant="body2"
                         sx={{ marginRight: 1, fontSize: 16 }}
                       >
-                        {selectedFile.type} {/* Show format under the name */}
+                        {selectedFile.type}
                       </Typography>
                     </Box>
                     <Button

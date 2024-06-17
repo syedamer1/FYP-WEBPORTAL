@@ -19,6 +19,8 @@ import {
 import EditUserDialog from "./EditUserDialog";
 import AddUserDialog from "./AddUserDialog";
 import DeleteConfirmation from "@components/DeleteConfirmation";
+import OverLayLoader from "@components/OverlayLoader";
+import { formatDate } from "@utility";
 
 const AccountTable = () => {
   const [deleteAccountId, setDeleteAccountId] = useState(null);
@@ -51,9 +53,10 @@ const AccountTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const fetchURL = new URL("http://localhost:8080/user/get");
+      const fetchURL = new URL(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/user/get"
+      );
       const response = await axios.get(fetchURL.href);
-
       return {
         data: response.data,
         meta: response.meta,
@@ -112,7 +115,9 @@ const AccountTable = () => {
     try {
       if (deleteAccountId) {
         await axios.delete(
-          `http://localhost:8080/account/delete/${deleteAccountId}` // Change to account API endpoint
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/account/delete/" +
+            deleteAccountId
         );
         refetch();
       }
@@ -206,23 +211,30 @@ const AccountTable = () => {
         size: 150,
       },
       {
-        accessorFn: (row) => new Date(row.created_on),
-        id: "created_on",
+        accessorFn: (row) =>
+          row.createdOn ? formatDate(row.createdOn) : "Not Created",
+        id: "createdOn",
         header: "Created On",
         filterVariant: "date",
         filterFn: "lessThan",
         sortingFn: "datetime",
-        Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+        Cell: ({ cell }) =>
+          cell.row.original.createdOn
+            ? formatDate(cell.row.original.createdOn)
+            : "Not Created",
       },
       {
         accessorFn: (row) =>
-          row.updated_on == "null" ? "Not Updated" : row.updated_on,
-        id: "updated_on",
+          row.updatedOn ? formatDate(row.updatedOn) : "Not Updated",
+        id: "updatedOn",
         header: "Updated On",
         filterVariant: "date",
         filterFn: "lessThan",
         sortingFn: "datetime",
-        Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+        Cell: ({ cell }) =>
+          cell.row.original.updatedOn
+            ? formatDate(cell.row.original.updatedOn)
+            : "Not Updated",
       },
       {
         id: "actions",
@@ -303,6 +315,7 @@ const AccountTable = () => {
       showAlertBanner: false,
       showProgressBars: isRefetching,
       sorting,
+      showLoadingOverlay: false,
     },
   });
 
@@ -311,6 +324,7 @@ const AccountTable = () => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ marginTop: "30px" }}>
           <MaterialReactTable table={table} />
+          <OverLayLoader loading={isLoading} />
           <AddUserDialog
             open={isAddUserDialogOpen}
             onClose={toggleAddUserDialog}

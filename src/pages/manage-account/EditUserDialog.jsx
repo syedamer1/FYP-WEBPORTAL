@@ -47,7 +47,7 @@ const EditUserDialog = ({ open, onClose, refresh, account }) => {
       try {
         const responses = await Promise.all(
           Object.values(endpoints).map((endpoint) =>
-            axios.get(`http://localhost:8080/${endpoint}`)
+            axios.get(import.meta.env.VITE_REACT_APP_BASEURL + "/" + endpoint)
           )
         );
 
@@ -141,7 +141,10 @@ const EditUserDialog = ({ open, onClose, refresh, account }) => {
     };
 
     try {
-      await axios.put("http://localhost:8080/user/update", submitData);
+      await axios.put(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/user/update",
+        submitData
+      );
       refresh();
       onClose();
     } catch (error) {

@@ -36,7 +36,10 @@ function EditProvinceDialog({ open, onClose, province, refresh }) {
 
   const handleSubmit = async () => {
     try {
-      await axios.put(`http://localhost:8080/province/update`, formData);
+      await axios.put(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/province/update",
+        formData
+      );
       refresh();
       onClose();
     } catch (error) {
@@ -53,7 +56,6 @@ function EditProvinceDialog({ open, onClose, province, refresh }) {
             {/* Province Name */}
             <Grid item xs={12}>
               <TextField
-                autoFocus
                 margin="dense"
                 label="Name"
                 type="text"
@@ -61,6 +63,7 @@ function EditProvinceDialog({ open, onClose, province, refresh }) {
                 variant="outlined"
                 value={formData.name}
                 onChange={handleChange}
+                name="name"
               />
             </Grid>
           </Grid>

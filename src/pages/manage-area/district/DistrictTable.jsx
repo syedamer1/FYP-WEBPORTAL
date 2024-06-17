@@ -16,9 +16,11 @@ import {
   MaterialReactTable,
   useMaterialReactTable,
 } from "material-react-table";
-import EditDistrictDialog from "./EditDistrictDialog.jsx"; // Assuming you have an EditDistrictDialog component
-import AddDistrictDialog from "./AddDistrictDialog.jsx"; // Assuming you have an AddDistrictDialog component
+import EditDistrictDialog from "./EditDistrictDialog.jsx";
+import AddDistrictDialog from "./AddDistrictDialog.jsx";
 import DeleteConfirmation from "@components/DeleteConfirmation";
+import OverLayLoader from "@components/OverlayLoader";
+import { formatDate } from "@utility";
 
 const DistrictTable = () => {
   const [deleteDistrictId, setDeleteDistrictId] = useState(null);
@@ -51,7 +53,9 @@ const DistrictTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const response = await axios.get("http://localhost:8080/district/get"); // Updated API endpoint
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/district/get"
+      );
 
       return {
         data: response.data,
@@ -77,9 +81,10 @@ const DistrictTable = () => {
     try {
       if (deleteDistrictId) {
         await axios.delete(
-          `http://localhost:8080/district/delete/${deleteDistrictId}` // Updated API endpoint
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/district/delete/" +
+            deleteDistrictId
         );
-        console.log("District deleted");
         refetch();
       }
     } catch (error) {
@@ -119,28 +124,36 @@ const DistrictTable = () => {
           },
           {
             id: "division.name",
-            accessorFn: (row) => row.division.name, // Assuming district has a division attribute
+            accessorFn: (row) => row.division.name,
             header: "Division Name",
             size: 150,
           },
           {
-            accessorFn: (row) => new Date(row.createdOn),
+            accessorFn: (row) =>
+              row.createdOn ? formatDate(row.createdOn) : "Not Created",
             id: "createdOn",
             header: "Created On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.createdOn
+                ? formatDate(cell.row.original.createdOn)
+                : "Not Created",
           },
+
           {
             accessorFn: (row) =>
-              row.updatedOn === "null" ? "Not Updated" : row.updatedOn, // Assuming district has updatedOn attribute
+              row.updatedOn ? formatDate(row.updatedOn) : "Not Updated",
             id: "updatedOn",
             header: "Updated On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.updatedOn
+                ? formatDate(cell.row.original.updatedOn)
+                : "Not Updated",
           },
           {
             id: "actions",
@@ -224,6 +237,7 @@ const DistrictTable = () => {
       showAlertBanner: false,
       showProgressBars: isRefetching,
       sorting,
+      showLoadingOverlay: false,
     },
   });
 
@@ -232,6 +246,7 @@ const DistrictTable = () => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ marginTop: "30px" }}>
           <MaterialReactTable table={table} />
+          <OverLayLoader loading={isLoading} />
           <DeleteConfirmation
             open={isDeleteDialogOpen}
             onClose={toggleDeleteDialog}

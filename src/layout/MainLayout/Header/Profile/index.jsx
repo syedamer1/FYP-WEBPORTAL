@@ -8,7 +8,6 @@ import {
   ClickAwayListener,
   Divider,
   Grid,
-  IconButton,
   Paper,
   Popper,
   Stack,
@@ -17,8 +16,8 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Tooltip,
 } from "@mui/material";
-
 import { useTheme } from "@mui/material/styles";
 import {
   LocationCityOutlined as ManageAreaIcon,
@@ -33,9 +32,12 @@ import EditProfileDialog from "./EditProfileDialog";
 import CustomCard from "@components/CustomCard";
 import Transitions from "@components/animation/Transitions";
 import ViewProfileDialog from "./ViewProfileDialog";
+import { useUser } from "@context/UserContext";
+
 const Profile = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const { user, updateUser } = useUser();
   const [viewProfileOpen, setViewProfileOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
@@ -56,56 +58,68 @@ const Profile = () => {
     setOpen(false);
   };
 
-  const handleEditProfile = () => {
-    setEditProfileOpen(true);
+  const handleEditProfileToggle = () => {
     setOpen(false);
-  };
-
-  const handleEditProfileClose = () => {
-    setEditProfileOpen(false);
+    setEditProfileOpen((prevEditProfileOpen) => !prevEditProfileOpen);
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("user");
+
+    updateUser({
+      id: null,
+      firstName: "",
+      lastName: "",
+      usertype: "",
+      contact: "",
+      cnic: "",
+      email: "",
+      password: "",
+      province: null,
+      division: null,
+      district: null,
+      tehsil: null,
+      hospital: null,
+      createdOn: null,
+    });
+
+    setOpen(false);
     navigate("/login");
   };
 
   const anchorRef = useRef(null);
 
-  const profileData = {
-    id: 123,
-    usertype: "Super Administrator",
-    firstName: "Ayesha",
-    lastName: "Ali",
-    cnic: "123123-1323123-13",
-    email: "johnsmith@example.com",
-    contact: "09123456789",
-    password: "121212121",
-  };
-
   return (
     <Box sx={{ flexShrink: 0, ml: "auto" }}>
-      <ButtonBase
-        sx={{
-          p: 0.25,
-          bgcolor: open ? "grey.300" : "transparent",
-          borderRadius: 1,
-          "&:hover": { bgcolor: "secondary.lighter" },
-        }}
-        aria-label="open profile"
-        ref={anchorRef}
-        aria-controls={open ? "profile-grow" : undefined}
-        aria-haspopup="true"
-        onClick={handleToggle}
-      >
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ p: 0.5 }}>
-          <Avatar
-            alt="profile user"
-            src={avataruser}
-            sx={{ width: 32, height: 32 }}
-          />
-          <Typography variant="subtitle1">Ayesha Khan</Typography>
-        </Stack>
-      </ButtonBase>
+      <Tooltip disableFocusListener disableTouchListener title="Open Setting">
+        <ButtonBase
+          sx={{
+            p: 0.25,
+            bgcolor: open ? "grey.300" : "transparent",
+            borderRadius: 1,
+            "&:hover": { bgcolor: "secondary.lighter" },
+          }}
+          aria-label="open profile"
+          ref={anchorRef}
+          aria-controls={open ? "profile-grow" : undefined}
+          aria-haspopup="true"
+          onClick={handleToggle}
+        >
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            sx={{ p: 0.5 }}
+          >
+            <Avatar
+              alt="profile user"
+              src={avataruser}
+              sx={{ width: 32, height: 32 }}
+            />
+            <Typography variant="subtitle1">{`${user.firstName} ${user.lastName}`}</Typography>
+          </Stack>
+        </ButtonBase>
+      </Tooltip>
       <Popper
         placement="bottom-end"
         open={open}
@@ -163,23 +177,12 @@ const Profile = () => {
                               sx={{ width: 32, height: 32 }}
                             />
                             <Stack>
-                              <Typography variant="h6">Ayesha Khan</Typography>
+                              <Typography variant="h6">{`${user.firstName} ${user.lastName}`}</Typography>
                               <Typography variant="body2" color="textSecondary">
-                                Super Administrator
+                                {user.usertype}
                               </Typography>
                             </Stack>
                           </Stack>
-                        </Grid>
-                        <Grid item>
-                          <IconButton
-                            size="large"
-                            color="secondary"
-                            onClick={handleLogout}
-                          >
-                            <LogoutIcon
-                              style={{ fontSize: "2rem", color: "gray" }}
-                            />
-                          </IconButton>
                         </Grid>
                       </Grid>
                     </CardContent>
@@ -201,28 +204,44 @@ const Profile = () => {
                         <ListItemText primary="View Profile" />
                       </ListItemButton>
                       <Divider sx={{ my: 0.5 }} />
-                      <ListItemButton component={Link} to="/manage-account">
-                        <ListItemIcon sx={{ minWidth: 24 }}>
-                          <ManageAccountIcon color="gray" />
-                        </ListItemIcon>
-                        <ListItemText primary="Manage Account" />
-                      </ListItemButton>
-                      <Divider sx={{ my: 0.5 }} />
-                      <ListItemButton component={Link} to="/manage-hospital">
-                        <ListItemIcon sx={{ minWidth: 24 }}>
-                          <ManageHospitalIcon color="gray" />
-                        </ListItemIcon>
-                        <ListItemText primary="Manage Hospital" />
-                      </ListItemButton>
-                      <Divider sx={{ my: 0.5 }} />
-                      <ListItemButton component={Link} to="/manage-area">
-                        <ListItemIcon sx={{ minWidth: 24 }}>
-                          <ManageAreaIcon color="gray" />
-                        </ListItemIcon>
-                        <ListItemText primary="Manage Area" />
-                      </ListItemButton>
-                      <Divider sx={{ my: 0.5 }} />
-                      <ListItemButton onClick={handleEditProfile}>
+                      {user.usertype === "Super Administrator" && (
+                        <>
+                          <ListItemButton
+                            component={Link}
+                            to="/manage-account"
+                            onClick={() => setOpen(false)}
+                          >
+                            <ListItemIcon sx={{ minWidth: 24 }}>
+                              <ManageAccountIcon color="gray" />
+                            </ListItemIcon>
+                            <ListItemText primary="Manage Account" />
+                          </ListItemButton>
+                          <Divider sx={{ my: 0.5 }} />
+                          <ListItemButton
+                            component={Link}
+                            to="/manage-hospital"
+                            onClick={() => setOpen(false)}
+                          >
+                            <ListItemIcon sx={{ minWidth: 24 }}>
+                              <ManageHospitalIcon color="gray" />
+                            </ListItemIcon>
+                            <ListItemText primary="Manage Hospital" />
+                          </ListItemButton>
+                          <Divider sx={{ my: 0.5 }} />
+                          <ListItemButton
+                            component={Link}
+                            to="/manage-area"
+                            onClick={() => setOpen(false)}
+                          >
+                            <ListItemIcon sx={{ minWidth: 24 }}>
+                              <ManageAreaIcon color="gray" />
+                            </ListItemIcon>
+                            <ListItemText primary="Manage Area" />
+                          </ListItemButton>
+                          <Divider sx={{ my: 0.5 }} />
+                        </>
+                      )}
+                      <ListItemButton onClick={handleEditProfileToggle}>
                         <ListItemIcon sx={{ minWidth: 24 }}>
                           <EditProfileIcon color="gray" />
                         </ListItemIcon>
@@ -246,12 +265,13 @@ const Profile = () => {
       <ViewProfileDialog
         open={viewProfileOpen}
         onClose={() => setViewProfileOpen(false)}
-        profiledata={profileData}
+        profiledata={user}
       />
       <EditProfileDialog
         open={editProfileOpen}
-        onClose={handleEditProfileClose}
-        user={profileData}
+        onClose={handleEditProfileToggle}
+        user={user}
+        updateUser={updateUser}
       />
     </Box>
   );

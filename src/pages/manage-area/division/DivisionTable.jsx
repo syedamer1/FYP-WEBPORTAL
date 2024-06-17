@@ -19,6 +19,8 @@ import {
 import EditDivisionDialog from "./EditDivisionDialog.jsx";
 import AddDivisionDialog from "./AddDivisionDialog.jsx";
 import DeleteConfirmation from "@components/DeleteConfirmation";
+import OverLayLoader from "@components/OverlayLoader";
+import { formatDate } from "@utility";
 
 const DivisionTable = () => {
   const [deleteDivisionId, setDeleteDivisionId] = useState(null);
@@ -51,7 +53,9 @@ const DivisionTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const response = await axios.get("http://localhost:8080/division/get");
+      const response = await axios.get(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/division/get"
+      );
 
       return {
         data: response.data,
@@ -77,7 +81,9 @@ const DivisionTable = () => {
     try {
       if (deleteDivisionId) {
         await axios.delete(
-          `http://localhost:8080/division/delete/${deleteDivisionId}`
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/division/delete/" +
+            deleteDivisionId
         );
         refetch();
       }
@@ -123,23 +129,31 @@ const DivisionTable = () => {
             size: 150,
           },
           {
-            accessorFn: (row) => new Date(row.createdOn),
+            accessorFn: (row) =>
+              row.createdOn ? formatDate(row.createdOn) : "Not Created",
             id: "createdOn",
             header: "Created On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.createdOn
+                ? formatDate(cell.row.original.createdOn)
+                : "Not Created",
           },
+
           {
             accessorFn: (row) =>
-              row.updated_on === "null" ? "Not Updated" : row.updated_on,
-            id: "updated_on",
+              row.updatedOn ? formatDate(row.updatedOn) : "Not Updated",
+            id: "updatedOn",
             header: "Updated On",
             filterVariant: "date",
             filterFn: "lessThan",
             sortingFn: "datetime",
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            Cell: ({ cell }) =>
+              cell.row.original.updatedOn
+                ? formatDate(cell.row.original.updatedOn)
+                : "Not Updated",
           },
           {
             id: "actions",
@@ -223,6 +237,7 @@ const DivisionTable = () => {
       showAlertBanner: false,
       showProgressBars: isRefetching,
       sorting,
+      showLoadingOverlay: false,
     },
   });
 
@@ -231,6 +246,8 @@ const DivisionTable = () => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ marginTop: "30px" }}>
           <MaterialReactTable table={table} />
+          <OverLayLoader loading={isLoading} />
+
           <DeleteConfirmation
             open={isDeleteDialogOpen}
             onClose={toggleDeleteDialog}
