@@ -1,10 +1,14 @@
 import { Box, Toolbar } from "@mui/material";
 import Breadcrumbs from "@components/Breadcrumbs";
 import Header from "./Header";
-import { Outlet } from "react-router-dom";
+import { Outlet, Navigate } from "react-router-dom";
 import pageinfo from "./pageinfo";
-
+import { useUser } from "@context/UserContext";
 const MainLayout = () => {
+  const user = useUser();
+  if (user == null) {
+    return <Navigate to="/login" replace />;
+  }
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
       <Header />
