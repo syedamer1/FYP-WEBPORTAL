@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import {
   Box,
-  Button,
   Grid,
   Typography,
   Autocomplete,
@@ -45,6 +44,8 @@ import { a11yProps, TabPanel } from "@components/TabPart";
 // import OrganDataChart from "./OrganDataChart";
 import BarChart from "./BarChart";
 import DynamicAreaTimeAxis from "./DynamicAreaTimeAxis";
+import ToastNotification, { emitToast } from "@components/ToastNotification";
+
 const CustomIconButton = styled(IconButton)({
   fontSize: "1.25rem",
 });
@@ -178,7 +179,7 @@ const Dashboard = () => {
       );
       setDisease(response.data);
     } catch (error) {
-      console.error("Error fetching disease names:", error);
+      emitToast(`Error fetching disease names: ${error.message}`, "error");
     }
   }, 300);
 
@@ -300,6 +301,7 @@ const Dashboard = () => {
 
   return (
     <>
+      <ToastNotification />
       {selectedDisease != null && (
         <>
           <CustomButton
@@ -339,7 +341,12 @@ const Dashboard = () => {
                 options={disease}
                 getOptionLabel={(option) => option.name}
                 value={selectedDisease}
-                onChange={(event, newValue) => setSelectedDisease(newValue)}
+                onChange={(event, newValue) => {
+                  setSelectedDisease(newValue);
+                  if (newValue != null) {
+                    emitToast("Disease selected successfully", "success");
+                  }
+                }}
                 isOptionEqualToValue={(option, value) => option.id === value.id}
                 renderInput={(params) => (
                   <TextField

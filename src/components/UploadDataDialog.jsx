@@ -20,26 +20,22 @@ import axios from "axios";
 import debounce from "lodash/debounce";
 import { useUser } from "@context/UserContext";
 import { userType } from "@utility";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import ToastNotification, { emitToast } from "@components/ToastNotification";
+
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
 const UploadDataDialog = ({ open, onClose }) => {
-  const [selectedDivision, setSelectedDivision] = useState(null);
-  const [selectedDistrict, setSelectedDistrict] = useState(null);
-  const [selectedTehsil, setSelectedTehsil] = useState(null);
-  const [selectedProvince, setSelectedProvince] = useState(null);
-  const [selectedHospital, setSelectedHospital] = useState(null);
-  const [selectedDisease, setSelectedDisease] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
-
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [divisionOptions, setDivisionOptions] = useState([]);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [tehsilOptions, setTehsilOptions] = useState([]);
   const [hospitalOptions, setHospitalOptions] = useState([]);
   const [diseaseOptions, setDiseaseOptions] = useState([]);
-
+  const [fetch, setFetch] = useState(false);
   const { user } = useUser();
 
   const fetchProvinces = debounce(async () => {
@@ -149,83 +145,91 @@ const UploadDataDialog = ({ open, onClose }) => {
     };
 
     fetchOptions();
-  }, [user]);
+  }, []);
 
-  const handleProvinceSelect = (event, newValue) => {
-    setSelectedProvince(newValue);
-    setSelectedDivision(null);
-    setSelectedDistrict(null);
-    setSelectedTehsil(null);
-    setSelectedHospital(null);
-    if (newValue) {
-      fetchDivisions([newValue.id]);
-    } else {
-      setDivisionOptions([]);
-    }
-  };
+  const formik = useFormik({
+    initialValues: {
+      province: null,
+      division: null,
+      district: null,
+      tehsil: null,
+      hospital: null,
+      disease: null,
+      file: null,
+    },
+    validationSchema: Yup.object({
+      province: Yup.object()
+        .nullable()
+        .when("user", {
+          is: userType.superAdmin,
+          then: Yup.object().nullable().required("Province is required"),
+        }),
+      division: Yup.object()
+        .nullable()
+        .when("user", {
+          is: (value) =>
+            [userType.superAdmin, userType.provinceAdmin].includes(value),
+          then: Yup.object().nullable().required("Division is required"),
+        }),
+      district: Yup.object()
+        .nullable()
+        .when("user", {
+          is: (value) =>
+            [
+              userType.superAdmin,
+              userType.provinceAdmin,
+              userType.divisionAdmin,
+            ].includes(value),
+          then: Yup.object().nullable().required("District is required"),
+        }),
+      tehsil: Yup.object()
+        .nullable()
+        .when("user", {
+          is: (value) =>
+            [
+              userType.superAdmin,
+              userType.provinceAdmin,
+              userType.divisionAdmin,
+              userType.districtAdmin,
+            ].includes(value),
+          then: Yup.object().nullable().required("Tehsil is required"),
+        }),
+      hospital: Yup.object().nullable().required("Hospital is required"),
+      disease: Yup.object().nullable().required("Disease is required"),
+      file: Yup.mixed().required("File is required"),
+    }),
+    onSubmit: (values) => {
+      const formData = new FormData();
+      formData.append("file", values.file);
+      formData.append(
+        "hospitalId",
+        values.hospital.id != null ? values.hospital.id : user.hospital.id
+      );
+      formData.append("diseaseId", values.disease.id);
 
-  const handleDivisionSelect = (event, newValue) => {
-    setSelectedDivision(newValue);
-    setSelectedDistrict(null);
-    setSelectedTehsil(null);
-    setSelectedHospital(null);
-    if (newValue) {
-      fetchDistricts([newValue.id]);
-    } else {
-      setDistrictOptions([]);
-    }
-  };
-
-  const handleDistrictSelect = (event, newValue) => {
-    setSelectedDistrict(newValue);
-    setSelectedTehsil(null);
-    setSelectedHospital(null);
-    if (newValue) {
-      fetchTehsils([newValue.id]);
-    } else {
-      setTehsilOptions([]);
-    }
-  };
-
-  const handleTehsilSelect = (event, newValue) => {
-    setSelectedTehsil(newValue);
-    setSelectedHospital(null);
-    if (newValue) {
-      fetchHospitals([newValue.id]);
-    } else {
-      setHospitalOptions([]);
-    }
-  };
-
-  const handleHospitalSelect = (event, newValue) => {
-    setSelectedHospital(newValue);
-  };
+      axios
+        .post(
+          import.meta.env.VITE_REACT_APP_BASEURL + "/patient/upload",
+          formData
+        )
+        .then((response) => {
+          emitToast(response.data, "success");
+          handleClose();
+        })
+        .catch(() => {
+          emitToast("Uploading Patient failed!", "error");
+        });
+    },
+  });
 
   const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
+    const file = event.target.files[0];
+    if (file && file.type !== "text/csv") {
+      emitToast("Invalid file type. Please upload a CSV file.", "warning");
+      return;
+    }
 
-  const handleUpload = () => {
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-    formData.append(
-      "hospitalId",
-      selectedHospital.id != null ? selectedHospital.id : user.hospital.id
-    );
-    formData.append("diseaseId", selectedDisease?.id);
-
-    axios
-      .post(
-        import.meta.env.VITE_REACT_APP_BASEURL + "/patient/upload",
-        formData
-      )
-      .then((response) => {
-        console.log(response.data);
-        handleClose();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    formik.setFieldValue("file", file);
   };
 
   const handleClose = () => {
@@ -235,14 +239,62 @@ const UploadDataDialog = ({ open, onClose }) => {
     setTehsilOptions([]);
     setHospitalOptions([]);
     setDiseaseOptions([]);
-    setSelectedDivision(null);
-    setSelectedDistrict(null);
-    setSelectedTehsil(null);
-    setSelectedProvince(null);
-    setSelectedHospital(null);
-    setSelectedFile(null);
-    setSelectedDisease(null);
+    formik.resetForm();
     onClose();
+  };
+
+  const handleProvinceChange = (event, newValue) => {
+    formik.setFieldValue("province", newValue);
+    if (newValue) {
+      fetchDivisions([newValue.id]);
+    } else {
+      setDivisionOptions([]);
+    }
+    formik.setFieldValue("division", null);
+    formik.setFieldValue("district", null);
+    formik.setFieldValue("tehsil", null);
+    formik.setFieldValue("hospital", null);
+  };
+
+  const handleDivisionChange = (event, newValue) => {
+    formik.setFieldValue("division", newValue);
+    if (newValue) {
+      fetchDistricts([newValue.id]);
+    } else {
+      setDistrictOptions([]);
+    }
+    formik.setFieldValue("district", null);
+    formik.setFieldValue("tehsil", null);
+    formik.setFieldValue("hospital", null);
+  };
+
+  const handleDistrictChange = (event, newValue) => {
+    formik.setFieldValue("district", newValue);
+    if (newValue) {
+      fetchTehsils([newValue.id]);
+    } else {
+      setTehsilOptions([]);
+    }
+    formik.setFieldValue("tehsil", null);
+    formik.setFieldValue("hospital", null);
+  };
+
+  const handleTehsilChange = (event, newValue) => {
+    formik.setFieldValue("tehsil", newValue);
+    if (newValue) {
+      fetchHospitals([newValue.id]);
+    } else {
+      setHospitalOptions([]);
+    }
+    formik.setFieldValue("hospital", null);
+  };
+
+  const handleHospitalChange = (event, newValue) => {
+    formik.setFieldValue("hospital", newValue);
+  };
+
+  const handleDiseaseChange = (event, newValue) => {
+    formik.setFieldValue("disease", newValue);
   };
 
   const renderAutocomplete = (
@@ -250,7 +302,9 @@ const UploadDataDialog = ({ open, onClose }) => {
     options,
     value,
     onChange,
-    disabled = false
+    disabled = false,
+    error,
+    touched
   ) => (
     <Grid item xs={12} md={4}>
       <Autocomplete
@@ -259,173 +313,202 @@ const UploadDataDialog = ({ open, onClose }) => {
         value={value}
         onChange={onChange}
         getOptionLabel={(option) => option.name}
-        renderInput={(params) => <TextField {...params} label={label} />}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={label}
+            error={error && touched}
+            helperText={error && touched ? error : ""}
+            fullWidth
+            variant="outlined"
+          />
+        )}
         disabled={disabled}
       />
     </Grid>
   );
 
   return (
-    <Dialog
-      TransitionComponent={Transition}
-      open={open}
-      onClose={handleClose}
-      maxWidth="sm"
-    >
-      <Box sx={{ p: 2 }}>
-        <DialogTitle variant="h3" sx={{ mb: 0 }}>
-          Upload Data
-        </DialogTitle>
-        <DialogContent sx={{ mb: 0 }}>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            {user.usertype === userType.superAdmin &&
-              renderAutocomplete(
-                "Province",
-                provinceOptions,
-                selectedProvince,
-                handleProvinceSelect
-              )}
-            {(user.usertype === userType.superAdmin ||
-              user.usertype === userType.provinceAdmin) &&
-              renderAutocomplete(
-                "Division",
-                divisionOptions,
-                selectedDivision,
-                handleDivisionSelect,
-                !selectedProvince && user.usertype === userType.superAdmin
-              )}
-            {(user.usertype === userType.superAdmin ||
-              user.usertype === userType.provinceAdmin ||
-              user.usertype === userType.divisionAdmin) &&
-              renderAutocomplete(
-                "District",
-                districtOptions,
-                selectedDistrict,
-                handleDistrictSelect,
-                !selectedDivision &&
-                  (user.usertype === userType.superAdmin ||
-                    user.usertype === userType.provinceAdmin)
-              )}
-            {(user.usertype === userType.superAdmin ||
-              user.usertype === userType.provinceAdmin ||
-              user.usertype === userType.divisionAdmin ||
-              user.usertype === userType.districtAdmin) &&
-              renderAutocomplete(
-                "Tehsil",
-                tehsilOptions,
-                selectedTehsil,
-                handleTehsilSelect,
-                !selectedDistrict &&
-                  (user.usertype === userType.superAdmin ||
-                    user.usertype === userType.provinceAdmin ||
-                    user.usertype === userType.divisionAdmin)
-              )}
-            {(user.usertype === userType.superAdmin ||
-              user.usertype === userType.provinceAdmin ||
-              user.usertype === userType.divisionAdmin ||
-              user.usertype === userType.districtAdmin ||
-              user.usertype === userType.tehsilAdmin) &&
-              renderAutocomplete(
-                "Hospital",
-                hospitalOptions,
-                selectedHospital,
-                handleHospitalSelect,
-                !selectedTehsil &&
-                  (user.usertype === userType.superAdmin ||
-                    user.usertype === userType.provinceAdmin ||
-                    user.usertype === userType.divisionAdmin ||
-                    user.usertype === userType.districtAdmin)
-              )}
-            {renderAutocomplete(
-              "Disease",
-              diseaseOptions,
-              selectedDisease,
-              (event, newValue) => setSelectedDisease(newValue)
-            )}
-            <Grid item xs={12}>
-              <Box
-                border={2}
-                borderColor="primary.main"
-                borderRadius={2}
-                padding={4}
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                justifyContent="center"
-                bgcolor="grey.100"
-                sx={{
-                  cursor: "pointer",
-                  minHeight: "200px",
-                  borderStyle: "dashed",
-                  borderWidth: "2px",
-                  borderColor: "black",
-                }}
-                onClick={() => {
-                  if (selectedFile == null)
-                    document.getElementById("file-upload-input").click();
-                }}
-              >
-                <CloudUploadIcon
-                  style={{ fontSize: 60, color: "primary.main" }}
-                />
-                <Typography variant="h6" style={{ marginTop: 16 }}>
-                  Drop file here or click to browse through your machine
-                </Typography>
-                {selectedFile == null && (
-                  <input
-                    type="file"
-                    id="file-upload-input"
-                    hidden
-                    onChange={handleFileChange}
-                  />
+    <>
+      <ToastNotification />
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        maxWidth="sm"
+        TransitionComponent={Transition}
+      >
+        <Box sx={{ p: 2 }}>
+          <DialogTitle variant="h3" sx={{ mb: 0 }}>
+            Upload Data
+          </DialogTitle>
+          <DialogContent sx={{ mb: 0 }}>
+            <form onSubmit={formik.handleSubmit}>
+              <Grid container spacing={2} sx={{ mt: 1 }}>
+                {user.usertype === userType.superAdmin &&
+                  renderAutocomplete(
+                    "Province",
+                    provinceOptions,
+                    formik.values.province,
+                    handleProvinceChange,
+                    false,
+                    formik.errors.province,
+                    formik.touched.province
+                  )}
+                {(user.usertype === userType.superAdmin ||
+                  user.usertype === userType.provinceAdmin) &&
+                  renderAutocomplete(
+                    "Division",
+                    divisionOptions,
+                    formik.values.division,
+                    handleDivisionChange,
+                    !formik.values.province &&
+                      user.usertype === userType.superAdmin,
+                    formik.errors.division,
+                    formik.touched.division
+                  )}
+                {(user.usertype === userType.superAdmin ||
+                  user.usertype === userType.provinceAdmin ||
+                  user.usertype === userType.divisionAdmin) &&
+                  renderAutocomplete(
+                    "District",
+                    districtOptions,
+                    formik.values.district,
+                    handleDistrictChange,
+                    !formik.values.division &&
+                      (user.usertype === userType.superAdmin ||
+                        user.usertype === userType.provinceAdmin),
+                    formik.errors.district,
+                    formik.touched.district
+                  )}
+                {(user.usertype === userType.superAdmin ||
+                  user.usertype === userType.provinceAdmin ||
+                  user.usertype === userType.divisionAdmin ||
+                  user.usertype === userType.districtAdmin) &&
+                  renderAutocomplete(
+                    "Tehsil",
+                    tehsilOptions,
+                    formik.values.tehsil,
+                    handleTehsilChange,
+                    !formik.values.district &&
+                      (user.usertype === userType.superAdmin ||
+                        user.usertype === userType.provinceAdmin ||
+                        user.usertype === userType.divisionAdmin),
+                    formik.errors.tehsil,
+                    formik.touched.tehsil
+                  )}
+                {(user.usertype === userType.superAdmin ||
+                  user.usertype === userType.provinceAdmin ||
+                  user.usertype === userType.divisionAdmin ||
+                  user.usertype === userType.districtAdmin ||
+                  user.usertype === userType.tehsilAdmin) &&
+                  renderAutocomplete(
+                    "Hospital",
+                    hospitalOptions,
+                    formik.values.hospital,
+                    handleHospitalChange,
+                    !formik.values.tehsil &&
+                      (user.usertype === userType.superAdmin ||
+                        user.usertype === userType.provinceAdmin ||
+                        user.usertype === userType.divisionAdmin ||
+                        user.usertype === userType.districtAdmin),
+                    formik.errors.hospital,
+                    formik.touched.hospital
+                  )}
+                {renderAutocomplete(
+                  "Disease",
+                  diseaseOptions,
+                  formik.values.disease,
+                  handleDiseaseChange,
+                  false,
+                  formik.errors.disease,
+                  formik.touched.disease
                 )}
-              </Box>
-              {selectedFile && (
-                <Box mt={2}>
+                <Grid item xs={12}>
                   <Box
-                    display="flex"
-                    alignItems="center"
-                    border={1}
-                    borderColor="black"
+                    border={2}
+                    borderColor="primary.main"
                     borderRadius={2}
-                    padding={1}
+                    padding={4}
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center"
+                    bgcolor="grey.100"
+                    sx={{
+                      cursor: "pointer",
+                      minHeight: "200px",
+                      borderStyle: "dashed",
+                      borderWidth: "2px",
+                      borderColor: "black",
+                    }}
+                    onClick={() => {
+                      if (formik.values.file == null)
+                        document.getElementById("file-upload-input").click();
+                    }}
                   >
-                    <UploadFileIcon sx={{ marginRight: 1, fontSize: 30 }} />
-                    <Box>
-                      <Typography variant="h5" fontWeight="bold">
-                        {selectedFile.name}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{ marginRight: 1, fontSize: 16 }}
-                      >
-                        {selectedFile.type}
-                      </Typography>
-                    </Box>
-                    <Button
-                      onClick={() => setSelectedFile(null)}
-                      variant="text"
-                      color="error"
-                      sx={{ marginLeft: "auto" }}
-                    >
-                      <DeleteIcon />
-                    </Button>
+                    <CloudUploadIcon
+                      style={{ fontSize: 60, color: "primary.main" }}
+                    />
+                    <Typography variant="h6" style={{ marginTop: 16 }}>
+                      Drop file here or click to browse through your machine
+                    </Typography>
+                    {formik.values.file == null && (
+                      <input
+                        type="file"
+                        id="file-upload-input"
+                        hidden
+                        onChange={handleFileChange}
+                      />
+                    )}
                   </Box>
-                </Box>
-              )}
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleUpload} color="primary" variant="contained">
-            Upload
-          </Button>
-        </DialogActions>
-      </Box>
-    </Dialog>
+                  {formik.values.file && (
+                    <Box mt={2}>
+                      <Box
+                        display="flex"
+                        alignItems="center"
+                        border={1}
+                        borderColor="black"
+                        borderRadius={2}
+                        padding={1}
+                      >
+                        <UploadFileIcon sx={{ marginRight: 1, fontSize: 30 }} />
+                        <Box>
+                          <Typography variant="h5" fontWeight="bold">
+                            {formik.values.file.name}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{ marginRight: 1, fontSize: 16 }}
+                          >
+                            {formik.values.file.type}
+                          </Typography>
+                        </Box>
+                        <Button
+                          onClick={() => formik.setFieldValue("file", null)}
+                          variant="text"
+                          color="error"
+                          sx={{ marginLeft: "auto" }}
+                        >
+                          <DeleteIcon />
+                        </Button>
+                      </Box>
+                    </Box>
+                  )}
+                </Grid>
+              </Grid>
+              <DialogActions>
+                <Button onClick={handleClose} color="primary">
+                  Cancel
+                </Button>
+                <Button type="submit" color="primary" variant="contained">
+                  Upload
+                </Button>
+              </DialogActions>
+            </form>
+          </DialogContent>
+        </Box>
+      </Dialog>
+    </>
   );
 };
 
