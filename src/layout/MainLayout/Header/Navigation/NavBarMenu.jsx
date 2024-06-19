@@ -34,7 +34,7 @@ const Navigation = () => {
         <ListItem
           button
           component={Link}
-          to="/dashboard/"
+          to="/dashboard"
           style={{
             textDecoration: "none",
             color: "inherit",
