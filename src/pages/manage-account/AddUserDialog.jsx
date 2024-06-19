@@ -18,7 +18,8 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import axios from "axios";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
-
+import CloseIcon from "@mui/icons-material/Close";
+import defaultProfilePicture from "@assets/images/default-avatar.jpg";
 const AddUserDialog = ({ open, onClose, refresh }) => {
   const initialState = useMemo(
     () => ({
@@ -47,7 +48,8 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
   const [districtOptions, setDistrictOptions] = useState([]);
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [hospitalOptions, setHospitalOptions] = useState([]);
-
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
+  const [newProfilePicture, setNewProfilePicture] = useState(null);
   useEffect(() => {
     const fetchOptions = async () => {
       try {
@@ -89,6 +91,24 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
   const handleTogglePasswordVisibility = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
   };
+  const handleProfilePictureChange = (event) => {
+    const file = event.currentTarget.files[0];
+    if (file && ["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
+      setNewProfilePicture(file);
+      setProfilePicturePreview(URL.createObjectURL(file));
+    } else {
+      alert("Please select a valid image file (jpg, jpeg, png).");
+    }
+  };
+
+  const handleRemoveProfilePicture = () => {
+    setNewProfilePicture(null);
+    setProfilePicturePreview(null);
+    setFormData((prevData) => ({
+      ...prevData,
+      profilePicture: null,
+    }));
+  };
 
   const userSchema = Yup.object().shape({
     firstName: Yup.string().required("First name is required"),
@@ -101,14 +121,14 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
   });
 
   const handleSubmit = async (values, { setSubmitting }) => {
-    const submitData = {
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      cnic: formData.cnic,
-      email: formData.email,
-      contact: formData.contact,
-      password: formData.password,
-      usertype: formData.usertype,
+    const payload = {
+      firstName: values.firstName,
+      lastName: values.lastName,
+      cnic: values.cnic,
+      email: values.email,
+      contact: values.contact,
+      password: values.password,
+      usertype: values.usertype,
       tehsil:
         values.usertype === "Tehsil Administrator"
           ? { id: selectedArea.id }
@@ -129,14 +149,34 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
         values.usertype === "Hospital Administrator"
           ? { id: selectedArea.id }
           : null,
+      profilePicture: null,
     };
+    const formData = new FormData();
+    if (newProfilePicture) {
+      formData.append("file", newProfilePicture);
+    } else {
+      formData.append("file", defaultProfilePicture);
+    }
+    Object.keys(payload).forEach((key) => {
+      if (payload[key] !== null && payload[key] !== undefined) {
+        formData.append(key, payload[key]);
+      }
+    });
+
     try {
       await axios.post(
-        import.meta.env.VITE_REACT_APP_BASEURL + "/user/add",
-        submitData
+        import.meta.env.VITE_REACT_APP_BASEURL + "/user/addNewUser",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
       setFormData({ ...initialState });
       setSelectedArea(null);
+      setNewProfilePicture(null);
+      setProfilePicturePreview(null);
       refresh();
       onClose();
     } catch (error) {
@@ -304,6 +344,53 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
                         ),
                       }}
                     />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Box
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      p={2}
+                      border="1px solid #ccc"
+                      borderRadius="8px"
+                    >
+                      <img
+                        src={
+                          profilePicturePreview == null
+                            ? defaultProfilePicture
+                            : profilePicturePreview
+                        }
+                        alt="Profile Preview"
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
+                      />
+                      <Box flexGrow={1} ml={2}>
+                        {newProfilePicture
+                          ? newProfilePicture.name
+                          : "Profile Picture"}
+                      </Box>
+                      {newProfilePicture && (
+                        <IconButton
+                          onClick={handleRemoveProfilePicture}
+                          style={{ marginRight: "8px" }}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      )}
+                      <Button variant="contained" component="label">
+                        Upload
+                        <input
+                          type="file"
+                          hidden
+                          accept="image/jpeg,image/png,image/jpg"
+                          onChange={handleProfilePictureChange}
+                        />
+                      </Button>
+                    </Box>
                   </Grid>
                 </Grid>
                 <DialogActions>
