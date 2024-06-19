@@ -137,6 +137,7 @@ const EditProfileDialog = ({ open, onClose }) => {
           navigate("/login");
         }
         setNewProfilePicture(null);
+        setProfilePicturePreview(null);
         onClose();
       } catch (error) {
         console.error("Error updating user profile:", error);

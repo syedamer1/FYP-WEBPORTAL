@@ -114,7 +114,7 @@ const Profile = () => {
             <Avatar
               alt="profile user"
               src={`data:image/jpeg;base64,${user.profilePicture}`}
-              sx={{ width: 32, height: 32 }}
+              sx={{ width: 35, height: 35 }}
             />
             <Typography variant="subtitle1">{`${user.firstName} ${user.lastName}`}</Typography>
           </Stack>
@@ -174,7 +174,7 @@ const Profile = () => {
                             <Avatar
                               alt="profile user"
                               src={`data:image/jpeg;base64,${user.profilePicture}`}
-                              sx={{ width: 32, height: 32 }}
+                              sx={{ width: 50, height: 50 }}
                             />
                             <Stack>
                               <Typography variant="h6">{`${user.firstName} ${user.lastName}`}</Typography>
