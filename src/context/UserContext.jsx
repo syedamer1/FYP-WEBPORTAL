@@ -21,6 +21,7 @@ const getUserFromLocalStorage = () => {
         tehsil: null,
         hospital: null,
         createdOn: null,
+        profilePicture: null,
       };
 };
 

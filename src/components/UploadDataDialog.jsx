@@ -35,7 +35,6 @@ const UploadDataDialog = ({ open, onClose }) => {
   const [tehsilOptions, setTehsilOptions] = useState([]);
   const [hospitalOptions, setHospitalOptions] = useState([]);
   const [diseaseOptions, setDiseaseOptions] = useState([]);
-  const [fetch, setFetch] = useState(false);
   const { user } = useUser();
 
   const fetchProvinces = debounce(async () => {
@@ -44,8 +43,8 @@ const UploadDataDialog = ({ open, onClose }) => {
         import.meta.env.VITE_REACT_APP_BASEURL + "/province/getIdAndName"
       );
       setProvinceOptions(response.data);
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      emitToast("Error fetching Provinces options", "error");
     }
   }, 300);
 
@@ -59,8 +58,8 @@ const UploadDataDialog = ({ open, onClose }) => {
         }
       );
       setDivisionOptions(response.data);
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      emitToast("Error fetching Divisions options", "error");
     }
   }, 300);
 
@@ -74,8 +73,8 @@ const UploadDataDialog = ({ open, onClose }) => {
         }
       );
       setDistrictOptions(response.data);
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      emitToast("Error fetching Districts options", "error");
     }
   }, 300);
 
@@ -89,8 +88,8 @@ const UploadDataDialog = ({ open, onClose }) => {
         }
       );
       setTehsilOptions(response.data);
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      emitToast("Error fetching Tehsils options", "error");
     }
   }, 300);
 
@@ -104,8 +103,8 @@ const UploadDataDialog = ({ open, onClose }) => {
         }
       );
       setHospitalOptions(response.data);
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      emitToast("Error fetching Hospitals options", "error");
     }
   }, 300);
 
@@ -116,7 +115,7 @@ const UploadDataDialog = ({ open, onClose }) => {
       );
       setDiseaseOptions(response.data);
     } catch (error) {
-      console.error("Error fetching disease names:", error);
+      emitToast("Error fetching Disease options", "error");
     }
   };
 

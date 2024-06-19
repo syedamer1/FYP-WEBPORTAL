@@ -15,18 +15,24 @@ import {
 } from "@mui/material";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
+import CloseIcon from "@mui/icons-material/Close";
 import axios from "axios";
 import PropTypes from "prop-types";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-
+import { useUser } from "@context/UserContext";
+import { useNavigate } from "react-router-dom";
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const EditProfileDialog = ({ open, onClose, user }) => {
+const EditProfileDialog = ({ open, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [newProfilePicture, setNewProfilePicture] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
+  const navigate = useNavigate();
 
+  const { user, updateUser } = useUser();
   const formik = useFormik({
     initialValues: {
       id: "",
@@ -42,6 +48,7 @@ const EditProfileDialog = ({ open, onClose, user }) => {
       district: null,
       tehsil: null,
       hospital: null,
+      profilePicture: null,
     },
     validationSchema: Yup.object({
       firstName: Yup.string().required("First Name is required"),
@@ -54,25 +61,82 @@ const EditProfileDialog = ({ open, onClose, user }) => {
       cnic: Yup.string().required("CNIC is required"),
     }),
     onSubmit: async (values) => {
-      const payload = {
-        ...values,
-        tehsil:
-          values.usertype === "Tehsil Administrator" ? values.tehsil : null,
-        division:
-          values.usertype === "Division Administrator" ? values.division : null,
-        district:
-          values.usertype === "District Administrator" ? values.district : null,
-        province:
-          values.usertype === "Province Administrator" ? values.province : null,
-        hospital:
-          values.usertype === "Hospital Administrator" ? values.hospital : null,
-      };
-
       try {
+        // Prepare payload
+        const payload = {
+          ...values,
+          tehsil:
+            values.usertype === "Tehsil Administrator" ? values.tehsil : null,
+          division:
+            values.usertype === "Division Administrator"
+              ? values.division
+              : null,
+          district:
+            values.usertype === "District Administrator"
+              ? values.district
+              : null,
+          province:
+            values.usertype === "Province Administrator"
+              ? values.province
+              : null,
+          hospital:
+            values.usertype === "Hospital Administrator"
+              ? values.hospital
+              : null,
+        };
+
+        // Create FormData
+        const formData = new FormData();
+        if (newProfilePicture) {
+          payload.profilePicture = null;
+          formData.append("file", newProfilePicture);
+        }
+        Object.keys(payload).forEach((key) => {
+          if (payload[key] !== null && payload[key] !== undefined) {
+            formData.append(key, payload[key]);
+          }
+        });
+
+        // Make request
         await axios.put(
-          import.meta.env.VITE_REACT_APP_BASEURL + "/user/update",
-          payload
+          `${import.meta.env.VITE_REACT_APP_BASEURL}/user/addUser`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
         );
+        if (payload.email == user.email && payload.password == user.password) {
+          const response = await axios.get(
+            import.meta.env.VITE_REACT_APP_BASEURL +
+              "/user/login?email=" +
+              user.email +
+              "&password=" +
+              user.password
+          );
+          updateUser(response.data);
+        } else {
+          updateUser({
+            id: null,
+            firstName: "",
+            lastName: "",
+            usertype: "",
+            contact: "",
+            cnic: "",
+            email: "",
+            password: "",
+            profilePicture: null,
+            province: null,
+            division: null,
+            district: null,
+            tehsil: null,
+            hospital: null,
+            createdOn: null,
+          });
+          navigate("/login");
+        }
+        setNewProfilePicture(null);
         onClose();
       } catch (error) {
         console.error("Error updating user profile:", error);
@@ -83,6 +147,11 @@ const EditProfileDialog = ({ open, onClose, user }) => {
   useEffect(() => {
     if (user) {
       formik.setValues({ ...user });
+      if (user.profilePicture) {
+        setProfilePicturePreview(
+          `data:image/jpeg;base64,${user.profilePicture}`
+        );
+      }
     }
   }, [user]);
 
@@ -92,6 +161,25 @@ const EditProfileDialog = ({ open, onClose, user }) => {
 
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
+  };
+
+  const handleProfilePictureChange = (event) => {
+    const file = event.currentTarget.files[0];
+    if (file && ["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
+      setNewProfilePicture(file);
+      setProfilePicturePreview(URL.createObjectURL(file));
+      formik.setFieldValue("profilePicture", file.name);
+    } else {
+      alert("Please select a valid image file (jpg, jpeg, png).");
+    }
+  };
+
+  const handleRemoveProfilePicture = () => {
+    setNewProfilePicture(null);
+    setProfilePicturePreview(
+      user ? `data:image/jpeg;base64,${user.profilePicture}` : null
+    );
+    formik.setFieldValue("profilePicture", null);
   };
 
   return (
@@ -237,6 +325,50 @@ const EditProfileDialog = ({ open, onClose, user }) => {
                   label="Password"
                 />
               </Grid>
+
+              <Grid item xs={12}>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  p={2}
+                  border="1px solid #ccc"
+                  borderRadius="8px"
+                >
+                  <img
+                    src={profilePicturePreview}
+                    alt="Profile Preview"
+                    style={{
+                      width: "50px",
+                      height: "50px",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                    }}
+                  />
+                  <Box flexGrow={1} ml={2}>
+                    {newProfilePicture
+                      ? newProfilePicture.name
+                      : "Profile Picture"}
+                  </Box>
+                  {newProfilePicture && (
+                    <IconButton
+                      onClick={handleRemoveProfilePicture}
+                      style={{ marginRight: "8px" }}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  )}
+                  <Button variant="contained" component="label">
+                    Upload
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/jpeg,image/png,image/jpg"
+                      onChange={handleProfilePictureChange}
+                    />
+                  </Button>
+                </Box>
+              </Grid>
             </Grid>
             <DialogActions>
               <Button color="primary" onClick={onClose}>
@@ -256,7 +388,6 @@ const EditProfileDialog = ({ open, onClose, user }) => {
 EditProfileDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  user: PropTypes.object.isRequired,
 };
 
 export default EditProfileDialog;

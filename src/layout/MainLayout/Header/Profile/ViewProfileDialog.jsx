@@ -20,7 +20,7 @@ import {
   Phone as PhoneIcon,
 } from "@mui/icons-material";
 import { forwardRef } from "react";
-import avataruser from "@assets/images/users/avatar-1.png";
+import { useUser } from "@context/UserContext";
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString("en-GB"); // This formats the date as DD/MM/YYYY
@@ -30,7 +30,8 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const ViewProfileDialog = ({ open, onClose, profiledata }) => {
+const ViewProfileDialog = ({ open, onClose }) => {
+  const { user } = useUser();
   return (
     <Dialog
       open={open}
@@ -66,7 +67,7 @@ const ViewProfileDialog = ({ open, onClose, profiledata }) => {
           <Grid item xs={12}>
             <Avatar
               alt="profile user"
-              src={avataruser}
+              src={`data:image/jpeg;base64,${user.profilePicture}`}
               sx={{
                 width: 140,
                 height: 140,
@@ -79,42 +80,34 @@ const ViewProfileDialog = ({ open, onClose, profiledata }) => {
             <InfoItem
               icon={<AccountCircleIcon />}
               label="Name"
-              value={`${profiledata.firstName} ${profiledata.lastName}`}
+              value={`${user.firstName} ${user.lastName}`}
             />
           </Grid>
           <Grid item xs={12} md={6}>
-            <InfoItem
-              icon={<BadgeIcon />}
-              label="Cnic"
-              value={profiledata.cnic}
-            />
+            <InfoItem icon={<BadgeIcon />} label="Cnic" value={user.cnic} />
           </Grid>
           <Grid item xs={12} md={6}>
-            <InfoItem
-              icon={<EmailIcon />}
-              label="Email"
-              value={profiledata.email}
-            />
+            <InfoItem icon={<EmailIcon />} label="Email" value={user.email} />
           </Grid>
           <Grid item xs={12} md={6}>
             <InfoItem
               icon={<PhoneIcon />}
               label="Contact"
-              value={profiledata.contact}
+              value={user.contact}
             />
           </Grid>
           <Grid item xs={12} md={6}>
             <InfoItem
               icon={<AccessTimeIcon />}
               label="User Since:"
-              value={formatDate(profiledata.createdOn)}
+              value={formatDate(user.createdOn)}
             />
           </Grid>
           <Grid item xs={12} md={6}>
             <InfoItem
               icon={<SupervisorAccountIcon />}
               label="User Type"
-              value={profiledata.usertype}
+              value={user.usertype}
             />
           </Grid>
         </Grid>
@@ -162,17 +155,6 @@ const InfoItem = ({ icon, label, value }) => (
 ViewProfileDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  profiledata: PropTypes.shape({
-    firstName: PropTypes.string,
-    lastName: PropTypes.string,
-    id: PropTypes.number,
-    email: PropTypes.string,
-    contact: PropTypes.string,
-    createdOn: PropTypes.string,
-    cnic: PropTypes.string,
-
-    usertype: PropTypes.string,
-  }).isRequired,
 };
 
 InfoItem.propTypes = {

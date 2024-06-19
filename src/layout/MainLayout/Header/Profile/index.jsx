@@ -27,7 +27,6 @@ import {
   LogoutOutlined as LogoutIcon,
   LocalHospital as ManageHospitalIcon,
 } from "@mui/icons-material";
-import avataruser from "@assets/images/users/avatar-1.png";
 import EditProfileDialog from "./EditProfileDialog";
 import CustomCard from "@components/CustomCard";
 import Transitions from "@components/animation/Transitions";
@@ -75,6 +74,7 @@ const Profile = () => {
       cnic: "",
       email: "",
       password: "",
+      profilePicture: null,
       province: null,
       division: null,
       district: null,
@@ -113,7 +113,7 @@ const Profile = () => {
           >
             <Avatar
               alt="profile user"
-              src={avataruser}
+              src={`data:image/jpeg;base64,${user.profilePicture}`}
               sx={{ width: 32, height: 32 }}
             />
             <Typography variant="subtitle1">{`${user.firstName} ${user.lastName}`}</Typography>
@@ -173,7 +173,7 @@ const Profile = () => {
                           >
                             <Avatar
                               alt="profile user"
-                              src={avataruser}
+                              src={`data:image/jpeg;base64,${user.profilePicture}`}
                               sx={{ width: 32, height: 32 }}
                             />
                             <Stack>
@@ -265,13 +265,10 @@ const Profile = () => {
       <ViewProfileDialog
         open={viewProfileOpen}
         onClose={() => setViewProfileOpen(false)}
-        profiledata={user}
       />
       <EditProfileDialog
         open={editProfileOpen}
         onClose={handleEditProfileToggle}
-        user={user}
-        updateUser={updateUser}
       />
     </Box>
   );
