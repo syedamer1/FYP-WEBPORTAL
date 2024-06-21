@@ -142,9 +142,10 @@ const UploadDataDialog = ({ open, onClose }) => {
       }
       await fetchDisease();
     };
-
-    fetchOptions();
-  }, []);
+    if (open) {
+      fetchOptions();
+    }
+  }, [open]);
 
   const formik = useFormik({
     initialValues: {

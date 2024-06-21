@@ -219,8 +219,10 @@ const Dashboard = () => {
     } else if (user.usertype === userType.hospitalAdmin) {
       fetchBarChartData("hospital");
     }
-    fetchDisease();
-  }, [selectedDisease == null]);
+    if (selectedDisease == null) {
+      fetchDisease();
+    }
+  }, [selectedDisease]);
 
   const toggleFilterDrawer = () => {
     setFilterDrawerOpen(!drawerOpen);

@@ -121,18 +121,20 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
   }, 300);
 
   useEffect(() => {
-    if (user.usertype === userType.superAdmin) {
-      fetchProvinces();
-    } else if (user.usertype === userType.provinceAdmin) {
-      fetchDivisions([user.province.id]);
-    } else if (user.usertype === userType.divisionAdmin) {
-      fetchDistricts([user.division.id]);
-    } else if (user.usertype === userType.districtAdmin) {
-      fetchTehsils([user.district.id]);
-    } else if (user.usertype === userType.tehsilAdmin) {
-      fetchHospitals([user.tehsil.id]);
+    if (open) {
+      if (user.usertype === userType.superAdmin) {
+        fetchProvinces();
+      } else if (user.usertype === userType.provinceAdmin) {
+        fetchDivisions([user.province.id]);
+      } else if (user.usertype === userType.divisionAdmin) {
+        fetchDistricts([user.division.id]);
+      } else if (user.usertype === userType.districtAdmin) {
+        fetchTehsils([user.district.id]);
+      } else if (user.usertype === userType.tehsilAdmin) {
+        fetchHospitals([user.tehsil.id]);
+      }
     }
-  }, [user]);
+  }, [open]);
 
   const handleProvinceSelect = (event, newValue) => {
     setSelectedProvinces(newValue);
