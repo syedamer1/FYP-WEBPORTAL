@@ -11,6 +11,7 @@ import CustomCard from "@components/CustomCard";
 import LoginForm from "./LoginForm";
 
 const Login = () => {
+  document.title = "Login";
   const theme = useTheme();
   return (
     <Box sx={{ minHeight: "100vh" }}>

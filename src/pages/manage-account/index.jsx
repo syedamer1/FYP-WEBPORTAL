@@ -7,7 +7,7 @@ import { Navigate } from "react-router-dom";
 
 const ManageAccount = () => {
   const { user } = useUser();
-
+  document.title = "Manage Account";
   if (user.usertype !== "Super Administrator" || user.usertype === null) {
     return <Navigate to="/dashboard" replace />;
   }

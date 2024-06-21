@@ -17,11 +17,29 @@ import { Navigate } from "react-router-dom";
 import { a11yProps, TabPanel } from "@components/TabPart";
 
 const ManageArea = () => {
+  document.title = "Manage Province";
   const { user } = useUser();
 
   const [value, setValue] = useState(0);
   const handleChange = (event, newValue) => {
     setValue(newValue);
+    switch (newValue) {
+      case 0:
+        document.title = "Manage Province";
+        break;
+      case 1:
+        document.title = "Manage Division";
+        break;
+      case 2:
+        document.title = "Manage District";
+        break;
+      case 3:
+        document.title = "Manage Tehsil";
+        break;
+      default:
+        document.title = "Manage Province";
+        break;
+    }
   };
   if (user.usertype !== "Super Administrator" || user.usertype === null) {
     return <Navigate to="/dashboard" replace />;

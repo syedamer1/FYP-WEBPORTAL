@@ -51,6 +51,7 @@ const CustomIconButton = styled(IconButton)({
 });
 
 const Dashboard = () => {
+  document.title = "Dashboard - Real-Time Analytics";
   const [BarChartData, setBarChartData] = useState([]);
   const [DynamicTimeChartData, setDynamicTimeChartData] = useState([]);
   const [value, setValue] = useState(0);

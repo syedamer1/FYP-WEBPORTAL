@@ -5,10 +5,12 @@ import { Outlet, Navigate } from "react-router-dom";
 import pageinfo from "./pageinfo";
 import { useUser } from "@context/UserContext";
 const MainLayout = () => {
-  const user = useUser();
-  if (user.id == null || user.email == null) {
-    return <Navigate to="/login" replace />;
+  const { user } = useUser();
+
+  if (!user || !user.id) {
+    return <Navigate to="/login" />;
   }
+
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
       <Header />
