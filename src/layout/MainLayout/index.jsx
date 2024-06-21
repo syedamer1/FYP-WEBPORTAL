@@ -6,7 +6,7 @@ import pageinfo from "./pageinfo";
 import { useUser } from "@context/UserContext";
 const MainLayout = () => {
   const user = useUser();
-  if (user == null) {
+  if (user.id == null || user.email == null) {
     return <Navigate to="/login" replace />;
   }
   return (
