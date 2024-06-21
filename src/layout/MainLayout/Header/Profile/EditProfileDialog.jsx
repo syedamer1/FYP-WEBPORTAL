@@ -6,7 +6,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  OutlinedInput,
   InputAdornment,
   IconButton,
   TextField,
@@ -30,6 +29,8 @@ const EditProfileDialog = ({ open, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [newProfilePicture, setNewProfilePicture] = useState(null);
   const [profilePicturePreview, setProfilePicturePreview] = useState(null);
+  const [newProfilePictureName, setNewProfilePictureName] = useState(null);
+
   const navigate = useNavigate();
 
   const { user, updateUser } = useUser();
@@ -62,7 +63,6 @@ const EditProfileDialog = ({ open, onClose }) => {
     }),
     onSubmit: async (values) => {
       try {
-        // Prepare payload
         const payload = {
           ...values,
           tehsil:
@@ -85,35 +85,14 @@ const EditProfileDialog = ({ open, onClose }) => {
               : null,
         };
 
-        // Create FormData
-        const formData = new FormData();
-        if (newProfilePicture) {
-          payload.profilePicture = null;
-          formData.append("file", newProfilePicture);
-        }
-        Object.keys(payload).forEach((key) => {
-          if (payload[key] !== null && payload[key] !== undefined) {
-            formData.append(key, payload[key]);
-          }
-        });
-
-        // Make request
-        await axios.put(
-          `${import.meta.env.VITE_REACT_APP_BASEURL}/user/addUser`,
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-        if (payload.email == user.email && payload.password == user.password) {
+        if (
+          payload.email === user.email &&
+          payload.password === user.password
+        ) {
           const response = await axios.get(
-            import.meta.env.VITE_REACT_APP_BASEURL +
-              "/user/login?email=" +
-              user.email +
-              "&password=" +
-              user.password
+            `${import.meta.env.VITE_REACT_APP_BASEURL}/user/login?email=${
+              user.email
+            }&password=${user.password}`
           );
           updateUser(response.data);
         } else {
@@ -136,6 +115,7 @@ const EditProfileDialog = ({ open, onClose }) => {
           });
           navigate("/login");
         }
+
         setNewProfilePicture(null);
         setProfilePicturePreview(null);
         onClose();
@@ -163,13 +143,16 @@ const EditProfileDialog = ({ open, onClose }) => {
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
-
   const handleProfilePictureChange = (event) => {
     const file = event.currentTarget.files[0];
     if (file && ["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
-      setNewProfilePicture(file);
-      setProfilePicturePreview(URL.createObjectURL(file));
-      formik.setFieldValue("profilePicture", file.name);
+      setNewProfilePictureName(file.name);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewProfilePicture(reader.result.split(",")[1]);
+        setProfilePicturePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     } else {
       alert("Please select a valid image file (jpg, jpeg, png).");
     }
@@ -180,7 +163,6 @@ const EditProfileDialog = ({ open, onClose }) => {
     setProfilePicturePreview(
       user ? `data:image/jpeg;base64,${user.profilePicture}` : null
     );
-    formik.setFieldValue("profilePicture", null);
   };
 
   return (
@@ -221,8 +203,9 @@ const EditProfileDialog = ({ open, onClose }) => {
                   label="CNIC"
                   value={formik.values.cnic}
                   onChange={formik.handleChange}
-                  error={formik.touched.cnic && Boolean(formik.errors.cnic)}
-                  helperText={formik.touched.cnic && formik.errors.cnic}
+                  InputProps={{
+                    readOnly: true,
+                  }}
                 />
               </Grid>
 
@@ -297,7 +280,7 @@ const EditProfileDialog = ({ open, onClose }) => {
               </Grid>
 
               <Grid item xs={6}>
-                <OutlinedInput
+                <TextField
                   fullWidth
                   id="password"
                   name="password"
@@ -326,7 +309,6 @@ const EditProfileDialog = ({ open, onClose }) => {
                   label="Password"
                 />
               </Grid>
-
               <Grid item xs={12}>
                 <Box
                   display="flex"
@@ -337,7 +319,11 @@ const EditProfileDialog = ({ open, onClose }) => {
                   borderRadius="8px"
                 >
                   <img
-                    src={profilePicturePreview}
+                    src={
+                      profilePicturePreview != null
+                        ? profilePicturePreview
+                        : `data:image/jpeg;base64,${user.profilePicture}`
+                    }
                     alt="Profile Preview"
                     style={{
                       width: "50px",
@@ -348,7 +334,7 @@ const EditProfileDialog = ({ open, onClose }) => {
                   />
                   <Box flexGrow={1} ml={2}>
                     {newProfilePicture
-                      ? newProfilePicture.name
+                      ? newProfilePictureName
                       : "Profile Picture"}
                   </Box>
                   {newProfilePicture && (

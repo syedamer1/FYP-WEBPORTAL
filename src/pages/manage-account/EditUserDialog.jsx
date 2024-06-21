@@ -16,13 +16,17 @@ import {
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import axios from "axios";
+import CloseIcon from "@mui/icons-material/Close";
+import { CompareObject } from "@utility";
 
 const EditUserDialog = ({ open, onClose, refresh, account }) => {
   const [formData, setFormData] = useState(account);
   const [showPassword, setShowPassword] = useState(false);
   const [areaOptions, setAreaOptions] = useState([]);
   const [selectedArea, setSelectedArea] = useState(null);
-
+  const [newProfilePicture, setNewProfilePicture] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
+  const [newProfilePictureName, setNewProfilePictureName] = useState(null);
   const endpoints = useMemo(
     () => ({
       "Tehsil Administrator": "tehsil/getIdAndName",
@@ -115,6 +119,28 @@ const EditUserDialog = ({ open, onClose, refresh, account }) => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
   };
 
+  const handleProfilePictureChange = (event) => {
+    const file = event.currentTarget.files[0];
+    if (file && ["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
+      setNewProfilePictureName(file.name);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewProfilePicture(reader.result.split(",")[1]);
+        setProfilePicturePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert("Please select a valid image file (jpg, jpeg, png).");
+    }
+  };
+
+  const handleRemoveProfilePicture = () => {
+    setNewProfilePicture(null);
+    setProfilePicturePreview(
+      account ? `data:image/jpeg;base64,${account.profilePicture}` : null
+    );
+  };
+
   const handleSubmit = async () => {
     const submitData = {
       ...formData,
@@ -138,17 +164,25 @@ const EditUserDialog = ({ open, onClose, refresh, account }) => {
         formData.usertype === "Hospital Administrator"
           ? { id: selectedArea?.id }
           : null,
+      profilePicture: newProfilePicture
+        ? newProfilePicture
+        : account.profilePicture,
     };
-
+    if (CompareObject(submitData, account)) {
+      onClose();
+      return;
+    }
     try {
       await axios.put(
-        import.meta.env.VITE_REACT_APP_BASEURL + "/user/update",
+        `${import.meta.env.VITE_REACT_APP_BASEURL}/user/update`,
         submitData
       );
+      setNewProfilePicture(null);
+      setProfilePicturePreview(null);
       refresh();
       onClose();
     } catch (error) {
-      console.error("Error updating user:", error);
+      console.error("Error updating user profile:", error);
     }
   };
 
@@ -205,6 +239,9 @@ const EditUserDialog = ({ open, onClose, refresh, account }) => {
                   onChange={handleAreaChange}
                   options={areaOptions}
                   getOptionLabel={(option) => option.name || ""}
+                  isOptionEqualToValue={(option, value) =>
+                    option.id === value.id
+                  }
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -251,6 +288,53 @@ const EditUserDialog = ({ open, onClose, refresh, account }) => {
                   ),
                 }}
               />
+            </Grid>
+            <Grid item xs={12}>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                p={2}
+                border="1px solid #ccc"
+                borderRadius="8px"
+              >
+                <img
+                  src={
+                    profilePicturePreview != null
+                      ? profilePicturePreview
+                      : `data:image/jpeg;base64,${account.profilePicture}`
+                  }
+                  alt="Profile Preview"
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                  }}
+                />
+                <Box flexGrow={1} ml={2}>
+                  {newProfilePicture
+                    ? newProfilePictureName
+                    : "Profile Picture"}
+                </Box>
+                {newProfilePicture && (
+                  <IconButton
+                    onClick={handleRemoveProfilePicture}
+                    style={{ marginRight: "8px" }}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                )}
+                <Button variant="contained" component="label">
+                  Upload
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/jpeg,image/png,image/jpg"
+                    onChange={handleProfilePictureChange}
+                  />
+                </Button>
+              </Box>
             </Grid>
           </Grid>
         </DialogContent>

@@ -72,6 +72,37 @@ function getTabIndices(userType) {
       return {};
   }
 }
+const CompareObject = (obj1, obj2) => {
+  return JSON.stringify(obj1) === JSON.stringify(obj2);
+};
+const getPictureBase64 = (defaultImage) => {
+  return new Promise((resolve, reject) => {
+    if (!(defaultImage instanceof Blob)) {
+      reject(new TypeError("Parameter 1 is not of type 'Blob'"));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      resolve(reader.result.split(",")[1]);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(defaultImage);
+  });
+};
+const fetchImageAsBlob = async (imageUrl) => {
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error("Failed to fetch image");
+    }
+    const blob = await response.blob();
+    return blob;
+  } catch (error) {
+    console.error("Error fetching image:", error);
+    throw error;
+  }
+};
 
 export {
   formatDate,
@@ -79,4 +110,7 @@ export {
   getTabIndices,
   userType,
   getAreaIdByUserType,
+  CompareObject,
+  getPictureBase64,
+  fetchImageAsBlob,
 };

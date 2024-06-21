@@ -20,6 +20,7 @@ import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import CloseIcon from "@mui/icons-material/Close";
 import defaultProfilePicture from "@assets/images/default-avatar.jpg";
+import { getPictureBase64, fetchImageAsBlob } from "@utility";
 const AddUserDialog = ({ open, onClose, refresh }) => {
   const initialState = useMemo(
     () => ({
@@ -35,6 +36,7 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
       district: { id: "", name: "" },
       province: { id: "", name: "" },
       hospital: { id: "", name: "" },
+      profilePicture: defaultProfilePicture.split(",")[1],
     }),
     []
   );
@@ -48,9 +50,25 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
   const [districtOptions, setDistrictOptions] = useState([]);
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [hospitalOptions, setHospitalOptions] = useState([]);
-  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState(
+    defaultProfilePicture
+  );
   const [newProfilePicture, setNewProfilePicture] = useState(null);
+  const [newProfilePictureName, setNewProfilePictureName] = useState(null);
+
   useEffect(() => {
+    const initializeProfilePicture = async () => {
+      try {
+        const blob = await fetchImageAsBlob(defaultProfilePicture);
+        const base64Image = await getPictureBase64(blob);
+        setFormData((prevData) => ({
+          ...prevData,
+          profilePicture: base64Image,
+        }));
+      } catch (error) {
+        console.error("Error converting default profile picture:", error);
+      }
+    };
     const fetchOptions = async () => {
       try {
         const endpoints = [
@@ -84,6 +102,7 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
     };
 
     if (open) {
+      initializeProfilePicture();
       fetchOptions();
     }
   }, [open]);
@@ -91,11 +110,17 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
   const handleTogglePasswordVisibility = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
   };
+
   const handleProfilePictureChange = (event) => {
     const file = event.currentTarget.files[0];
     if (file && ["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
-      setNewProfilePicture(file);
-      setProfilePicturePreview(URL.createObjectURL(file));
+      setNewProfilePictureName(file.name);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewProfilePicture(reader.result.split(",")[1]);
+        setProfilePicturePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     } else {
       alert("Please select a valid image file (jpg, jpeg, png).");
     }
@@ -103,10 +128,10 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
 
   const handleRemoveProfilePicture = () => {
     setNewProfilePicture(null);
-    setProfilePicturePreview(null);
+    setProfilePicturePreview(defaultProfilePicture);
     setFormData((prevData) => ({
       ...prevData,
-      profilePicture: null,
+      profilePicture: defaultProfilePicture.split(",")[1],
     }));
   };
 
@@ -149,34 +174,19 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
         values.usertype === "Hospital Administrator"
           ? { id: selectedArea.id }
           : null,
-      profilePicture: null,
+      profilePicture: newProfilePicture
+        ? newProfilePicture
+        : formData.profilePicture,
     };
-    const formData = new FormData();
-    if (newProfilePicture) {
-      formData.append("file", newProfilePicture);
-    } else {
-      formData.append("file", defaultProfilePicture);
-    }
-    Object.keys(payload).forEach((key) => {
-      if (payload[key] !== null && payload[key] !== undefined) {
-        formData.append(key, payload[key]);
-      }
-    });
-
     try {
       await axios.post(
-        import.meta.env.VITE_REACT_APP_BASEURL + "/user/addNewUser",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        `${import.meta.env.VITE_REACT_APP_BASEURL}/user/add`,
+        payload
       );
       setFormData({ ...initialState });
       setSelectedArea(null);
       setNewProfilePicture(null);
-      setProfilePicturePreview(null);
+      setProfilePicturePreview(defaultProfilePicture);
       refresh();
       onClose();
     } catch (error) {
@@ -205,7 +215,7 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
               isSubmitting,
             }) => (
               <Form>
-                <Grid container spacing={2}>
+                <Grid container spacing={2} sx={{ mt: 0 }}>
                   {["firstName", "lastName", "cnic", "contact"].map((field) => (
                     <Grid item xs={6} key={field}>
                       <Field
@@ -370,7 +380,7 @@ const AddUserDialog = ({ open, onClose, refresh }) => {
                       />
                       <Box flexGrow={1} ml={2}>
                         {newProfilePicture
-                          ? newProfilePicture.name
+                          ? newProfilePictureName
                           : "Profile Picture"}
                       </Box>
                       {newProfilePicture && (
