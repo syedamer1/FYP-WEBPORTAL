@@ -12,7 +12,7 @@ import {
   Tab,
 } from "@mui/material";
 import {
-  Add as AddIcon,
+  Settings as SettingsIcon,
   PeopleAltOutlined as PeopleAltOutlinedIcon,
   PersonRemove as PersonRemoveIcon,
   LocalHospital as LocalHospitalIcon,
@@ -26,7 +26,6 @@ import CustomCard from "@components/CustomCard";
 import FilterDrawer from "./Drawer";
 import CustomButton from "@components/CustomButtom";
 import CenteredAlert from "@components/CenteredAlert";
-import AddDiseaseDialog from "./AddDiseaseDialog";
 import ScatterAggregateBar from "./ScatterAggregateBar";
 import PieChartStatistics from "./PieChartStatistics";
 import DynamicTimeChart from "./DynamicTimeChart";
@@ -45,7 +44,7 @@ import { a11yProps, TabPanel } from "@components/TabPart";
 import BarChart from "./BarChart";
 import DynamicAreaTimeAxis from "./DynamicAreaTimeAxis";
 import ToastNotification, { emitToast } from "@components/ToastNotification";
-
+import { Link } from "react-router-dom";
 const CustomIconButton = styled(IconButton)({
   fontSize: "1.25rem",
 });
@@ -148,7 +147,6 @@ const Dashboard = () => {
   );
 
   const [drawerOpen, setFilterDrawerOpen] = useState(false);
-  const [AddDiseaseDialogOpen, setAddDiseaseDialogOpen] = useState(false);
   const [selectedDisease, setSelectedDisease] = useState(null);
   const [disease, setDisease] = useState([]);
   const initialFilters = {
@@ -226,10 +224,6 @@ const Dashboard = () => {
 
   const toggleFilterDrawer = () => {
     setFilterDrawerOpen(!drawerOpen);
-  };
-
-  const toggleAddDiseaseDialog = () => {
-    setAddDiseaseDialogOpen((prev) => !prev);
   };
 
   const handleFilterValue = (filtersValue) => {
@@ -357,32 +351,28 @@ const Dashboard = () => {
                     label="Select Disease"
                     InputProps={{
                       ...params.InputProps,
-                      startAdornment: (
+                      startAdornment: user.usertype === userType.superAdmin && (
                         <Tooltip
                           disableFocusListener
                           disableTouchListener
-                          title="Add Disease"
+                          title="Manage Disease"
                         >
                           <CustomIconButton
-                            onClick={toggleAddDiseaseDialog}
+                            component={Link}
+                            to="/manage-disease"
                             size="small"
                             sx={{
                               top: "50%",
                               zIndex: 1,
                             }}
                           >
-                            <AddIcon />
+                            <SettingsIcon />
                           </CustomIconButton>
                         </Tooltip>
                       ),
                     }}
                   />
                 )}
-              />
-
-              <AddDiseaseDialog
-                open={AddDiseaseDialogOpen}
-                onClose={toggleAddDiseaseDialog}
               />
             </Grid>
           </Grid>
@@ -392,8 +382,8 @@ const Dashboard = () => {
             <Grid item xs={12} sm={6} md={4} lg={3}>
               <DataCard
                 title="Population"
-                count={patientsCount}
-                percentage={(patientsCount / patientsTotalCount) * 100}
+                count={patientsCount || 0}
+                percentage={(patientsCount / patientsTotalCount) * 100 || 0}
                 IconComponent={PeopleAltOutlinedIcon}
                 summarytitle="Time Period:"
                 summary={`${formatDatetoWordDate(
@@ -404,35 +394,36 @@ const Dashboard = () => {
             <Grid item xs={12} sm={6} md={4} lg={3}>
               <DataCard
                 title="Recovered Patient"
-                count={patientsRecoveredCount}
-                percentage={recoveryRate.toFixed(2)}
+                count={patientsRecoveredCount || 0}
+                percentage={recoveryRate.toFixed(2) || 0}
                 IconComponent={LocalHospitalIcon}
                 summarytitle="Recovery Rate:"
-                summary={`${recoveryTrend} ${recoveryRate.toFixed(2)}%`}
+                summary={`${recoveryTrend} ${recoveryRate.toFixed(2) || 0}%`}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={4} lg={3}>
               <DataCard
                 title="Decreased Patient"
-                count={patientsDeathsCount}
-                percentage={deathRate.toFixed(2)}
+                count={patientsDeathsCount || 0}
+                percentage={deathRate.toFixed(2) || 0}
                 IconComponent={PersonRemoveIcon}
                 summarytitle="Death Rate:"
-                summary={`${deathTrend} ${deathRate.toFixed(2)}%`}
+                summary={`${deathTrend} ${deathRate.toFixed(2) || 0}%`}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={4} lg={3}>
               <DataCard
                 title="Chronic Patient Population"
-                count={patientsChronicCount}
-                percentage={chronicRate.toFixed(2)}
+                count={patientsChronicCount || 0}
+                percentage={chronicRate.toFixed(2) || 0}
                 IconComponent={PeopleAltOutlinedIcon}
                 summarytitle="Summary:"
-                summary={`${chronicRate.toFixed(
-                  2
-                )}% Chronic Patients out of ${patientsTotalCount.toLocaleString()}`}
+                summary={`${
+                  chronicRate.toFixed(2) || 0
+                }% Chronic Patients out of ${patientsTotalCount || 0}`}
               />
             </Grid>
+
             <Grid item xs={12} md={5} lg={4}>
               <Typography variant="h5">
                 Pie Graph - Population Statistics

@@ -35,6 +35,11 @@ const pageinfo = [
     url: "/predictive-analytics",
   },
   {
+    id: "manage-disease",
+    title: "Manage Disease",
+    url: "/manage-disease",
+  },
+  {
     id: "patient-records-slash",
     title: "Patient Records",
     url: "/patient-records/",

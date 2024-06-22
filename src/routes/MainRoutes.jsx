@@ -14,7 +14,7 @@ const PredictiveAnalytics = CustomLoader(
   lazy(() => import("@pages/predictive-analytics"))
 );
 const PatientRecords = CustomLoader(lazy(() => import("@pages/patient-table")));
-
+const ManageDisease = CustomLoader(lazy(() => import("@pages/manage-disease")));
 const MainRoutes = {
   path: "/",
   element: <MainLayout />,
@@ -46,6 +46,10 @@ const MainRoutes = {
     {
       path: "patient-records",
       element: <PatientRecords />,
+    },
+    {
+      path: "/manage-disease",
+      element: <ManageDisease />,
     },
     {
       path: "/manage-hospital/patient-records/:hospitalId",
