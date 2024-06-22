@@ -57,6 +57,81 @@ const Dashboard = () => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+    if (
+      filters.hospitalIds.length !== 0 ||
+      filters.admissionEndDate != null ||
+      filters.admissionStartDate != null ||
+      filters.ageEnd != null ||
+      filters.ageStart != null ||
+      filters
+    ) {
+      if (userType.superAdmin == user.usertype) {
+        switch (newValue) {
+          case 0:
+            fetchBarChartData("province", filters);
+            break;
+          case 1:
+            fetchBarChartData("division", filters);
+            break;
+          case 2:
+            fetchBarChartData("district", filters);
+            break;
+          case 3:
+            fetchBarChartData("tehsil", filters);
+            break;
+          case 4:
+            fetchBarChartData("hospital", filters);
+            break;
+        }
+        return;
+      } else if (userType.provinceAdmin == user.usertype) {
+        switch (newValue) {
+          case 0:
+            fetchBarChartData("division", filters);
+            break;
+          case 1:
+            fetchBarChartData("district", filters);
+            break;
+          case 2:
+            fetchBarChartData("tehsil", filters);
+            break;
+          case 3:
+            fetchBarChartData("hospital", filters);
+            break;
+        }
+        return;
+      } else if (userType.divisionAdmin == user.usertype) {
+        switch (newValue) {
+          case 0:
+            fetchBarChartData("district", filters);
+            break;
+          case 1:
+            fetchBarChartData("tehsil", filters);
+            break;
+          case 2:
+            fetchBarChartData("hospital", filters);
+            break;
+        }
+        return;
+      } else if (userType.districtAdmin == user.usertype) {
+        switch (newValue) {
+          case 0:
+            fetchBarChartData("tehsil", filters);
+            break;
+          case 1:
+            fetchBarChartData("hospital", filters);
+            break;
+        }
+        return;
+      } else if (userType.hospitalAdmin == user.usertype) {
+        switch (newValue) {
+          case 0:
+            fetchBarChartData("hospital", filters);
+            break;
+        }
+        return;
+      }
+    }
     if (userType.superAdmin == user.usertype) {
       switch (newValue) {
         case 0:
@@ -76,8 +151,7 @@ const Dashboard = () => {
           break;
       }
       return;
-    }
-    if (userType.provinceAdmin == user.usertype) {
+    } else if (userType.provinceAdmin == user.usertype) {
       switch (newValue) {
         case 0:
           fetchBarChartData("division");
@@ -92,8 +166,8 @@ const Dashboard = () => {
           fetchBarChartData("hospital");
           break;
       }
-    }
-    if (userType.divisionAdmin == user.usertype) {
+      return;
+    } else if (userType.divisionAdmin == user.usertype) {
       switch (newValue) {
         case 0:
           fetchBarChartData("district");
@@ -105,8 +179,8 @@ const Dashboard = () => {
           fetchBarChartData("hospital");
           break;
       }
-    }
-    if (userType.districtAdmin == user.usertype) {
+      return;
+    } else if (userType.districtAdmin == user.usertype) {
       switch (newValue) {
         case 0:
           fetchBarChartData("tehsil");
@@ -115,13 +189,14 @@ const Dashboard = () => {
           fetchBarChartData("hospital");
           break;
       }
-    }
-    if (userType.hospitalAdmin == user.usertype) {
+      return;
+    } else if (userType.hospitalAdmin == user.usertype) {
       switch (newValue) {
         case 0:
           fetchBarChartData("hospital");
           break;
       }
+      return;
     }
   };
 
@@ -252,6 +327,7 @@ const Dashboard = () => {
         default:
           break;
       }
+      fetchDashboardData(updatedFilters);
       return;
     }
     switch (value) {
@@ -273,7 +349,7 @@ const Dashboard = () => {
       default:
         break;
     }
-    fetchDashboardData();
+    fetchDashboardData(updatedFilters);
   };
   const tabIndices = getTabIndices(user.usertype);
 
@@ -383,7 +459,9 @@ const Dashboard = () => {
               <DataCard
                 title="Population"
                 count={patientsCount || 0}
-                percentage={(patientsCount / patientsTotalCount) * 100 || 0}
+                percentage={
+                  ((patientsCount / patientsTotalCount) * 100).toFixed(2) || 0
+                }
                 IconComponent={PeopleAltOutlinedIcon}
                 summarytitle="Time Period:"
                 summary={`${formatDatetoWordDate(

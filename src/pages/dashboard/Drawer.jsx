@@ -189,11 +189,8 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
   const handleHospitalSelect = (event, newValue) => {
     setSelectedHospitals(newValue);
   };
-  const handleAgeRangeChange = (event, newValue) => {
-    setAgeRange(newValue);
-  };
 
-  const handleClose = () => {
+  const handleClearFilters = () => {
     setProvinceOptions([]);
     setDivisionOptions([]);
     setDistrictOptions([]);
@@ -209,6 +206,17 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
     setSelectedSymptoms([]);
     setSelectedGender(null);
     setAgeRange([1, 100]);
+    handleFilterValue({
+      hospitalIds: [],
+      symptoms: [],
+      admissionStartDate: null,
+      admissionEndDate: null,
+      gender: null,
+      ageStart: 1,
+      ageEnd: 100,
+    });
+  };
+  const handleClose = () => {
     onClose();
   };
 
@@ -448,7 +456,7 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
               label="End Age"
               variant="outlined"
               value={ageRange[1]}
-              sx={{ width: 100 }} // Adjust the width as needed
+              sx={{ width: 100 }}
               onChange={(event) => {
                 const value = parseInt(event.target.value);
                 if (!isNaN(value)) {
@@ -505,7 +513,22 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
           onChange={handleSymptomsSelect}
           title="Symptoms"
         />
-        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
+        <Button
+          variant="contained"
+          sx={{
+            backgroundColor: "#f44336",
+            "&:hover": {
+              backgroundColor: "#d32f2f",
+            },
+            width: "100%",
+          }}
+          onClick={handleClearFilters}
+          fullWidth
+        >
+          Clear Filters
+        </Button>
+
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
           <Button
             variant="contained"
             color="secondary"
