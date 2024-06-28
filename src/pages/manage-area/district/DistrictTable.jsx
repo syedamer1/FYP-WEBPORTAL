@@ -36,6 +36,7 @@ const DistrictTable = () => {
     pageIndex: 0,
     pageSize: 10,
   });
+  const [totalCount, setTotalCount] = useState(0);
 
   const {
     data: { data = [], meta } = {},
@@ -53,13 +54,22 @@ const DistrictTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const response = await axios.get(
-        import.meta.env.VITE_REACT_APP_BASEURL + "/district/get"
+      const fetchURL = new URL(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/district/getTableData"
       );
-
+      fetchURL.searchParams.set(
+        "start",
+        `${pagination.pageIndex * pagination.pageSize}`
+      );
+      fetchURL.searchParams.set("size", `${pagination.pageSize}`);
+      fetchURL.searchParams.set("filters", JSON.stringify(columnFilters ?? []));
+      fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
+      fetchURL.searchParams.set("globalFilter", globalFilter ?? "");
+      const response = await axios.get(fetchURL.href);
+      setTotalCount(response.data.totalCount);
       return {
-        data: response.data,
-        meta: response.meta,
+        data: response.data.content,
+        meta: response.data.totalCount,
       };
     },
     placeholderData: keepPreviousData,
@@ -228,7 +238,7 @@ const DistrictTable = () => {
         </Box>
       </>
     ),
-    rowCount: 500,
+    rowCount: meta,
     state: {
       columnFilters,
       globalFilter,

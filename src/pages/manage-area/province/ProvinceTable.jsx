@@ -36,6 +36,7 @@ const ProvinceTable = () => {
     pageIndex: 0,
     pageSize: 10,
   });
+  const [totalCount, setTotalCount] = useState(0);
 
   const {
     // eslint-disable-next-line no-unused-vars
@@ -55,57 +56,26 @@ const ProvinceTable = () => {
     ],
     queryFn: async () => {
       const fetchURL = new URL(
-        import.meta.env.VITE_REACT_APP_BASEURL + "/province/get"
+        import.meta.env.VITE_REACT_APP_BASEURL + "/province/getTableData"
       );
-      // fetchURL.searchParams.set(
-      //   "start",
-      //   `${pagination.pageIndex * pagination.pageSize}`
-      // );
-      // fetchURL.searchParams.set("size", `${pagination.pageSize}`);
-      // fetchURL.searchParams.set("filters", JSON.stringify(columnFilters ?? []));
-      // fetchURL.searchParams.set("globalFilter", globalFilter ?? "");
-      // fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
+      fetchURL.searchParams.set(
+        "start",
+        `${pagination.pageIndex * pagination.pageSize}`
+      );
+      fetchURL.searchParams.set("size", `${pagination.pageSize}`);
+      fetchURL.searchParams.set("filters", JSON.stringify(columnFilters ?? []));
+      fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
+      fetchURL.searchParams.set("globalFilter", globalFilter ?? "");
       const response = await axios.get(fetchURL.href);
-
+      console.log(response.data.content);
+      setTotalCount(response.data.totalCount);
       return {
-        data: response.data,
-        meta: response.meta,
+        data: response.data.content,
+        meta: response.data.totalCount,
       };
     },
     placeholderData: keepPreviousData,
   });
-
-  const [initialize, setInitialize] = useState(false);
-  function handleClick() {
-    var header = document.querySelector("header");
-
-    var computedStyle = window.getComputedStyle(header);
-    if (computedStyle.display === "flex") {
-      header.style.display = "none";
-    } else {
-      header.style.display = "flex";
-    }
-  }
-
-  function initializeButton() {
-    var button = document.querySelector(
-      'button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.css-riw2ar-MuiButtonBase-root-MuiIconButton-root[aria-label="Toggle full screen"]'
-    );
-
-    var header = document.querySelector("header");
-    header.style.display = "flex";
-
-    button.addEventListener("click", handleClick);
-  }
-
-  useEffect(() => {
-    if (!initialize) {
-      setTimeout(() => {
-        initializeButton();
-      }, 2000);
-      setInitialize(true);
-    }
-  }, []);
 
   const handleDeleteProvince = (provinceId) => {
     setDeleteProvinceId(provinceId);
@@ -157,12 +127,14 @@ const ProvinceTable = () => {
             accessorKey: "id",
             header: "ID",
             size: 150,
+            enableGlobalFilter: true,
           },
           {
             id: "name",
             accessorKey: "name",
             header: "Name",
             size: 150,
+            enableGlobalFilter: true,
           },
           {
             accessorFn: (row) =>
@@ -176,6 +148,7 @@ const ProvinceTable = () => {
               cell.row.original.createdOn
                 ? formatDate(cell.row.original.createdOn)
                 : "Not Created",
+            enableGlobalFilter: true,
           },
 
           {
@@ -190,6 +163,7 @@ const ProvinceTable = () => {
               cell.row.original.updatedOn
                 ? formatDate(cell.row.original.updatedOn)
                 : "Not Updated",
+            enableGlobalFilter: true,
           },
           {
             id: "actions",
@@ -264,7 +238,7 @@ const ProvinceTable = () => {
         </Box>
       </>
     ),
-    rowCount: 30,
+    rowCount: totalCount,
     state: {
       columnFilters,
       globalFilter,
