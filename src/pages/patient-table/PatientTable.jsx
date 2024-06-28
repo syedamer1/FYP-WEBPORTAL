@@ -12,13 +12,9 @@ import {
   useMaterialReactTable,
 } from "material-react-table";
 import OverLayLoader from "@components/OverlayLoader";
-import { formatDate } from "@utility";
+import { formatDate, formatPatientAdmissionDate } from "@utility";
+import ToastNotification, { emitToast } from "@components/ToastNotification";
 const PatientTable = ({ hospitalId = null }) => {
-  const [deletePatientId, setDeletePatientId] = useState(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isAddPatientDialogOpen, setIsAddPatientDialogOpen] = useState(false);
-  const [isEditPatientDialogOpen, setIsEditPatientDialogOpen] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState(null);
   const [columnFilters, setColumnFilters] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState([]);
@@ -26,6 +22,7 @@ const PatientTable = ({ hospitalId = null }) => {
     pageIndex: 0,
     pageSize: 10,
   });
+  const [totalCount, setTotalCount] = useState(0);
 
   const {
     // eslint-disable-next-line no-unused-vars
@@ -44,68 +41,28 @@ const PatientTable = ({ hospitalId = null }) => {
       sorting,
     ],
     queryFn: async () => {
-      let fetchURL;
-      if (hospitalId) {
-        fetchURL = new URL(
-          `${
-            import.meta.env.VITE_REACT_APP_BASEURL
-          }/patient/getPatientsByHospitalId/${hospitalId}`
-        );
-      } else {
-        fetchURL = new URL(
-          `${import.meta.env.VITE_REACT_APP_BASEURL}/patient/get`
-        );
+      const fetchURL = new URL(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/patient/getTableData"
+      );
+      fetchURL.searchParams.set(
+        "start",
+        `${pagination.pageIndex * pagination.pageSize}`
+      );
+      fetchURL.searchParams.set("size", `${pagination.pageSize}`);
+      fetchURL.searchParams.set("filters", JSON.stringify(columnFilters ?? []));
+      fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
+      fetchURL.searchParams.set("globalFilter", globalFilter ?? "");
+      if (hospitalId != null) {
+        fetchURL.searchParams.set("hospitalId", hospitalId);
       }
-
-      // fetchURL.searchParams.set(
-      //   "start",
-      //   `${pagination.pageIndex * pagination.pageSize}`
-      // );
-      // fetchURL.searchParams.set("size", `${pagination.pageSize}`);
-      // fetchURL.searchParams.set("filters", JSON.stringify(columnFilters ?? []));
-      // fetchURL.searchParams.set("globalFilter", globalFilter ?? "");
-      // fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
-
       const response = await axios.get(fetchURL.href);
-
+      setTotalCount(response.data.totalCount);
       return {
-        data: response.data,
-        meta: response.meta,
+        data: response.data.content,
+        meta: response.data.totalCount,
       };
     },
-    placeholderData: keepPreviousData,
   });
-  const [initialize, setInitialize] = useState(false);
-  function handleClick() {
-    var header = document.querySelector("header");
-
-    var computedStyle = window.getComputedStyle(header);
-    if (computedStyle.display === "flex") {
-      header.style.display = "none";
-    } else {
-      header.style.display = "flex";
-    }
-  }
-
-  function initializeButton() {
-    var button = document.querySelector(
-      'button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.css-riw2ar-MuiButtonBase-root-MuiIconButton-root[aria-label="Toggle full screen"]'
-    );
-
-    var header = document.querySelector("header");
-    header.style.display = "flex";
-
-    button.addEventListener("click", handleClick);
-  }
-
-  useEffect(() => {
-    if (!initialize) {
-      setTimeout(() => {
-        initializeButton();
-      }, 2000);
-      setInitialize(true);
-    }
-  }, []);
 
   const columns = useMemo(
     () => [
@@ -142,7 +99,7 @@ const PatientTable = ({ hospitalId = null }) => {
             accessorKey: "gender",
             header: "Gender",
             size: 150,
-            Cell: ({ cell }) => (cell.getValue() === "1" ? "Male" : "Female"),
+            Cell: ({ cell }) => (cell.getValue() ? "Male" : "Female"),
           },
           {
             id: "age",
@@ -151,27 +108,38 @@ const PatientTable = ({ hospitalId = null }) => {
             size: 150,
           },
           {
+            accessorFn: (row) =>
+              row.admissionDate
+                ? formatPatientAdmissionDate(row.admissionDate)
+                : "Not Admission Date",
             id: "admissionDate",
-            accessorKey: "admissionDate",
             header: "Admission Date",
-            size: 150,
-            Cell: ({ cell }) => new Date(cell.getValue()).toLocaleString(),
+            filterVariant: "date",
+            filterFn: "lessThan",
+            sortingFn: "datetime",
+            Cell: ({ cell }) =>
+              cell.row.original.admissionDate
+                ? formatPatientAdmissionDate(cell.row.original.admissionDate)
+                : "Not Admission Date",
           },
           {
             id: "deathBinary",
             accessorKey: "deathBinary",
-            header: "Death",
+            header: "Status",
             size: 150,
-            Cell: ({ cell }) => (cell.getValue() ? "Yes" : "No"),
+            Cell: ({ cell }) => (cell.getValue() ? "Deceased" : "Alive"),
           },
           {
-            id: "hospitalName",
+            id: "hospital.name",
             accessorFn: (row) => (row.hospital ? row.hospital.name : ""),
             header: "Hospital Name",
             size: 150,
+            enableColumnFilter: hospitalId == null ? true : false,
+            enableSorting: hospitalId == null ? true : false,
+            enableGlobalFilter: hospitalId == null ? true : false,
           },
           {
-            id: "diseaseName",
+            id: "disease.name",
             accessorFn: (row) => (row.disease ? row.disease.name : ""),
             header: "Disease Name",
             size: 150,
@@ -336,6 +304,7 @@ const PatientTable = ({ hospitalId = null }) => {
                 ? formatDate(cell.row.original.createdOn)
                 : "Not Created",
           },
+
           {
             accessorFn: (row) =>
               row.updatedOn ? formatDate(row.updatedOn) : "Not Updated",
@@ -377,7 +346,7 @@ const PatientTable = ({ hospitalId = null }) => {
         </Box>
       </>
     ),
-    rowCount: 10,
+    rowCount: totalCount,
     state: {
       columnFilters,
       globalFilter,
@@ -392,6 +361,7 @@ const PatientTable = ({ hospitalId = null }) => {
 
   return (
     <>
+      <ToastNotification />
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ marginTop: "30px" }}>
           <MaterialReactTable table={table} />
