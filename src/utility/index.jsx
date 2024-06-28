@@ -3,6 +3,22 @@ import advancedFormat from "dayjs/plugin/advancedFormat";
 
 dayjs.extend(advancedFormat);
 
+function formatPatientAdmissionDate(dateString) {
+  if (!dateString) {
+    return null;
+  }
+
+  const date = dayjs(dateString, "YYYY-MM-DD");
+  if (!date.isValid()) {
+    return null;
+  }
+
+  // Ensure only the date part is returned without time
+  const formattedDate = date.format("DD/MM/YYYY");
+
+  return formattedDate;
+}
+
 function formatDate(dateString) {
   if (!dateString) {
     return null;
@@ -106,6 +122,7 @@ const fetchImageAsBlob = async (imageUrl) => {
 
 export {
   formatDate,
+  formatPatientAdmissionDate,
   formatDatetoWordDate,
   getTabIndices,
   userType,

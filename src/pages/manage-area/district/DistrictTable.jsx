@@ -72,7 +72,6 @@ const DistrictTable = () => {
         meta: response.data.totalCount,
       };
     },
-    placeholderData: keepPreviousData,
   });
 
   const handleDeleteDistrict = (districtId) => {

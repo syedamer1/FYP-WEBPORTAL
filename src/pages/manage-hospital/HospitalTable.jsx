@@ -76,7 +76,6 @@ const HospitalTable = () => {
         meta: response.meta,
       };
     },
-    placeholderData: keepPreviousData,
   });
   const [initialize, setInitialize] = useState(false);
   function handleClick() {

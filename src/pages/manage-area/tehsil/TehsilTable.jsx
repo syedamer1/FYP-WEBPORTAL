@@ -71,7 +71,6 @@ const TehsilTable = () => {
         meta: response.data.totalCount,
       };
     },
-    placeholderData: keepPreviousData,
   });
 
   const handleDeleteTehsil = (tehsilId) => {

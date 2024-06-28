@@ -11,6 +11,8 @@ import {
   PersonAdd as PersonAddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
 } from "@mui/icons-material";
 import {
   MaterialReactTable,
@@ -36,9 +38,9 @@ const AccountTable = () => {
     pageSize: 10,
   });
   const [totalCount, setTotalCount] = useState(0);
+  const [passwordVisibility, setPasswordVisibility] = useState({});
 
   const {
-    // eslint-disable-next-line no-unused-vars
     data: { data = [], meta } = {}, // Initialize data as an empty array
     isError,
     isRefetching,
@@ -72,7 +74,6 @@ const AccountTable = () => {
         meta: response.data.totalCount,
       };
     },
-    placeholderData: keepPreviousData,
   });
   const [initialize, setInitialize] = useState(false);
 
@@ -148,6 +149,13 @@ const AccountTable = () => {
     setIsAddUserDialogOpen((prevOpen) => !prevOpen);
   };
 
+  const handleTogglePasswordVisibility = (accountId) => {
+    setPasswordVisibility((prevVisibility) => ({
+      ...prevVisibility,
+      [accountId]: !prevVisibility[accountId],
+    }));
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -156,9 +164,37 @@ const AccountTable = () => {
         size: 100,
       },
       {
-        accessorKey: "firstName",
+        accessorFn: (row) => `${row.firstName}`,
+        id: "firstName",
         header: "First Name",
         size: 200,
+        Cell: ({ renderedCellValue, row }) => (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+            }}
+          >
+            <img
+              alt="avatar"
+              height={30}
+              src={`data:image/jpeg;base64,${
+                row.original.profilePicture == null
+                  ? ""
+                  : row.original.profilePicture
+              }`}
+              loading="lazy"
+              style={{
+                width: "50px",
+                height: "50px",
+                borderRadius: "50%",
+                objectFit: "cover",
+              }}
+            />
+            <span>{renderedCellValue}</span>
+          </Box>
+        ),
       },
       {
         accessorKey: "lastName",
@@ -184,6 +220,27 @@ const AccountTable = () => {
         accessorKey: "password",
         header: "Password",
         size: 150,
+        Cell: ({ row }) => (
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <span>
+              {passwordVisibility[row.original.id]
+                ? row.original.password
+                : "***********"}
+            </span>
+            <IconButton
+              onClick={() => handleTogglePasswordVisibility(row.original.id)}
+              aria-label="toggle password visibility"
+              size="small"
+              sx={{ fontSize: "20px", bottom: 4, marginLeft: 1 }}
+            >
+              {passwordVisibility[row.original.id] ? (
+                <VisibilityOffIcon sx={{ fontSize: "20px" }} />
+              ) : (
+                <VisibilityIcon sx={{ fontSize: "20px" }} />
+              )}
+            </IconButton>
+          </Box>
+        ),
       },
       {
         accessorFn: (row) =>
@@ -272,7 +329,7 @@ const AccountTable = () => {
         ),
       },
     ],
-    []
+    [passwordVisibility]
   );
 
   const table = useMaterialReactTable({

@@ -72,7 +72,6 @@ const DivisionTable = () => {
         meta: response.data.totalCount,
       };
     },
-    placeholderData: keepPreviousData,
   });
 
   const handleDeleteDivision = (divisionId) => {
