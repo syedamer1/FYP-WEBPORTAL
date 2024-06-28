@@ -35,6 +35,7 @@ const AccountTable = () => {
     pageIndex: 0,
     pageSize: 10,
   });
+  const [totalCount, setTotalCount] = useState(0);
 
   const {
     // eslint-disable-next-line no-unused-vars
@@ -54,12 +55,21 @@ const AccountTable = () => {
     ],
     queryFn: async () => {
       const fetchURL = new URL(
-        import.meta.env.VITE_REACT_APP_BASEURL + "/user/get"
+        import.meta.env.VITE_REACT_APP_BASEURL + "/user/getTableData"
       );
+      fetchURL.searchParams.set(
+        "start",
+        `${pagination.pageIndex * pagination.pageSize}`
+      );
+      fetchURL.searchParams.set("size", `${pagination.pageSize}`);
+      fetchURL.searchParams.set("filters", JSON.stringify(columnFilters ?? []));
+      fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
+      fetchURL.searchParams.set("globalFilter", globalFilter ?? "");
       const response = await axios.get(fetchURL.href);
+      setTotalCount(response.data.totalCount);
       return {
-        data: response.data,
-        meta: response.meta,
+        data: response.data.content,
+        meta: response.data.totalCount,
       };
     },
     placeholderData: keepPreviousData,
@@ -178,35 +188,35 @@ const AccountTable = () => {
       {
         accessorFn: (row) =>
           row.province != null ? row.province.name : "No Province",
-        id: "province_name",
+        id: "province.name",
         header: "Province Name",
         size: 150,
       },
       {
         accessorFn: (row) =>
           row.division != null ? row.division.name : "No Division",
-        id: "division_name",
+        id: "division.name",
         header: "Division Name",
         size: 150,
       },
       {
         accessorFn: (row) =>
           row.district != null ? row.district.name : "No District",
-        id: "district_name",
+        id: "district.name",
         header: "District Name",
         size: 150,
       },
       {
         accessorFn: (row) =>
           row.tehsil != null ? row.tehsil.name : "No Tehsil",
-        id: "tehsil_name",
+        id: "tehsil.name",
         header: "Tehsil Name",
         size: 150,
       },
       {
         accessorFn: (row) =>
           row.hospital != null ? row.hospital.name : "No Hospital",
-        id: "hospital_name",
+        id: "hospital.name",
         header: "Hospital Name",
         size: 150,
       },
@@ -306,7 +316,7 @@ const AccountTable = () => {
         </Box>
       </>
     ),
-    rowCount: 30,
+    rowCount: meta,
     state: {
       columnFilters,
       globalFilter,

@@ -66,7 +66,6 @@ const DivisionTable = () => {
       fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
       fetchURL.searchParams.set("globalFilter", globalFilter ?? "");
       const response = await axios.get(fetchURL.href);
-      console.log(response.data.content);
       setTotalCount(response.data.totalCount);
       return {
         data: response.data.content,
