@@ -21,6 +21,8 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useUser } from "@context/UserContext";
 import { useNavigate } from "react-router-dom";
+import { CompareObject } from "@utility";
+
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -62,29 +64,31 @@ const EditProfileDialog = ({ open, onClose }) => {
       cnic: Yup.string().required("CNIC is required"),
     }),
     onSubmit: async (values) => {
+      const payload = {
+        ...values,
+        tehsil:
+          values.usertype === "Tehsil Administrator" ? values.tehsil : null,
+        division:
+          values.usertype === "Division Administrator" ? values.division : null,
+        district:
+          values.usertype === "District Administrator" ? values.district : null,
+        province:
+          values.usertype === "Province Administrator" ? values.province : null,
+        hospital:
+          values.usertype === "Hospital Administrator" ? values.hospital : null,
+        profilePicture: newProfilePicture
+          ? newProfilePicture
+          : user.profilePicture,
+      };
+      if (CompareObject(payload, user)) {
+        onClose();
+        return;
+      }
       try {
-        const payload = {
-          ...values,
-          tehsil:
-            values.usertype === "Tehsil Administrator" ? values.tehsil : null,
-          division:
-            values.usertype === "Division Administrator"
-              ? values.division
-              : null,
-          district:
-            values.usertype === "District Administrator"
-              ? values.district
-              : null,
-          province:
-            values.usertype === "Province Administrator"
-              ? values.province
-              : null,
-          hospital:
-            values.usertype === "Hospital Administrator"
-              ? values.hospital
-              : null,
-        };
-
+        await axios.put(
+          `${import.meta.env.VITE_REACT_APP_BASEURL}/user/update`,
+          payload
+        );
         if (
           payload.email === user.email &&
           payload.password === user.password

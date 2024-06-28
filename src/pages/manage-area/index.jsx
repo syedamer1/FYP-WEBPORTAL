@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Typography, Tabs, Tab } from "@mui/material/";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import CustomCard from "@components/CustomCard";
@@ -17,7 +17,9 @@ import { Navigate } from "react-router-dom";
 import { a11yProps, TabPanel } from "@components/TabPart";
 
 const ManageArea = () => {
-  document.title = "Manage Province";
+  useEffect(() => {
+    document.title = "Manage Area"; // Set the initial document title once
+  }, []);
   const { user } = useUser();
 
   const [value, setValue] = useState(0);
