@@ -68,7 +68,7 @@ const BarChart = ({ BarChartdata }) => {
       ref={chartRef}
       id="main"
       style={{
-        width: "100%",
+        width: "95%",
         position: "relative",
         height: "61vh",
         overflow: "hidden",
@@ -77,7 +77,10 @@ const BarChart = ({ BarChartdata }) => {
   );
 };
 
-BarChart.PropTypes = {
-  BarChartdata: PropTypes.object.isRequired,
+BarChart.propTypes = {
+  BarChartdata: PropTypes.shape({
+    xaxis: PropTypes.arrayOf(PropTypes.string).isRequired,
+    yaxis: PropTypes.arrayOf(PropTypes.number).isRequired,
+  }).isRequired,
 };
 export default BarChart;

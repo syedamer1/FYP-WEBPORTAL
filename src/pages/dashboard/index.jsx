@@ -40,10 +40,10 @@ import {
 import { getTabIndices, userType } from "@utility";
 import { debounce } from "lodash";
 import { a11yProps, TabPanel } from "@components/TabPart";
-// import OrganDataChart from "./OrganDataChart";
+import OrganDataChart from "./OrganDataChart";
 import BarChart from "./BarChart";
-import DynamicAreaTimeAxis from "./DynamicAreaTimeAxis";
 import ToastNotification, { emitToast } from "@components/ToastNotification";
+import BarRaceSymptoms from "./BarRaceSymptoms";
 import { Link } from "react-router-dom";
 const CustomIconButton = styled(IconButton)({
   fontSize: "1.25rem",
@@ -243,7 +243,37 @@ const Dashboard = () => {
     admissionStartDate: null,
     admissionEndDate: null,
   });
-
+  const [organChartData, setOrganChartData] = useState({
+    heartCount: 0,
+    largeIntestineCount: 0,
+    smallIntestineCount: 0,
+    kidneyCount: 0,
+    lungCount: 0,
+  });
+  const [barRaceSymptoms, setBarRaceSymptoms] = useState({
+    feverCount: 0,
+    highFeverCount: 0,
+    hypertensionCount: 0,
+    cardiacCount: 0,
+    weaknessPainCount: 0,
+    respiratoryCount: 0,
+    cancerCount: 0,
+    thyroidCount: 0,
+    prostateCount: 0,
+    kidneyCount: 0,
+    neuroCount: 0,
+    nauseaCount: 0,
+    asymptomaticCount: 0,
+    gastrointestinalCount: 0,
+    orthoCount: 0,
+    respiratoryCDCount: 0,
+    cardiacsCDCount: 0,
+    kidneyCDCount: 0,
+  });
+  const [scatterAggregateBarData, setScatterAggregateBarData] = useState({
+    femaleData: [],
+    maleData: [],
+  });
   const { user } = useUser();
 
   const fetchDisease = debounce(async () => {
@@ -271,6 +301,9 @@ const Dashboard = () => {
           setDynamicTimeChartData(
             response.data.dynamicTimeChartData.dataPoints
           );
+          setBarRaceSymptoms(response.data.barRaceSymptoms);
+          setOrganChartData(response.data.organChartData);
+          setScatterAggregateBarData(response.data.scatterAggregateBar);
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -517,6 +550,31 @@ const Dashboard = () => {
                 </Box>
               </CustomCard>
             </Grid>
+            <Grid item xs={12} md={7} lg={8}>
+              <Grid
+                container
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Grid item>
+                  <Typography variant="h5">
+                    Organ Health Overview Chart{" "}
+                  </Typography>
+                </Grid>
+              </Grid>
+              <CustomCard sx={{ mt: 2 }} content={false}>
+                <Box sx={{ p: 3, pb: 0 }}>
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "480px",
+                    }}
+                  >
+                    <OrganDataChart OrganChartData={organChartData} />
+                  </div>
+                </Box>
+              </CustomCard>
+            </Grid>
             {/* Bar Graph - Patient Population Statistics*/}
             <Grid item xs={12} md={7} lg={8}>
               <Typography variant="h5">
@@ -643,18 +701,14 @@ const Dashboard = () => {
                 )}
               </CustomCard>
             </Grid>
-
             <Grid item xs={12} md={5} lg={4}>
-              <Typography variant="h5">
-                Dynamic Area Time Period - Patient Count
-              </Typography>
-              <CustomCard content={false} sx={{ mt: 1.5 }}>
-                <Box sx={{ pt: 1, pr: 2 }}>
-                  <DynamicAreaTimeAxis />
+              <Typography variant="h5">Bar Race - Symptoms</Typography>
+              <CustomCard sx={{ mt: 2 }} content={false}>
+                <Box sx={{ p: 3, pb: 0 }}>
+                  <BarRaceSymptoms data={barRaceSymptoms} />
                 </Box>
               </CustomCard>
             </Grid>
-
             <Grid item xs={12} md={7} lg={8}>
               <Typography variant="h5">
                 Line Race - Hospital Patient Count
@@ -665,13 +719,17 @@ const Dashboard = () => {
                 </Box>
               </CustomCard>
             </Grid>
+
             <Grid item xs={12} md={5} lg={4}>
               <Typography variant="h5">
-                Scatter Aggregate Bar - Gender
+                Scatter Aggregate Bar - Plot of Age and Death
               </Typography>
               <CustomCard sx={{ mt: 2 }} content={false}>
                 <Box sx={{ p: 3, pb: 0 }}>
-                  <ScatterAggregateBar />
+                  <ScatterAggregateBar
+                    femaleData={scatterAggregateBarData.femaleData}
+                    maleData={scatterAggregateBarData.maleData}
+                  />
                 </Box>
               </CustomCard>
             </Grid>
@@ -683,22 +741,6 @@ const Dashboard = () => {
                 <Box sx={{ p: 3, pb: 0 }}>
                   <DynamicTimeChart chartData={DynamicTimeChartData} />
                 </Box>
-              </CustomCard>
-            </Grid>
-            <Grid item xs={12} md={5} lg={4}>
-              <Grid
-                container
-                alignItems="center"
-                justifyContent="space-between"
-              >
-                <Grid item>
-                  <Typography variant="h5">
-                    Organ Health Overview Chart{" "}
-                  </Typography>
-                </Grid>
-              </Grid>
-              <CustomCard sx={{ mt: 2 }} content={false}>
-                <Box sx={{ p: 3, pb: 0 }}>{/* <OrganDataChart /> */}</Box>
               </CustomCard>
             </Grid>
           </>

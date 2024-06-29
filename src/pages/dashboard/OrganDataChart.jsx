@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
 import * as echarts from "echarts";
-import VeinsMedicalSVG from "@assets/images/users/Veins_Medical_Diagram_clip_art.svg";
-const OrganDataChart = () => {
+import PropTypes from "prop-types";
+import VeinsMedicalSVG from "@assets/Veins_Medical_Diagram_clip_art.svg";
+
+const OrganDataChart = ({ OrganChartData }) => {
   const chartContainerRef = useRef(null);
 
   useEffect(() => {
@@ -13,10 +15,11 @@ const OrganDataChart = () => {
 
       let option;
 
-      const svg = { VeinsMedicalSVG }; // Use the imported SVG directly
+      const response = await fetch(VeinsMedicalSVG);
+      const svgText = await response.text();
 
-      if (svg) {
-        echarts.registerMap("organ_diagram", { svg: svg });
+      if (svgText) {
+        echarts.registerMap("organ_diagram", { svg: svgText });
         option = {
           tooltip: {},
           geo: {
@@ -59,10 +62,8 @@ const OrganDataChart = () => {
               "heart",
               "large-intestine",
               "small-intestine",
-              "spleen",
               "kidney",
               "lung",
-              "liver",
             ],
           },
           series: [
@@ -71,7 +72,13 @@ const OrganDataChart = () => {
               emphasis: {
                 focus: "self",
               },
-              data: [121, 321, 141, 52, 198, 289, 139],
+              data: [
+                OrganChartData.heartCount,
+                OrganChartData.largeIntestineCount,
+                OrganChartData.smallIntestineCount,
+                OrganChartData.kidneyCount,
+                OrganChartData.lungCount,
+              ],
             },
           ],
         };
@@ -104,8 +111,25 @@ const OrganDataChart = () => {
   }, []);
 
   return (
-    <div ref={chartContainerRef} style={{ width: "100%", height: "400px" }} />
+    <div
+      ref={chartContainerRef}
+      style={{
+        width: "100%",
+        position: "relative",
+        height: "70vh",
+        overflow: "hidden",
+      }}
+    />
   );
+};
+OrganDataChart.propTypes = {
+  OrganChartData: PropTypes.shape({
+    heartCount: PropTypes.number.isRequired,
+    largeIntestineCount: PropTypes.number.isRequired,
+    smallIntestineCount: PropTypes.number.isRequired,
+    kidneyCount: PropTypes.number.isRequired,
+    lungCount: PropTypes.number.isRequired,
+  }).isRequired,
 };
 
 export default OrganDataChart;
