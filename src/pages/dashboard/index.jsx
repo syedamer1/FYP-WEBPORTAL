@@ -45,6 +45,7 @@ import BarChart from "./BarChart";
 import ToastNotification, { emitToast } from "@components/ToastNotification";
 import BarRaceSymptoms from "./BarRaceSymptoms";
 import { Link } from "react-router-dom";
+import PieChartStatisticsGender from "./PieChartStatisticsGender";
 const CustomIconButton = styled(IconButton)({
   fontSize: "1.25rem",
 });
@@ -240,6 +241,8 @@ const Dashboard = () => {
     patientsDeathsCount: 0,
     patientsRecoveredCount: 0,
     patientsChronicCount: 0,
+    femalePatientCount: 0,
+    malePatientCount: 0,
     admissionStartDate: null,
     admissionEndDate: null,
   });
@@ -550,31 +553,7 @@ const Dashboard = () => {
                 </Box>
               </CustomCard>
             </Grid>
-            <Grid item xs={12} md={7} lg={8}>
-              <Grid
-                container
-                alignItems="center"
-                justifyContent="space-between"
-              >
-                <Grid item>
-                  <Typography variant="h5">
-                    Organ Health Overview Chart{" "}
-                  </Typography>
-                </Grid>
-              </Grid>
-              <CustomCard sx={{ mt: 2 }} content={false}>
-                <Box sx={{ p: 3, pb: 0 }}>
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "480px",
-                    }}
-                  >
-                    <OrganDataChart OrganChartData={organChartData} />
-                  </div>
-                </Box>
-              </CustomCard>
-            </Grid>
+
             {/* Bar Graph - Patient Population Statistics*/}
             <Grid item xs={12} md={7} lg={8}>
               <Typography variant="h5">
@@ -701,11 +680,28 @@ const Dashboard = () => {
                 )}
               </CustomCard>
             </Grid>
-            <Grid item xs={12} md={5} lg={4}>
+            <Grid item xs={12} md={5} lg={7}>
               <Typography variant="h5">Bar Race - Symptoms</Typography>
               <CustomCard sx={{ mt: 2 }} content={false}>
                 <Box sx={{ p: 3, pb: 0 }}>
                   <BarRaceSymptoms data={barRaceSymptoms} />
+                </Box>
+              </CustomCard>
+            </Grid>
+            <Grid item xs={12} md={5} lg={5}>
+              <Typography variant="h5">
+                Pie Graph - Gender Statistics
+              </Typography>
+              <CustomCard sx={{ mt: 2 }} content={false}>
+                <Box sx={{ textAlign: "center" }}>
+                  <Box sx={{ p: 3, pb: 0 }}>
+                    <PieChartStatisticsGender
+                      chartData={{
+                        malePatient: statisticCardData.malePatientCount,
+                        femalePatient: statisticCardData.femalePatientCount,
+                      }}
+                    />
+                  </Box>
                 </Box>
               </CustomCard>
             </Grid>
@@ -720,7 +716,7 @@ const Dashboard = () => {
               </CustomCard>
             </Grid>
 
-            <Grid item xs={12} md={5} lg={4}>
+            {/* <Grid item xs={12} md={5} lg={4}>
               <Typography variant="h5">
                 Scatter Aggregate Bar - Plot of Age and Death
               </Typography>
@@ -732,7 +728,7 @@ const Dashboard = () => {
                   />
                 </Box>
               </CustomCard>
-            </Grid>
+            </Grid> */}
             <Grid item xs={12} md={5} lg={4}>
               <Typography variant="h5">
                 Dynamic Time Wise Patient Count
@@ -740,6 +736,31 @@ const Dashboard = () => {
               <CustomCard sx={{ mt: 2 }} content={false}>
                 <Box sx={{ p: 3, pb: 0 }}>
                   <DynamicTimeChart chartData={DynamicTimeChartData} />
+                </Box>
+              </CustomCard>
+            </Grid>
+            <Grid item xs={12} md={7} lg={12}>
+              <Grid
+                container
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Grid item>
+                  <Typography variant="h5">
+                    Organ Health Overview Chart{" "}
+                  </Typography>
+                </Grid>
+              </Grid>
+              <CustomCard sx={{ mt: 2 }} content={false}>
+                <Box sx={{ p: 3, pb: 0, textAlign: "center" }}>
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "480px",
+                    }}
+                  >
+                    <OrganDataChart OrganChartData={organChartData} />
+                  </div>
                 </Box>
               </CustomCard>
             </Grid>
