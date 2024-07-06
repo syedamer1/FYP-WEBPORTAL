@@ -40,9 +40,7 @@ const DynamicTimeChart = ({ chartData }) => {
 
     // Initial chart configuration
     option = {
-      title: {
-        text: "Dynamic Data & Time Axis",
-      },
+      title: {},
       tooltip: {
         trigger: "axis",
         formatter: function (params) {

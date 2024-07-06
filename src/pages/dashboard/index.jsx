@@ -262,7 +262,7 @@ const Dashboard = () => {
     lungCount: 0,
   });
   const [hospitalPatientCount, setHospitalPatientCount] = useState([
-    ["Patients", "Hospital"],
+    ["Patients", "Hospital", "Year"],
   ]);
   const [barRaceSymptoms, setBarRaceSymptoms] = useState({
     feverCount: 0,
@@ -316,10 +316,10 @@ const Dashboard = () => {
           setBarRaceSymptoms(response.data.barRaceSymptoms);
           setOrganChartData(response.data.organChartData);
           const newHospitalPatientCount = Array.isArray(
-            response.data.hospitalPatientCount
+            response.data.hospitalPatientCount.patientCounts
           )
-            ? response.data.hospitalPatientCount.map((item) =>
-                Array.isArray(item) && item.length === 2 ? item : null
+            ? response.data.hospitalPatientCount.patientCounts.map((item) =>
+                Array.isArray(item) && item.length === 3 ? item : null
               )
             : // Filtering out invalid entries
               [];
@@ -331,10 +331,6 @@ const Dashboard = () => {
           ]);
 
           // Update the state with validated data
-          setHospitalPatientCount((prevState) => [
-            ...prevState,
-            ...newHospitalPatientCount,
-          ]);
 
           setIsLoading(false);
         }
@@ -413,7 +409,7 @@ const Dashboard = () => {
         cardiacsCDCount: 0,
         kidneyCDCount: 0,
       });
-      setHospitalPatientCount(["Patients", "Hospital"]);
+      setHospitalPatientCount([["Patients", "Hospital", "Year"]]);
       setDynamicTimeChartData([]);
       setBarChartData([]);
     }

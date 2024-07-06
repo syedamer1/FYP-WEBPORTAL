@@ -1,41 +1,47 @@
 import { useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 import * as echarts from "echarts";
-import rawData from "./data.json";
 
-// eslint-disable-next-line react/prop-types
 const LineRaceChart = ({ chartData }) => {
-  console.log(chartData);
   const chartRef = useRef(null);
 
   useEffect(() => {
     const chartDom = chartRef.current;
     const myChart = echarts.init(chartDom);
 
-    const countries = [
-      "Wapda Hospital, Faisalabad",
-      "Society Hospital , Nabipura Lahore",
-      "Zarar Shaheed Trust Hospital",
-      "Civil Hospital Sukkur",
-      "Shadman General Hospital",
-      "Aga Khan University Hospital",
-      "Liaquat National Hospital",
-      "Saira Memorial Hospital",
-    ];
+    if (!chartData || chartData.length === 0) {
+      console.error("Invalid or empty chartData");
+      return;
+    }
+
+    if (chartData.length <= 1) {
+      console.error("Chart data must contain at least one data row.");
+      return;
+    }
+
+    // Process chartData into a structure suitable for Apache ECharts
+    const processedData = chartData.slice(1).map((item) => ({
+      value: item[0],
+      hospital: item[1],
+      year: item[2],
+    }));
+
+    const hospitals = Array.from(
+      new Set(processedData.map((item) => item.hospital))
+    );
+
     const datasetWithFilters = [];
     const seriesList = [];
 
-    echarts.util.each(countries, function (country) {
-      var datasetId = "dataset_" + country;
+    echarts.util.each(hospitals, (hospital) => {
+      const datasetId = "dataset_" + hospital;
       datasetWithFilters.push({
         id: datasetId,
         fromDatasetId: "dataset_raw",
         transform: {
           type: "filter",
           config: {
-            and: [
-              { dimension: "Year", gte: 1950 },
-              { dimension: "Country", "=": country },
-            ],
+            and: [{ dimension: "hospital", "=": hospital }],
           },
         },
       });
@@ -43,11 +49,12 @@ const LineRaceChart = ({ chartData }) => {
         type: "line",
         datasetId: datasetId,
         showSymbol: false,
-        name: country,
+        name: hospital,
         endLabel: {
           show: true,
           formatter: function (params) {
-            return params.value[3] + ": " + params.value[0];
+            console.log(params);
+            return params.value.hospital + ": " + params.value.value;
           },
         },
         labelLayout: {
@@ -57,11 +64,11 @@ const LineRaceChart = ({ chartData }) => {
           focus: "series",
         },
         encode: {
-          x: "Year",
-          y: "Income",
-          label: ["Hospital", "Patients"],
-          itemName: "Year",
-          tooltip: ["Income"],
+          x: "year",
+          y: "value",
+          label: ["hospital", "value"],
+          itemName: "year",
+          tooltip: ["value"],
         },
       });
     });
@@ -71,12 +78,12 @@ const LineRaceChart = ({ chartData }) => {
       dataset: [
         {
           id: "dataset_raw",
-          source: rawData,
+          source: processedData,
         },
         ...datasetWithFilters,
       ],
       title: {
-        text: "",
+        text: "Hospital Patients Data",
       },
       tooltip: {
         order: "valueDesc",
@@ -84,10 +91,12 @@ const LineRaceChart = ({ chartData }) => {
       },
       xAxis: {
         type: "category",
+        name: "Year",
         nameLocation: "middle",
       },
       yAxis: {
         name: "Patients",
+        type: "value",
       },
       grid: {
         right: 140,
@@ -97,10 +106,17 @@ const LineRaceChart = ({ chartData }) => {
 
     myChart.setOption(option);
 
-    window.addEventListener("resize", () => {
+    const handleResize = () => {
       myChart.resize();
-    });
-  }, []);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      myChart.dispose();
+    };
+  }, [chartData]);
 
   return (
     <div
@@ -113,6 +129,10 @@ const LineRaceChart = ({ chartData }) => {
       }}
     />
   );
+};
+
+LineRaceChart.propTypes = {
+  chartData: PropTypes.arrayOf(PropTypes.array).isRequired,
 };
 
 export default LineRaceChart;
