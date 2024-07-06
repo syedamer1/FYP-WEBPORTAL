@@ -441,9 +441,18 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
         selectedProvinces.length !== 0
           ? selectedProvinces.map((province) => province.id)
           : [],
-      divisionIds: selectedDivisions.length !== 0 ? selectedDivisions : [],
-      districtIds: selectedDistricts.length !== 0 ? selectedDistricts : [],
-      tehsilIds: selectedTehsils.length !== 0 ? selectedTehsils : [],
+      divisionIds:
+        selectedDivisions.length !== 0
+          ? selectedDivisions.map((division) => division.id)
+          : [],
+      districtIds:
+        selectedDistricts.length !== 0
+          ? selectedDistricts.map((district) => district.id)
+          : [],
+      tehsilIds:
+        selectedTehsils.length !== 0
+          ? selectedTehsils.map((tehsil) => tehsil.id)
+          : [],
       hospitalIds: hospitalIds,
       symptoms:
         selectedSymptoms.length !== 0
