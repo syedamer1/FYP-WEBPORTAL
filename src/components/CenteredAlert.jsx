@@ -1,7 +1,8 @@
+import PropTypes from "prop-types"; // Import PropTypes
 import { Box, Typography } from "@mui/material";
 import WarningIcon from "@mui/icons-material/Warning";
 
-const CenteredAlert = () => {
+const CenteredAlert = ({ title, color = "red" }) => {
   return (
     <Box
       sx={{
@@ -14,12 +15,18 @@ const CenteredAlert = () => {
         backgroundColor: "transparent",
       }}
     >
-      <WarningIcon sx={{ fontSize: 150, color: "red" }} />
+      <WarningIcon sx={{ fontSize: 150, color: color }} />
       <Typography variant="h4" mt={2} sx={{ textAlign: "center" }}>
-        Select Disease to view Real Time Analytics
+        {title}
       </Typography>
     </Box>
   );
+};
+
+// Add PropTypes validation
+CenteredAlert.propTypes = {
+  title: PropTypes.string.isRequired,
+  color: PropTypes.string,
 };
 
 export default CenteredAlert;

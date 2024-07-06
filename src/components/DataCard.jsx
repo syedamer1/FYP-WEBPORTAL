@@ -47,7 +47,7 @@ const DataCard = ({
         <Typography variant="caption" color="black">
           <Typography variant="caption" color="black" sx={{ fontWeight: 900 }}>
             {`${summarytitle} `}
-          </Typography>{" "}
+          </Typography>
           {summary}
         </Typography>
       </Box>

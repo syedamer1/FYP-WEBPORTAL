@@ -18,6 +18,7 @@ const ToastNotification = ({ children }) => {
         pauseOnHover
         theme="light"
         transition={Bounce}
+        limit={1}
       />
     </div>
   );

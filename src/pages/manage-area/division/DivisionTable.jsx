@@ -206,6 +206,8 @@ const DivisionTable = () => {
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
+    enableFullScreenToggle: false,
+
     renderTopToolbarCustomActions: () => (
       <>
         <Box

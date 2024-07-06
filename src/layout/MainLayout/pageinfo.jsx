@@ -49,6 +49,11 @@ const pageinfo = [
     title: "Patient Records",
     url: "/manage-hospital/patient-records/:hospitalId",
   },
+  {
+    id: "manage-hospital-patient-records-slash",
+    title: "Patient Records",
+    url: "/manage-hospital/patient-records",
+  },
 ];
 
 export default pageinfo;

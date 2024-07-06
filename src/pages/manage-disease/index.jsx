@@ -3,12 +3,14 @@ import DiseaseTable from "./DiseaseTable";
 import { Grid, Typography } from "@mui/material/";
 import { Navigate } from "react-router-dom";
 import { useUser } from "@context/UserContext";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const ManageDisease = () => {
   document.title = "Manage Disease";
   const { user } = useUser();
   if (user.usertype !== "Super Administrator" || user.usertype === null) {
     return <Navigate to="/dashboard" replace />;
   }
+  const queryClient = new QueryClient();
   return (
     <>
       <MainCard>
@@ -20,7 +22,9 @@ const ManageDisease = () => {
           md={8}
           sx={{ display: { sm: "none", md: "block", lg: "none" } }}
         />
-        <DiseaseTable />
+        <QueryClientProvider client={queryClient}>
+          <DiseaseTable />
+        </QueryClientProvider>
       </MainCard>
     </>
   );

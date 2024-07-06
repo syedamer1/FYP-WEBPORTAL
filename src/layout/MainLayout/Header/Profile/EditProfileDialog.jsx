@@ -22,6 +22,7 @@ import * as Yup from "yup";
 import { useUser } from "@context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { CompareObject } from "@utility";
+import ToastNotification, { emitToast } from "@components/ToastNotification";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -124,7 +125,7 @@ const EditProfileDialog = ({ open, onClose }) => {
         setProfilePicturePreview(null);
         onClose();
       } catch (error) {
-        console.error("Error updating user profile:", error);
+        emitToast("Error updating User", "error");
       }
     },
   });
@@ -158,7 +159,7 @@ const EditProfileDialog = ({ open, onClose }) => {
       };
       reader.readAsDataURL(file);
     } else {
-      alert("Please select a valid image file (jpg, jpeg, png).");
+      emitToast("Please select a valid image file (jpg, jpeg, png).", "error");
     }
   };
 
@@ -170,209 +171,215 @@ const EditProfileDialog = ({ open, onClose }) => {
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      aria-describedby="edit-profile-dialog"
-      PaperProps={{
-        style: {
-          borderRadius: "12px",
-          padding: "4px",
-        },
-      }}
-      TransitionComponent={Transition}
-    >
-      <Box sx={{ p: 2 }}>
-        <DialogTitle variant="h3">Edit Profile</DialogTitle>
-        <DialogContent>
-          <form onSubmit={formik.handleSubmit}>
-            <Grid container spacing={2} sx={{ marginTop: 1 }}>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  id="id"
-                  name="id"
-                  label="ID"
-                  value={formik.values.id}
-                  InputProps={{
-                    readOnly: true,
-                  }}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  id="cnic"
-                  name="cnic"
-                  label="CNIC"
-                  value={formik.values.cnic}
-                  onChange={formik.handleChange}
-                  InputProps={{
-                    readOnly: true,
-                  }}
-                />
-              </Grid>
-
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  id="firstName"
-                  name="firstName"
-                  label="First Name"
-                  value={formik.values.firstName}
-                  onChange={formik.handleChange}
-                  error={
-                    formik.touched.firstName && Boolean(formik.errors.firstName)
-                  }
-                  helperText={
-                    formik.touched.firstName && formik.errors.firstName
-                  }
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  id="lastName"
-                  name="lastName"
-                  label="Last Name"
-                  value={formik.values.lastName}
-                  onChange={formik.handleChange}
-                  error={
-                    formik.touched.lastName && Boolean(formik.errors.lastName)
-                  }
-                  helperText={formik.touched.lastName && formik.errors.lastName}
-                />
-              </Grid>
-
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  id="usertype"
-                  name="usertype"
-                  label="User Type"
-                  value={formik.values.usertype}
-                  InputProps={{
-                    readOnly: true,
-                  }}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  id="contact"
-                  name="contact"
-                  label="Contact"
-                  value={formik.values.contact}
-                  onChange={formik.handleChange}
-                  error={
-                    formik.touched.contact && Boolean(formik.errors.contact)
-                  }
-                  helperText={formik.touched.contact && formik.errors.contact}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  id="email"
-                  name="email"
-                  label="Email"
-                  value={formik.values.email}
-                  onChange={formik.handleChange}
-                  error={formik.touched.email && Boolean(formik.errors.email)}
-                  helperText={formik.touched.email && formik.errors.email}
-                />
-              </Grid>
-
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  value={formik.values.password}
-                  onChange={formik.handleChange}
-                  error={
-                    formik.touched.password && Boolean(formik.errors.password)
-                  }
-                  endAdornment={
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickShowPassword}
-                        onMouseDown={handleMouseDownPassword}
-                        edge="end"
-                      >
-                        {showPassword ? (
-                          <VisibilityOutlinedIcon />
-                        ) : (
-                          <VisibilityOffOutlinedIcon />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  }
-                  label="Password"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Box
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  p={2}
-                  border="1px solid #ccc"
-                  borderRadius="8px"
-                >
-                  <img
-                    src={
-                      profilePicturePreview != null
-                        ? profilePicturePreview
-                        : `data:image/jpeg;base64,${user.profilePicture}`
-                    }
-                    alt="Profile Preview"
-                    style={{
-                      width: "50px",
-                      height: "50px",
-                      borderRadius: "50%",
-                      objectFit: "cover",
+    <>
+      <ToastNotification />
+      <Dialog
+        open={open}
+        onClose={onClose}
+        aria-describedby="edit-profile-dialog"
+        PaperProps={{
+          style: {
+            borderRadius: "12px",
+            padding: "4px",
+          },
+        }}
+        TransitionComponent={Transition}
+      >
+        <Box sx={{ p: 2 }}>
+          <DialogTitle variant="h3">Edit Profile</DialogTitle>
+          <DialogContent>
+            <form onSubmit={formik.handleSubmit}>
+              <Grid container spacing={2} sx={{ marginTop: 1 }}>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="id"
+                    name="id"
+                    label="ID"
+                    value={formik.values.id}
+                    InputProps={{
+                      readOnly: true,
                     }}
                   />
-                  <Box flexGrow={1} ml={2}>
-                    {newProfilePicture
-                      ? newProfilePictureName
-                      : "Profile Picture"}
-                  </Box>
-                  {newProfilePicture && (
-                    <IconButton
-                      onClick={handleRemoveProfilePicture}
-                      style={{ marginRight: "8px" }}
-                    >
-                      <CloseIcon />
-                    </IconButton>
-                  )}
-                  <Button variant="contained" component="label">
-                    Upload
-                    <input
-                      type="file"
-                      hidden
-                      accept="image/jpeg,image/png,image/jpg"
-                      onChange={handleProfilePictureChange}
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="cnic"
+                    name="cnic"
+                    label="CNIC"
+                    value={formik.values.cnic}
+                    onChange={formik.handleChange}
+                    InputProps={{
+                      readOnly: true,
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="firstName"
+                    name="firstName"
+                    label="First Name"
+                    value={formik.values.firstName}
+                    onChange={formik.handleChange}
+                    error={
+                      formik.touched.firstName &&
+                      Boolean(formik.errors.firstName)
+                    }
+                    helperText={
+                      formik.touched.firstName && formik.errors.firstName
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="lastName"
+                    name="lastName"
+                    label="Last Name"
+                    value={formik.values.lastName}
+                    onChange={formik.handleChange}
+                    error={
+                      formik.touched.lastName && Boolean(formik.errors.lastName)
+                    }
+                    helperText={
+                      formik.touched.lastName && formik.errors.lastName
+                    }
+                  />
+                </Grid>
+
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="usertype"
+                    name="usertype"
+                    label="User Type"
+                    value={formik.values.usertype}
+                    InputProps={{
+                      readOnly: true,
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="contact"
+                    name="contact"
+                    label="Contact"
+                    value={formik.values.contact}
+                    onChange={formik.handleChange}
+                    error={
+                      formik.touched.contact && Boolean(formik.errors.contact)
+                    }
+                    helperText={formik.touched.contact && formik.errors.contact}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="email"
+                    name="email"
+                    label="Email"
+                    value={formik.values.email}
+                    onChange={formik.handleChange}
+                    error={formik.touched.email && Boolean(formik.errors.email)}
+                    helperText={formik.touched.email && formik.errors.email}
+                  />
+                </Grid>
+
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formik.values.password}
+                    onChange={formik.handleChange}
+                    error={
+                      formik.touched.password && Boolean(formik.errors.password)
+                    }
+                    endAdornment={
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                          edge="end"
+                        >
+                          {showPassword ? (
+                            <VisibilityOutlinedIcon />
+                          ) : (
+                            <VisibilityOffOutlinedIcon />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    }
+                    label="Password"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    p={2}
+                    border="1px solid #ccc"
+                    borderRadius="8px"
+                  >
+                    <img
+                      src={
+                        profilePicturePreview != null
+                          ? profilePicturePreview
+                          : `data:image/jpeg;base64,${user.profilePicture}`
+                      }
+                      alt="Profile Preview"
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                      }}
                     />
-                  </Button>
-                </Box>
+                    <Box flexGrow={1} ml={2}>
+                      {newProfilePicture
+                        ? newProfilePictureName
+                        : "Profile Picture"}
+                    </Box>
+                    {newProfilePicture && (
+                      <IconButton
+                        onClick={handleRemoveProfilePicture}
+                        style={{ marginRight: "8px" }}
+                      >
+                        <CloseIcon />
+                      </IconButton>
+                    )}
+                    <Button variant="contained" component="label">
+                      Upload
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/jpeg,image/png,image/jpg"
+                        onChange={handleProfilePictureChange}
+                      />
+                    </Button>
+                  </Box>
+                </Grid>
               </Grid>
-            </Grid>
-            <DialogActions>
-              <Button color="primary" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button variant="contained" type="submit">
-                Save
-              </Button>
-            </DialogActions>
-          </form>
-        </DialogContent>
-      </Box>
-    </Dialog>
+              <DialogActions>
+                <Button color="primary" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button variant="contained" type="submit">
+                  Save
+                </Button>
+              </DialogActions>
+            </form>
+          </DialogContent>
+        </Box>
+      </Dialog>
+    </>
   );
 };
 

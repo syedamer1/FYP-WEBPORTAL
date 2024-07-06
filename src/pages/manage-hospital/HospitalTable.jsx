@@ -23,6 +23,8 @@ import OverLayLoader from "@components/OverlayLoader";
 import { PeopleAltOutlined as PeopleAltOutlinedIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "@utility";
+import ToastNotification, { emitToast } from "@components/ToastNotification";
+
 const HospitalTable = () => {
   const navigate = useNavigate();
   const [deleteHospitalId, setDeleteHospitalId] = useState(null);
@@ -38,10 +40,9 @@ const HospitalTable = () => {
     pageIndex: 0,
     pageSize: 10,
   });
-
+  const [totalCount, setTotalCount] = useState(0);
   const {
-    // eslint-disable-next-line no-unused-vars
-    data: { data = [], meta } = {}, // Initialize data as an empty array
+    data: { data = [], meta } = { data: [], meta: 0 }, // Initialize data as an empty array and meta as 0
     isError,
     isRefetching,
     isLoading,
@@ -56,58 +57,36 @@ const HospitalTable = () => {
       sorting,
     ],
     queryFn: async () => {
-      const fetchURL = new URL(
-        import.meta.env.VITE_REACT_APP_BASEURL + "/hospital/get"
-      );
+      try {
+        const fetchURL = new URL(
+          import.meta.env.VITE_REACT_APP_BASEURL + "/hospital/getTableData"
+        );
+        fetchURL.searchParams.set(
+          "start",
+          `${pagination.pageIndex * pagination.pageSize}`
+        );
+        fetchURL.searchParams.set("size", `${pagination.pageSize}`);
+        fetchURL.searchParams.set(
+          "filters",
+          JSON.stringify(columnFilters ?? [])
+        );
+        fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
+        fetchURL.searchParams.set("globalFilter", globalFilter ?? "");
 
-      // fetchURL.searchParams.set(
-      //   "start",
-      //   `${pagination.pageIndex * pagination.pageSize}`
-      // );
-      // fetchURL.searchParams.set("size", `${pagination.pageSize}`);
-      // fetchURL.searchParams.set("filters", JSON.stringify(columnFilters ?? []));
-      // fetchURL.searchParams.set("globalFilter", globalFilter ?? "");
-      // fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
+        const response = await axios.get(fetchURL.href);
+        setTotalCount(response.data.totalCount);
 
-      const response = await axios.get(fetchURL.href);
-
-      return {
-        data: response.data,
-        meta: response.meta,
-      };
+        return {
+          data: response.data.content,
+          meta: response.data.totalCount,
+        };
+      } catch (error) {
+        emitToast("Error fetching Hospital Records", "error");
+        throw new Error("Error fetching Hospital Records");
+      }
     },
   });
-  const [initialize, setInitialize] = useState(false);
-  function handleClick() {
-    var header = document.querySelector("header");
 
-    var computedStyle = window.getComputedStyle(header);
-    if (computedStyle.display === "flex") {
-      header.style.display = "none";
-    } else {
-      header.style.display = "flex";
-    }
-  }
-
-  function initializeButton() {
-    var button = document.querySelector(
-      'button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.css-riw2ar-MuiButtonBase-root-MuiIconButton-root[aria-label="Toggle full screen"]'
-    );
-
-    var header = document.querySelector("header");
-    header.style.display = "flex";
-
-    button.addEventListener("click", handleClick);
-  }
-
-  useEffect(() => {
-    if (!initialize) {
-      setTimeout(() => {
-        initializeButton();
-      }, 2000);
-      setInitialize(true);
-    }
-  }, []);
   const handleDeleteHospital = (hospitalId) => {
     setDeleteHospitalId(hospitalId);
     setIsDeleteDialogOpen(true);
@@ -131,7 +110,7 @@ const HospitalTable = () => {
         refetch();
       }
     } catch (error) {
-      console.error("Error deleting hospital:", error);
+      emitToast("Error deleting hospital:", "error");
     } finally {
       setIsDeleteDialogOpen(false);
       setDeleteHospitalId(null);
@@ -299,6 +278,23 @@ const HospitalTable = () => {
             <Button variant="contained" onClick={toggleAddHospitalDialog}>
               Add Hospital
             </Button>
+            <Button
+              variant="contained"
+              sx={{
+                color: "#ffffff",
+                borderColor: "#4caf50",
+                backgroundColor: "#4caf50",
+                "&:hover": {
+                  backgroundColor: "#388e3c",
+                  borderColor: "#388e3c",
+                },
+                ml: 2,
+              }}
+              startIcon={<PeopleAltOutlinedIcon sx={{ color: "#ffffff" }} />}
+              onClick={() => navigate(`/manage-hospital/patient-records`)}
+            >
+              View All Patients Records
+            </Button>
           </Box>
 
           <Box>
@@ -311,7 +307,7 @@ const HospitalTable = () => {
         </Box>
       </>
     ),
-    rowCount: 30,
+    rowCount: meta,
     state: {
       columnFilters,
       globalFilter,
@@ -322,10 +318,13 @@ const HospitalTable = () => {
       sorting,
       showLoadingOverlay: false,
     },
+    enableFullScreenToggle: false,
   });
 
   return (
     <>
+      <ToastNotification />
+
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ marginTop: "30px" }}>
           <MaterialReactTable table={table} />

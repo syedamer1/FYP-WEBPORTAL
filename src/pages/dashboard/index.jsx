@@ -26,7 +26,7 @@ import CustomCard from "@components/CustomCard";
 import FilterDrawer from "./Drawer";
 import CustomButton from "@components/CustomButtom";
 import CenteredAlert from "@components/CenteredAlert";
-import ScatterAggregateBar from "./ScatterAggregateBar";
+import OverLayLoader from "@components/OverlayLoader";
 import PieChartStatistics from "./PieChartStatistics";
 import DynamicTimeChart from "./DynamicTimeChart";
 import LineRaceChart from "./LineRaceChart";
@@ -59,6 +59,10 @@ const Dashboard = () => {
   const handleChange = (event, newValue) => {
     setValue(newValue);
     if (
+      filters.provinceIds.length !== 0 ||
+      filters.divisionIds.length !== 0 ||
+      filters.districtIds.length !== 0 ||
+      filters.tehsilIds.length !== 0 ||
       filters.hospitalIds.length !== 0 ||
       filters.admissionEndDate != null ||
       filters.admissionStartDate != null ||
@@ -226,6 +230,10 @@ const Dashboard = () => {
   const [selectedDisease, setSelectedDisease] = useState(null);
   const [disease, setDisease] = useState([]);
   const initialFilters = {
+    provinceIds: [],
+    divisionIds: [],
+    districtIds: [],
+    tehsilIds: [],
     hospitalIds: [],
     symptoms: [],
     admissionStartDate: null,
@@ -253,6 +261,9 @@ const Dashboard = () => {
     kidneyCount: 0,
     lungCount: 0,
   });
+  const [hospitalPatientCount, setHospitalPatientCount] = useState([
+    ["Patients", "Hospital"],
+  ]);
   const [barRaceSymptoms, setBarRaceSymptoms] = useState({
     feverCount: 0,
     highFeverCount: 0,
@@ -273,12 +284,9 @@ const Dashboard = () => {
     cardiacsCDCount: 0,
     kidneyCDCount: 0,
   });
-  const [scatterAggregateBarData, setScatterAggregateBarData] = useState({
-    femaleData: [],
-    maleData: [],
-  });
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useUser();
-
+  const [dataPresent, setDataPresent] = useState(false);
   const fetchDisease = debounce(async () => {
     try {
       const response = await axios.get(
@@ -300,13 +308,35 @@ const Dashboard = () => {
             }/dashboard/getDashboardData/${user.id}/${selectedDisease.id}`,
             updatedFilters
           );
+          setDataPresent(response.data.dataPresent);
           setStatisticCardData(response.data.statisticResponse);
           setDynamicTimeChartData(
             response.data.dynamicTimeChartData.dataPoints
           );
           setBarRaceSymptoms(response.data.barRaceSymptoms);
           setOrganChartData(response.data.organChartData);
-          setScatterAggregateBarData(response.data.scatterAggregateBar);
+          const newHospitalPatientCount = Array.isArray(
+            response.data.hospitalPatientCount
+          )
+            ? response.data.hospitalPatientCount.map((item) =>
+                Array.isArray(item) && item.length === 2 ? item : null
+              )
+            : // Filtering out invalid entries
+              [];
+
+          // Update the state with validated data
+          setHospitalPatientCount((prevState) => [
+            ...prevState,
+            ...newHospitalPatientCount,
+          ]);
+
+          // Update the state with validated data
+          setHospitalPatientCount((prevState) => [
+            ...prevState,
+            ...newHospitalPatientCount,
+          ]);
+
+          setIsLoading(false);
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -316,17 +346,19 @@ const Dashboard = () => {
   );
 
   useEffect(() => {
-    fetchDashboardData();
-    if (user.usertype === userType.superAdmin) {
-      fetchBarChartData("province");
-    } else if (user.usertype === userType.provinceAdmin) {
-      fetchBarChartData("division");
-    } else if (user.usertype === userType.divisionAdmin) {
-      fetchBarChartData("district");
-    } else if (user.usertype === userType.tehsilAdmin) {
-      fetchBarChartData("hospital");
-    } else if (user.usertype === userType.hospitalAdmin) {
-      fetchBarChartData("hospital");
+    if (selectedDisease != null) {
+      fetchDashboardData();
+      if (user.usertype === userType.superAdmin) {
+        fetchBarChartData("province");
+      } else if (user.usertype === userType.provinceAdmin) {
+        fetchBarChartData("division");
+      } else if (user.usertype === userType.divisionAdmin) {
+        fetchBarChartData("district");
+      } else if (user.usertype === userType.tehsilAdmin) {
+        fetchBarChartData("hospital");
+      } else if (user.usertype === userType.hospitalAdmin) {
+        fetchBarChartData("hospital");
+      }
     }
     if (selectedDisease == null) {
       fetchDisease();
@@ -335,6 +367,56 @@ const Dashboard = () => {
 
   const toggleFilterDrawer = () => {
     setFilterDrawerOpen(!drawerOpen);
+  };
+
+  const handleDiseaseChange = (event, newValue) => {
+    setSelectedDisease(newValue);
+    if (newValue != null) {
+      setIsLoading(true);
+      emitToast("Disease selected successfully", "success");
+      setDataPresent(false);
+      setStatisticCardData({
+        patientsTotalCount: 0,
+        patientsCount: 0,
+        patientsDeathsCount: 0,
+        patientsRecoveredCount: 0,
+        patientsChronicCount: 0,
+        femalePatientCount: 0,
+        malePatientCount: 0,
+        admissionStartDate: null,
+        admissionEndDate: null,
+      });
+      setOrganChartData({
+        heartCount: 0,
+        largeIntestineCount: 0,
+        smallIntestineCount: 0,
+        kidneyCount: 0,
+        lungCount: 0,
+      });
+      setBarRaceSymptoms({
+        feverCount: 0,
+        highFeverCount: 0,
+        hypertensionCount: 0,
+        cardiacCount: 0,
+        weaknessPainCount: 0,
+        respiratoryCount: 0,
+        cancerCount: 0,
+        thyroidCount: 0,
+        prostateCount: 0,
+        kidneyCount: 0,
+        neuroCount: 0,
+        nauseaCount: 0,
+        asymptomaticCount: 0,
+        gastrointestinalCount: 0,
+        orthoCount: 0,
+        respiratoryCDCount: 0,
+        cardiacsCDCount: 0,
+        kidneyCDCount: 0,
+      });
+      setHospitalPatientCount(["Patients", "Hospital"]);
+      setDynamicTimeChartData([]);
+      setBarChartData([]);
+    }
   };
 
   const handleFilterValue = (filtersValue) => {
@@ -410,6 +492,8 @@ const Dashboard = () => {
 
   return (
     <>
+      <OverLayLoader loading={isLoading} />
+
       <ToastNotification />
       {selectedDisease != null && (
         <>
@@ -450,12 +534,7 @@ const Dashboard = () => {
                 options={disease}
                 getOptionLabel={(option) => option.name}
                 value={selectedDisease}
-                onChange={(event, newValue) => {
-                  setSelectedDisease(newValue);
-                  if (newValue != null) {
-                    emitToast("Disease selected successfully", "success");
-                  }
-                }}
+                onChange={handleDiseaseChange}
                 isOptionEqualToValue={(option, value) => option.id === value.id}
                 renderInput={(params) => (
                   <TextField
@@ -491,282 +570,278 @@ const Dashboard = () => {
         </Grid>
         {selectedDisease != null ? (
           <>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
-              <DataCard
-                title="Population"
-                count={patientsCount || 0}
-                percentage={
-                  ((patientsCount / patientsTotalCount) * 100).toFixed(2) || 0
-                }
-                IconComponent={PeopleAltOutlinedIcon}
-                summarytitle="Time Period:"
-                summary={`${formatDatetoWordDate(
-                  admissionStartDate
-                )} ~ ${formatDatetoWordDate(admissionEndDate)}`}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
-              <DataCard
-                title="Recovered Patient"
-                count={patientsRecoveredCount || 0}
-                percentage={recoveryRate.toFixed(2) || 0}
-                IconComponent={LocalHospitalIcon}
-                summarytitle="Recovery Rate:"
-                summary={`${recoveryTrend} ${recoveryRate.toFixed(2) || 0}%`}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
-              <DataCard
-                title="Decreased Patient"
-                count={patientsDeathsCount || 0}
-                percentage={deathRate.toFixed(2) || 0}
-                IconComponent={PersonRemoveIcon}
-                summarytitle="Death Rate:"
-                summary={`${deathTrend} ${deathRate.toFixed(2) || 0}%`}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
-              <DataCard
-                title="Chronic Patient Population"
-                count={patientsChronicCount || 0}
-                percentage={chronicRate.toFixed(2) || 0}
-                IconComponent={PeopleAltOutlinedIcon}
-                summarytitle="Summary:"
-                summary={`${
-                  chronicRate.toFixed(2) || 0
-                }% Chronic Patients out of ${patientsTotalCount || 0}`}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={5} lg={4}>
-              <Typography variant="h5">
-                Pie Graph - Population Statistics
-              </Typography>
-              <CustomCard sx={{ mt: 2 }} content={false}>
-                <Box sx={{ p: 3, pb: 0 }}>
-                  <PieChartStatistics
-                    chartData={{
-                      recoveredPatient: patientsRecoveredCount,
-                      deathPatient: patientsDeathsCount,
-                    }}
+            {dataPresent ? (
+              <>
+                <Grid item xs={12} sm={6} md={4} lg={3}>
+                  <DataCard
+                    title="Population"
+                    count={patientsCount || 0}
+                    percentage={
+                      ((patientsCount / patientsTotalCount) * 100).toFixed(2) ||
+                      0
+                    }
+                    IconComponent={PeopleAltOutlinedIcon}
+                    summarytitle="Time Period:"
+                    summary={`${formatDatetoWordDate(
+                      admissionStartDate
+                    )} ~ ${formatDatetoWordDate(admissionEndDate)}`}
                   />
-                </Box>
-              </CustomCard>
-            </Grid>
-
-            {/* Bar Graph - Patient Population Statistics*/}
-            <Grid item xs={12} md={7} lg={8}>
-              <Typography variant="h5">
-                Bar Graph - Patient Population Statistics -{" "}
-                {value === tabIndices.province
-                  ? "Province"
-                  : value === tabIndices.division
-                  ? "Division"
-                  : value === tabIndices.district
-                  ? "District"
-                  : value === tabIndices.tehsil
-                  ? "Tehsil"
-                  : "Hospital"}
-              </Typography>
-              <CustomCard content={false} sx={{ mt: 1.5 }}>
-                <Tabs
-                  value={value}
-                  onChange={handleChange}
-                  aria-label="bar area tabs"
-                  variant="scrollable"
-                  scrollButtons="auto"
-                  sx={{ minHeight: "48px" }} // Adjust the height of the Tabs container
-                >
-                  {user.usertype === userType.superAdmin && (
-                    <Tab
-                      label="Province"
-                      icon={<LocationOnOutlined />}
-                      iconPosition="start"
-                      {...a11yProps(tabIndices.province)}
-                      sx={{ minHeight: "48px", minWidth: "100px" }} // Adjust the size of each Tab
-                    />
-                  )}
-                  {(user.usertype === userType.superAdmin ||
-                    user.usertype === userType.provinceAdmin) && (
-                    <Tab
-                      label="Division"
-                      icon={<AccountTreeOutlined />}
-                      iconPosition="start"
-                      {...a11yProps(tabIndices.division)}
-                      sx={{ minHeight: "48px", minWidth: "100px" }} // Adjust the size of each Tab
-                    />
-                  )}
-                  {(user.usertype === userType.superAdmin ||
-                    user.usertype === userType.provinceAdmin ||
-                    user.usertype === userType.divisionAdmin) && (
-                    <Tab
-                      label="District"
-                      icon={<BusinessOutlined />}
-                      iconPosition="start"
-                      {...a11yProps(tabIndices.district)}
-                      sx={{ minHeight: "48px", minWidth: "100px" }} // Adjust the size of each Tab
-                    />
-                  )}
-                  {(user.usertype === userType.superAdmin ||
-                    user.usertype === userType.provinceAdmin ||
-                    user.usertype === userType.divisionAdmin ||
-                    user.usertype === userType.districtAdmin) && (
-                    <Tab
-                      label="Tehsil"
-                      icon={<LocationCityOutlined />}
-                      iconPosition="start"
-                      {...a11yProps(tabIndices.tehsil)}
-                      sx={{ minHeight: "48px", minWidth: "100px" }} // Adjust the size of each Tab
-                    />
-                  )}
-                  {(user.usertype === userType.superAdmin ||
-                    user.usertype === userType.provinceAdmin ||
-                    user.usertype === userType.divisionAdmin ||
-                    user.usertype === userType.districtAdmin ||
-                    user.usertype === userType.tehsilAdmin) && (
-                    <Tab
-                      label="Hospital"
-                      icon={<LocalHospitalOutlined />}
-                      iconPosition="start"
-                      {...a11yProps(tabIndices.hospital)}
-                      sx={{ minHeight: "48px", minWidth: "100px" }} // Adjust the size of each Tab
-                    />
-                  )}
-                </Tabs>
-                {user.usertype === userType.superAdmin && (
-                  <TabPanel value={value} index={tabIndices.province}>
-                    <Box sx={{ pt: 1, pr: 2 }}>
-                      <BarChart BarChartdata={BarChartData} />
-                    </Box>
-                  </TabPanel>
-                )}
-                {(user.usertype === userType.superAdmin ||
-                  user.usertype === userType.provinceAdmin) && (
-                  <TabPanel value={value} index={tabIndices.division}>
-                    <Box sx={{ pt: 1, pr: 2 }}>
-                      <BarChart BarChartdata={BarChartData} />
-                    </Box>
-                  </TabPanel>
-                )}
-                {(user.usertype === userType.superAdmin ||
-                  user.usertype === userType.provinceAdmin ||
-                  user.usertype === userType.divisionAdmin) && (
-                  <TabPanel value={value} index={tabIndices.district}>
-                    <Box sx={{ pt: 1, pr: 2 }}>
-                      <BarChart BarChartdata={BarChartData} />
-                    </Box>
-                  </TabPanel>
-                )}
-                {(user.usertype === userType.superAdmin ||
-                  user.usertype === userType.provinceAdmin ||
-                  user.usertype === userType.divisionAdmin ||
-                  user.usertype === userType.districtAdmin) && (
-                  <TabPanel value={value} index={tabIndices.tehsil}>
-                    <Box sx={{ pt: 1, pr: 2 }}>
-                      <BarChart BarChartdata={BarChartData} />
-                    </Box>
-                  </TabPanel>
-                )}
-                {(user.usertype === userType.superAdmin ||
-                  user.usertype === userType.provinceAdmin ||
-                  user.usertype === userType.divisionAdmin ||
-                  user.usertype === userType.districtAdmin ||
-                  user.usertype === userType.tehsilAdmin) && (
-                  <TabPanel value={value} index={tabIndices.hospital}>
-                    <Box sx={{ pt: 1, pr: 2 }}>
-                      <BarChart BarChartdata={BarChartData} />
-                    </Box>
-                  </TabPanel>
-                )}
-              </CustomCard>
-            </Grid>
-            <Grid item xs={12} md={5} lg={7}>
-              <Typography variant="h5">Bar Race - Symptoms</Typography>
-              <CustomCard sx={{ mt: 2 }} content={false}>
-                <Box sx={{ p: 3, pb: 0 }}>
-                  <BarRaceSymptoms data={barRaceSymptoms} />
-                </Box>
-              </CustomCard>
-            </Grid>
-            <Grid item xs={12} md={5} lg={5}>
-              <Typography variant="h5">
-                Pie Graph - Gender Statistics
-              </Typography>
-              <CustomCard sx={{ mt: 2 }} content={false}>
-                <Box sx={{ textAlign: "center" }}>
-                  <Box sx={{ p: 3, pb: 0 }}>
-                    <PieChartStatisticsGender
-                      chartData={{
-                        malePatient: statisticCardData.malePatientCount,
-                        femalePatient: statisticCardData.femalePatientCount,
-                      }}
-                    />
-                  </Box>
-                </Box>
-              </CustomCard>
-            </Grid>
-            <Grid item xs={12} md={7} lg={8}>
-              <Typography variant="h5">
-                Line Race - Hospital Patient Count
-              </Typography>
-              <CustomCard content={false} sx={{ mt: 1.5 }}>
-                <Box sx={{ pt: 1, pr: 2 }}>
-                  <LineRaceChart />
-                </Box>
-              </CustomCard>
-            </Grid>
-
-            {/* <Grid item xs={12} md={5} lg={4}>
-              <Typography variant="h5">
-                Scatter Aggregate Bar - Plot of Age and Death
-              </Typography>
-              <CustomCard sx={{ mt: 2 }} content={false}>
-                <Box sx={{ p: 3, pb: 0 }}>
-                  <ScatterAggregateBar
-                    femaleData={scatterAggregateBarData.femaleData}
-                    maleData={scatterAggregateBarData.maleData}
-                  />
-                </Box>
-              </CustomCard>
-            </Grid> */}
-            <Grid item xs={12} md={5} lg={4}>
-              <Typography variant="h5">
-                Dynamic Time Wise Patient Count
-              </Typography>
-              <CustomCard sx={{ mt: 2 }} content={false}>
-                <Box sx={{ p: 3, pb: 0 }}>
-                  <DynamicTimeChart chartData={DynamicTimeChartData} />
-                </Box>
-              </CustomCard>
-            </Grid>
-            <Grid item xs={12} md={7} lg={12}>
-              <Grid
-                container
-                alignItems="center"
-                justifyContent="space-between"
-              >
-                <Grid item>
-                  <Typography variant="h5">
-                    Organ Health Overview Chart{" "}
-                  </Typography>
                 </Grid>
-              </Grid>
-              <CustomCard sx={{ mt: 2 }} content={false}>
-                <Box sx={{ p: 3, pb: 0, textAlign: "center" }}>
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "480px",
-                    }}
+                <Grid item xs={12} sm={6} md={4} lg={3}>
+                  <DataCard
+                    title="Recovered Patient"
+                    count={patientsRecoveredCount || 0}
+                    percentage={recoveryRate.toFixed(2) || 0}
+                    IconComponent={LocalHospitalIcon}
+                    summarytitle="Recovery Rate:"
+                    summary={`${recoveryTrend} ${
+                      recoveryRate.toFixed(2) || 0
+                    }%`}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={4} lg={3}>
+                  <DataCard
+                    title="Decreased Patient"
+                    count={patientsDeathsCount || 0}
+                    percentage={deathRate.toFixed(2) || 0}
+                    IconComponent={PersonRemoveIcon}
+                    summarytitle="Death Rate:"
+                    summary={`${deathTrend} ${deathRate.toFixed(2) || 0}%`}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={4} lg={3}>
+                  <DataCard
+                    title="Chronic Patient Population"
+                    count={patientsChronicCount || 0}
+                    percentage={chronicRate.toFixed(2) || 0}
+                    IconComponent={PeopleAltOutlinedIcon}
+                    summarytitle="Summary:"
+                    summary={`${
+                      chronicRate.toFixed(2) || 0
+                    }% Chronic Patients out of ${patientsTotalCount || 0}`}
+                  />
+                </Grid>
+                <Grid item xs={12} md={5} lg={4}>
+                  <Typography variant="h5">
+                    Pie Graph - Population Statistics
+                  </Typography>
+                  <CustomCard sx={{ mt: 2 }} content={false}>
+                    <Box sx={{ p: 3, pb: 0 }}>
+                      <PieChartStatistics
+                        chartData={{
+                          recoveredPatient: patientsRecoveredCount,
+                          deathPatient: patientsDeathsCount,
+                        }}
+                      />
+                    </Box>
+                  </CustomCard>
+                </Grid>
+                <Grid item xs={12} md={7} lg={8}>
+                  <Typography variant="h5">
+                    Bar Graph - Patient Population Statistics -
+                    {value === tabIndices.province
+                      ? "Province"
+                      : value === tabIndices.division
+                      ? "Division"
+                      : value === tabIndices.district
+                      ? "District"
+                      : value === tabIndices.tehsil
+                      ? "Tehsil"
+                      : "Hospital"}
+                  </Typography>
+                  <CustomCard content={false} sx={{ mt: 1.5 }}>
+                    <Tabs
+                      value={value}
+                      onChange={handleChange}
+                      aria-label="bar area tabs"
+                      variant="scrollable"
+                      scrollButtons="auto"
+                      sx={{ minHeight: "48px" }}
+                    >
+                      {user.usertype === userType.superAdmin && (
+                        <Tab
+                          label="Province"
+                          icon={<LocationOnOutlined />}
+                          iconPosition="start"
+                          {...a11yProps(tabIndices.province)}
+                          sx={{ minHeight: "48px", minWidth: "100px" }}
+                        />
+                      )}
+                      {(user.usertype === userType.superAdmin ||
+                        user.usertype === userType.provinceAdmin) && (
+                        <Tab
+                          label="Division"
+                          icon={<AccountTreeOutlined />}
+                          iconPosition="start"
+                          {...a11yProps(tabIndices.division)}
+                          sx={{ minHeight: "48px", minWidth: "100px" }}
+                        />
+                      )}
+                      {(user.usertype === userType.superAdmin ||
+                        user.usertype === userType.provinceAdmin ||
+                        user.usertype === userType.divisionAdmin) && (
+                        <Tab
+                          label="District"
+                          icon={<BusinessOutlined />}
+                          iconPosition="start"
+                          {...a11yProps(tabIndices.district)}
+                          sx={{ minHeight: "48px", minWidth: "100px" }}
+                        />
+                      )}
+                      {(user.usertype === userType.superAdmin ||
+                        user.usertype === userType.provinceAdmin ||
+                        user.usertype === userType.divisionAdmin ||
+                        user.usertype === userType.districtAdmin) && (
+                        <Tab
+                          label="Tehsil"
+                          icon={<LocationCityOutlined />}
+                          iconPosition="start"
+                          {...a11yProps(tabIndices.tehsil)}
+                          sx={{ minHeight: "48px", minWidth: "100px" }}
+                        />
+                      )}
+                      {(user.usertype === userType.superAdmin ||
+                        user.usertype === userType.provinceAdmin ||
+                        user.usertype === userType.divisionAdmin ||
+                        user.usertype === userType.districtAdmin ||
+                        user.usertype === userType.tehsilAdmin) && (
+                        <Tab
+                          label="Hospital"
+                          icon={<LocalHospitalOutlined />}
+                          iconPosition="start"
+                          {...a11yProps(tabIndices.hospital)}
+                          sx={{ minHeight: "48px", minWidth: "100px" }}
+                        />
+                      )}
+                    </Tabs>
+                    {user.usertype === userType.superAdmin && (
+                      <TabPanel value={value} index={tabIndices.province}>
+                        <Box sx={{ pt: 1, pr: 2 }}>
+                          <BarChart BarChartdata={BarChartData} />
+                        </Box>
+                      </TabPanel>
+                    )}
+                    {(user.usertype === userType.superAdmin ||
+                      user.usertype === userType.provinceAdmin) && (
+                      <TabPanel value={value} index={tabIndices.division}>
+                        <Box sx={{ pt: 1, pr: 2 }}>
+                          <BarChart BarChartdata={BarChartData} />
+                        </Box>
+                      </TabPanel>
+                    )}
+                    {(user.usertype === userType.superAdmin ||
+                      user.usertype === userType.provinceAdmin ||
+                      user.usertype === userType.divisionAdmin) && (
+                      <TabPanel value={value} index={tabIndices.district}>
+                        <Box sx={{ pt: 1, pr: 2 }}>
+                          <BarChart BarChartdata={BarChartData} />
+                        </Box>
+                      </TabPanel>
+                    )}
+                    {(user.usertype === userType.superAdmin ||
+                      user.usertype === userType.provinceAdmin ||
+                      user.usertype === userType.divisionAdmin ||
+                      user.usertype === userType.districtAdmin) && (
+                      <TabPanel value={value} index={tabIndices.tehsil}>
+                        <Box sx={{ pt: 1, pr: 2 }}>
+                          <BarChart BarChartdata={BarChartData} />
+                        </Box>
+                      </TabPanel>
+                    )}
+                    {(user.usertype === userType.superAdmin ||
+                      user.usertype === userType.provinceAdmin ||
+                      user.usertype === userType.divisionAdmin ||
+                      user.usertype === userType.districtAdmin ||
+                      user.usertype === userType.tehsilAdmin) && (
+                      <TabPanel value={value} index={tabIndices.hospital}>
+                        <Box sx={{ pt: 1, pr: 2 }}>
+                          <BarChart BarChartdata={BarChartData} />
+                        </Box>
+                      </TabPanel>
+                    )}
+                  </CustomCard>
+                </Grid>
+                <Grid item xs={12} md={5} lg={7}>
+                  <Typography variant="h5">Bar Race - Symptoms</Typography>
+                  <CustomCard sx={{ mt: 2 }} content={false}>
+                    <Box sx={{ p: 3, pb: 0 }}>
+                      <BarRaceSymptoms data={barRaceSymptoms} />
+                    </Box>
+                  </CustomCard>
+                </Grid>
+                <Grid item xs={12} md={5} lg={5}>
+                  <Typography variant="h5">
+                    Pie Graph - Gender Statistics
+                  </Typography>
+                  <CustomCard sx={{ mt: 2 }} content={false}>
+                    <Box sx={{ textAlign: "center" }}>
+                      <Box sx={{ p: 3, pb: 0 }}>
+                        <PieChartStatisticsGender
+                          chartData={{
+                            malePatient: statisticCardData.malePatientCount,
+                            femalePatient: statisticCardData.femalePatientCount,
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  </CustomCard>
+                </Grid>
+                <Grid item xs={12} md={7} lg={8}>
+                  <Typography variant="h5">
+                    Line Race - Hospital Patient Count
+                  </Typography>
+                  <CustomCard content={false} sx={{ mt: 1.5 }}>
+                    <Box sx={{ pt: 1, pr: 2 }}>
+                      <LineRaceChart chartData={hospitalPatientCount} />
+                    </Box>
+                  </CustomCard>
+                </Grid>
+                <Grid item xs={12} md={5} lg={4}>
+                  <Typography variant="h5">
+                    Dynamic Time Wise Patient Count
+                  </Typography>
+                  <CustomCard sx={{ mt: 2 }} content={false}>
+                    <Box sx={{ p: 3, pb: 0 }}>
+                      <DynamicTimeChart chartData={DynamicTimeChartData} />
+                    </Box>
+                  </CustomCard>
+                </Grid>
+                <Grid item xs={12} md={7} lg={12}>
+                  <Grid
+                    container
+                    alignItems="center"
+                    justifyContent="space-between"
                   >
-                    <OrganDataChart OrganChartData={organChartData} />
-                  </div>
-                </Box>
-              </CustomCard>
-            </Grid>
+                    <Grid item>
+                      <Typography variant="h5">
+                        Organ Health Overview Chart
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                  <CustomCard sx={{ mt: 2 }} content={false}>
+                    <Box sx={{ p: 3, pb: 0, textAlign: "center" }}>
+                      <div style={{ width: "100%", height: "480px" }}>
+                        <OrganDataChart OrganChartData={organChartData} />
+                      </div>
+                    </Box>
+                  </CustomCard>
+                </Grid>
+              </>
+            ) : (
+              <Grid item xs={12}>
+                <CenteredAlert
+                  title={
+                    isLoading == true
+                      ? "Patients Records is Loading"
+                      : "Patient Records for this Disease are not Present"
+                  }
+                  color={isLoading == true ? "#ffcc00" : "red"}
+                />
+              </Grid>
+            )}
           </>
         ) : (
-          <CenteredAlert />
+          <CenteredAlert title="Select Disease to view Real Time Analytics" />
         )}
       </Grid>
     </>

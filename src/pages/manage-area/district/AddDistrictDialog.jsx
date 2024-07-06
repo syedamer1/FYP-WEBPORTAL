@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -9,18 +9,15 @@ import {
   Box,
   Grid,
   Autocomplete,
+  Slide,
 } from "@mui/material";
 import axios from "axios";
 import PropTypes from "prop-types";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 const AddDistrictDialog = ({ open, onClose, refresh }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    division: null,
-  });
-  const [divisionOptions, setDivisionOptions] = useState([
-    { id: "", name: "" },
-  ]);
+  const [divisionOptions, setDivisionOptions] = useState([]);
 
   useEffect(() => {
     const fetchDivisionOptions = async () => {
@@ -36,51 +33,45 @@ const AddDistrictDialog = ({ open, onClose, refresh }) => {
     fetchDivisionOptions();
   }, []);
 
-  const handleInputChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  }, []);
-
-  const handleDivisionChange = (event, newValue) => {
-    if (!newValue) {
-      setFormData((prevData) => ({
-        ...prevData,
-        division: { id: "", name: "" },
-      }));
-    } else {
-      setFormData((prevData) => ({
-        ...prevData,
-        division: newValue,
-      }));
-    }
-  };
-
-  const handleSubmit = async () => {
-    try {
-      await axios.post(
-        import.meta.env.VITE_REACT_APP_BASEURL + "/district/add",
-        formData
-      );
-      setFormData({
-        name: "",
-        division: { id: "", name: "" },
-      });
-      refresh();
-      onClose();
-    } catch (error) {
-      console.error("Error creating district:", error);
-    }
-  };
+  const formik = useFormik({
+    initialValues: {
+      name: "",
+      division: null,
+    },
+    validationSchema: Yup.object({
+      name: Yup.string().required("Name is required"),
+      division: Yup.object()
+        .required("Division is required")
+        .shape({
+          id: Yup.string().required("Division ID is required"),
+          name: Yup.string().required("Division name is required"),
+        }),
+    }),
+    onSubmit: async (values) => {
+      try {
+        await axios.post(
+          import.meta.env.VITE_REACT_APP_BASEURL + "/district/add",
+          values
+        );
+        formik.resetForm();
+        refresh();
+        onClose();
+      } catch (error) {
+        console.error("Error creating district:", error);
+      }
+    },
+  });
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      TransitionComponent={(props) => <Slide direction="up" {...props} />}
+    >
       <Box sx={{ p: 2 }}>
         <DialogTitle variant="h3">Add District</DialogTitle>
         <DialogContent>
-          <Box component="form" noValidate>
+          <Box component="form" noValidate onSubmit={formik.handleSubmit}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
@@ -90,8 +81,11 @@ const AddDistrictDialog = ({ open, onClose, refresh }) => {
                   type="text"
                   fullWidth
                   variant="outlined"
-                  value={formData.name}
-                  onChange={handleInputChange}
+                  value={formik.values.name}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  error={formik.touched.name && Boolean(formik.errors.name)}
+                  helperText={formik.touched.name && formik.errors.name}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -99,8 +93,11 @@ const AddDistrictDialog = ({ open, onClose, refresh }) => {
                   fullWidth
                   disablePortal
                   id="division-autocomplete"
-                  value={formData.division}
-                  onChange={handleDivisionChange}
+                  value={formik.values.division}
+                  onChange={(event, newValue) => {
+                    formik.setFieldValue("division", newValue);
+                  }}
+                  onBlur={() => formik.setFieldTouched("division", true)}
                   options={divisionOptions}
                   getOptionLabel={(option) => option.name || ""}
                   renderInput={(params) => (
@@ -108,6 +105,14 @@ const AddDistrictDialog = ({ open, onClose, refresh }) => {
                       {...params}
                       label="Division"
                       variant="outlined"
+                      error={
+                        formik.touched.division &&
+                        Boolean(formik.errors.division)
+                      }
+                      helperText={
+                        formik.touched.division &&
+                        (formik.errors.division?.name || formik.errors.division)
+                      }
                     />
                   )}
                 />
@@ -117,7 +122,11 @@ const AddDistrictDialog = ({ open, onClose, refresh }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
-          <Button variant="contained" onClick={handleSubmit}>
+          <Button
+            variant="contained"
+            onClick={formik.handleSubmit}
+            disabled={!formik.dirty || !formik.isValid}
+          >
             Add
           </Button>
         </DialogActions>

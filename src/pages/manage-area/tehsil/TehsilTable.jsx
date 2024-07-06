@@ -183,16 +183,16 @@ const TehsilTable = () => {
                   startIcon={<EditIcon />}
                   onClick={() => toggleEditTehsilDialog(row.original)}
                 >
-                  Edit{" "}
-                </Button>{" "}
+                  Edit
+                </Button>
                 <Button
                   variant="outlined"
                   color="error"
                   startIcon={<DeleteIcon />}
                   onClick={() => handleDeleteTehsil(row.original.id)}
                 >
-                  Delete{" "}
-                </Button>{" "}
+                  Delete
+                </Button>
               </Box>
             ),
           },
@@ -208,6 +208,7 @@ const TehsilTable = () => {
     initialState: {
       showColumnFilters: true,
     },
+    enableFullScreenToggle: false,
     manualFiltering: true,
     manualPagination: true,
     manualSorting: true,
@@ -238,17 +239,17 @@ const TehsilTable = () => {
               variant="contained"
               onClick={toggleAddTehsilDialog}
             >
-              Add Tehsil{" "}
-            </Button>{" "}
+              Add Tehsil
+            </Button>
           </Box>
           <Box>
             <Tooltip arrow title="Refresh Data">
               <IconButton onClick={() => refetch()}>
                 <RefreshIcon />
-              </IconButton>{" "}
-            </Tooltip>{" "}
-          </Box>{" "}
-        </Box>{" "}
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
       </>
     ),
     rowCount: 500,
@@ -272,18 +273,18 @@ const TehsilTable = () => {
             marginTop: "30px",
           }}
         >
-          <MaterialReactTable table={table} />{" "}
-          <OverLayLoader loading={isLoading} />{" "}
+          <MaterialReactTable table={table} />
+          <OverLayLoader loading={isLoading} />
           <DeleteConfirmation
             open={isDeleteDialogOpen}
             onClose={toggleDeleteDialog}
             onDelete={deleteTehsilFromServer}
-          />{" "}
+          />
           <AddTehsilDialog
             open={isAddTehsilDialogOpen}
             onClose={toggleAddTehsilDialog}
             refresh={refetch}
-          />{" "}
+          />
           {isEditTehsilDialogOpen && selectedTehsil && (
             <EditTehsilDialog
               open={isEditTehsilDialogOpen}
@@ -291,9 +292,9 @@ const TehsilTable = () => {
               tehsil={selectedTehsil}
               refresh={refetch}
             />
-          )}{" "}
-        </Box>{" "}
-      </LocalizationProvider>{" "}
+          )}
+        </Box>
+      </LocalizationProvider>
     </>
   );
 };

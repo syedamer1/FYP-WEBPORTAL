@@ -55,6 +55,10 @@ const MainRoutes = {
       path: "/manage-hospital/patient-records/:hospitalId",
       element: <PatientRecords />,
     },
+    {
+      path: "/manage-hospital/patient-records",
+      element: <PatientRecords />,
+    },
   ],
 };
 

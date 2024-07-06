@@ -1,28 +1,77 @@
-/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useEffect, useMemo, useState } from "react";
-import { Box, Button, lighten } from "@mui/material";
-import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { Box, Button, IconButton, Tooltip } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import axios from "axios";
+import {
+  AddLocation as AddLocationIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+} from "@mui/icons-material";
 import {
   MaterialReactTable,
   useMaterialReactTable,
-  MRT_GlobalFilterTextField,
-  MRT_ToggleFiltersButton,
 } from "material-react-table";
-import axios from "axios";
 import EditDiseaseDialog from "./EditDiseaseDialog";
-import DeleteConfirmation from "@components/DeleteConfirmation";
 import AddDiseaseDialog from "./AddDiseaseDialog";
+import DeleteConfirmation from "@components/DeleteConfirmation";
+import OverLayLoader from "@components/OverlayLoader";
 import { formatDate } from "@utility";
+
 const DiseaseTable = () => {
-  const [diseaseData, setDiseaseData] = useState([]);
   const [deleteDiseaseId, setDeleteDiseaseId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAddDiseaseDialogOpen, setIsAddDiseaseDialogOpen] = useState(false);
   const [isEditDiseaseDialogOpen, setIsEditDiseaseDialogOpen] = useState(false);
   const [selectedDisease, setSelectedDisease] = useState(null);
+  const [columnFilters, setColumnFilters] = useState([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [sorting, setSorting] = useState([]);
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const [totalCount, setTotalCount] = useState(0);
+
+  const {
+    data: { data = [], meta } = {}, // Initialize data as an empty array
+    isError,
+    isRefetching,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: [
+      "table-data",
+      columnFilters,
+      globalFilter,
+      pagination.pageIndex,
+      pagination.pageSize,
+      sorting,
+    ],
+    queryFn: async () => {
+      const fetchURL = new URL(
+        import.meta.env.VITE_REACT_APP_BASEURL + "/disease/getTableData"
+      );
+      fetchURL.searchParams.set(
+        "start",
+        `${pagination.pageIndex * pagination.pageSize}`
+      );
+      fetchURL.searchParams.set("size", `${pagination.pageSize}`);
+      fetchURL.searchParams.set("filters", JSON.stringify(columnFilters ?? []));
+      fetchURL.searchParams.set("sorting", JSON.stringify(sorting ?? []));
+      fetchURL.searchParams.set("globalFilter", globalFilter ?? "");
+      const response = await axios.get(fetchURL.href);
+      setTotalCount(response.data.totalCount);
+      return {
+        data: response.data.content,
+        meta: response.data.totalCount,
+      };
+    },
+  });
 
   const handleDeleteDisease = (diseaseId) => {
     setDeleteDiseaseId(diseaseId);
@@ -40,11 +89,11 @@ const DiseaseTable = () => {
     try {
       if (deleteDiseaseId) {
         await axios.delete(
-          `${
-            import.meta.env.VITE_REACT_APP_BASEURL
-          }/disease/delete/${deleteDiseaseId}`
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/disease/delete/" +
+            deleteDiseaseId
         );
-        fetchDiseaseData();
+        refetch();
       }
     } catch (error) {
       console.error("Error deleting disease:", error);
@@ -54,33 +103,13 @@ const DiseaseTable = () => {
     }
   };
 
-  const fetchDiseaseData = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_REACT_APP_BASEURL}/disease/get`
-      );
-      setDiseaseData(response.data);
-    } catch (error) {
-      console.error("Error fetching disease data:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (diseaseData.length == 0) {
-      fetchDiseaseData();
-    }
-  }, [diseaseData]);
   const toggleEditDiseaseDialog = (disease) => {
     setSelectedDisease(disease);
     setIsEditDiseaseDialogOpen((prevOpen) => !prevOpen);
   };
 
-  const handleAddDiseaseDialog = () => {
-    setIsAddDiseaseDialogOpen(true);
-  };
-
-  const handleAddDiseaseDialogClose = () => {
-    setIsAddDiseaseDialogOpen(false);
+  const toggleAddDiseaseDialog = () => {
+    setIsAddDiseaseDialogOpen((prevOpen) => !prevOpen);
   };
 
   const columns = useMemo(
@@ -179,76 +208,87 @@ const DiseaseTable = () => {
 
   const table = useMaterialReactTable({
     columns,
-    data: diseaseData,
-    enableColumnFilterModes: true,
-    enableColumnOrdering: true,
-    enableGrouping: false,
-    enableColumnPinning: true,
-    enableFacetedValues: true,
-    enableRowActions: false,
-    enableRowSelection: false,
-    initialState: { showColumnFilters: true, showGlobalFilter: true },
-
-    paginationDisplayMode: "pages",
-    positionToolbarAlertBanner: "bottom",
-    muiSearchTextFieldProps: {
-      size: "small",
-      variant: "outlined",
-    },
-    muiPaginationProps: {
-      color: "secondary",
-      rowsPerPageOptions: [5, 10, 20, 30],
-      shape: "rounded",
-      variant: "outlined",
-    },
-    renderTopToolbar: ({ table }) => {
-      return (
+    data,
+    initialState: { showColumnFilters: true },
+    manualFiltering: true,
+    manualPagination: true,
+    manualSorting: true,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
+    onSortingChange: setSorting,
+    renderTopToolbarCustomActions: () => (
+      <>
         <Box
-          sx={(theme) => ({
-            backgroundColor: lighten(theme.palette.background.default, 0.05),
+          sx={{
             display: "flex",
-            gap: "0.5rem",
-            p: "8px",
             justifyContent: "space-between",
-          })}
+            alignItems: "center",
+            gap: 1,
+            marginLeft: 1,
+          }}
         >
-          <Box sx={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            <MRT_GlobalFilterTextField table={table} />
-            <MRT_ToggleFiltersButton table={table} />
-          </Box>
           <Box>
-            <Box sx={{ display: "flex", gap: "0.5rem" }}>
-              <Button variant="contained" onClick={handleAddDiseaseDialog}>
-                Add Disease
-              </Button>
-            </Box>
-            <AddDiseaseDialog
-              open={isAddDiseaseDialogOpen}
-              onClose={handleAddDiseaseDialogClose}
-            />
+            <Button
+              startIcon={<AddLocationIcon sx={{ fontSize: "0.5rem" }} />}
+              variant="contained"
+              onClick={toggleAddDiseaseDialog}
+            >
+              Add Disease
+            </Button>
+          </Box>
+
+          <Box>
+            <Tooltip arrow title="Refresh Data">
+              <IconButton onClick={() => refetch()}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Box>
-      );
+      </>
+    ),
+    rowCount: totalCount,
+    state: {
+      columnFilters,
+      globalFilter,
+      isLoading,
+      pagination,
+      showAlertBanner: false,
+      showProgressBars: isRefetching,
+      sorting,
+      showLoadingOverlay: false,
     },
+    enableFullScreenToggle: false,
   });
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <MaterialReactTable table={table} />
-      <DeleteConfirmation
-        open={isDeleteDialogOpen}
-        onClose={toggleDeleteDialog}
-        onDelete={deleteDiseaseFromServer}
-      />
-      {isEditDiseaseDialogOpen && selectedDisease && (
-        <EditDiseaseDialog
-          open={isEditDiseaseDialogOpen}
-          onClose={() => setIsEditDiseaseDialogOpen(false)}
-          disease={selectedDisease}
-          refresh={fetchDiseaseData}
-        />
-      )}
-    </LocalizationProvider>
+    <>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Box sx={{ marginTop: "30px" }}>
+          <MaterialReactTable table={table} />
+          <OverLayLoader loading={isLoading} />
+          <AddDiseaseDialog
+            open={isAddDiseaseDialogOpen}
+            onClose={toggleAddDiseaseDialog}
+            refresh={refetch}
+          />
+          <DeleteConfirmation
+            open={isDeleteDialogOpen}
+            onClose={toggleDeleteDialog}
+            onDelete={deleteDiseaseFromServer}
+          />
+          {isEditDiseaseDialogOpen && selectedDisease && (
+            <EditDiseaseDialog
+              open={isEditDiseaseDialogOpen}
+              onClose={() => setIsEditDiseaseDialogOpen(false)}
+              disease={selectedDisease}
+              refresh={refetch}
+            />
+          )}
+        </Box>
+      </LocalizationProvider>
+    </>
   );
 };
 

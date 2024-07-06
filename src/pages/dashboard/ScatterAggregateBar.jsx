@@ -103,7 +103,7 @@ const ScatterAggregateBar = ({ femaleData, maleData }) => {
     return () => {
       myChart.dispose();
     };
-  }, []);
+  }, [femaleData, maleData]);
 
   return (
     <div

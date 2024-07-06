@@ -22,7 +22,7 @@ const validationSchema = Yup.object().shape({
   causes: Yup.string().required("Causes are required"),
 });
 
-function AddDiseaseDialog({ open, onClose }) {
+function AddDiseaseDialog({ open, onClose, refresh }) {
   const [formData] = useState({
     name: "",
     description: "",
@@ -41,6 +41,7 @@ function AddDiseaseDialog({ open, onClose }) {
         console.error("Error sending data", error);
       })
       .finally(() => {
+        refresh();
         setSubmitting(false);
       });
   };
@@ -142,6 +143,7 @@ function AddDiseaseDialog({ open, onClose }) {
 AddDiseaseDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
 };
 
 export default AddDiseaseDialog;

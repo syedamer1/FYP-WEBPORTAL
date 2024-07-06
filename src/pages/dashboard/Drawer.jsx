@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
-import { debounce } from "lodash";
+import { debounce, set } from "lodash";
 
 import {
   Box,
@@ -16,6 +16,7 @@ import {
   useTheme,
   Chip,
   Button,
+  FormControlLabel,
 } from "@mui/material";
 import TuneIcon from "@mui/icons-material/Tune";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
@@ -41,6 +42,7 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
   const [selectedProvinces, setSelectedProvinces] = useState([]);
   const [selectedHospitals, setSelectedHospitals] = useState([]);
   const [ageRange, setAgeRange] = useState([1, 100]);
+  const [drillDown, setDrillDown] = useState(false); // Add this line
 
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [divisionOptions, setDivisionOptions] = useState([]);
@@ -49,18 +51,116 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
   const [hospitalOptions, setHospitalOptions] = useState([]);
   const { user } = useUser();
 
-  const fetchProvinces = debounce(async () => {
+  const fetchProvinces = debounce(
+    async () => {
+      try {
+        const response = await axios.get(
+          import.meta.env.VITE_REACT_APP_BASEURL + "/province/getIdAndName"
+        );
+        setProvinceOptions(response.data);
+        return response.data;
+      } catch (err) {
+        console.log(err);
+        return null;
+      }
+    },
+    drillDown ? 300 : 0
+  );
+
+  const fetchDivisions = debounce(
+    async (provinceIds) => {
+      try {
+        const response = await axios.get(
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/division/getDivisionsByProvinceIds",
+          {
+            params: { provinceIds: provinceIds.join(",") },
+          }
+        );
+        setDivisionOptions(response.data);
+        return response.data;
+      } catch (err) {
+        console.log(err);
+        return null;
+      }
+    },
+    drillDown ? 300 : 0
+  );
+
+  const fetchDistricts = debounce(
+    async (divisionIds) => {
+      try {
+        if (!drillDown) return null;
+
+        const response = await axios.get(
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/district/getDistrictsByDivisionIds",
+          {
+            params: { divisionIds: divisionIds.join(",") },
+          }
+        );
+        setDistrictOptions(response.data);
+        return response.data;
+      } catch (err) {
+        console.log(err);
+        return null;
+      }
+    },
+    drillDown ? 300 : 0
+  );
+
+  const fetchTehsils = debounce(
+    async (districtIds) => {
+      try {
+        const response = await axios.get(
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/tehsil/getTehsilsByDistrictIds",
+          {
+            params: { districtIds: districtIds.join(",") },
+          }
+        );
+        setTehsilOptions(response.data);
+        return response.data;
+      } catch (err) {
+        console.log(err);
+        return null; // Handle error gracefully
+      }
+    },
+    drillDown ? 300 : 0
+  );
+
+  const fetchHospitals = debounce(
+    async (tehsilIds) => {
+      try {
+        const response = await axios.get(
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            "/hospital/getHospitalsByTehsilIds",
+          {
+            params: { tehsilIds: tehsilIds.join(",") },
+          }
+        );
+        setHospitalOptions(response.data);
+      } catch (err) {
+        console.log(err);
+      }
+    },
+    drillDown ? 300 : 0
+  );
+
+  const fetchProvincesNoDebounce = async () => {
     try {
       const response = await axios.get(
         import.meta.env.VITE_REACT_APP_BASEURL + "/province/getIdAndName"
       );
       setProvinceOptions(response.data);
+      return response.data;
     } catch (err) {
       console.log(err);
+      return null;
     }
-  }, 300);
+  };
 
-  const fetchDivisions = debounce(async (provinceIds) => {
+  const fetchDivisionsNoDebounce = async (provinceIds) => {
     try {
       const response = await axios.get(
         import.meta.env.VITE_REACT_APP_BASEURL +
@@ -70,12 +170,14 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
         }
       );
       setDivisionOptions(response.data);
+      return response.data;
     } catch (err) {
       console.log(err);
+      return null;
     }
-  }, 300);
+  };
 
-  const fetchDistricts = debounce(async (divisionIds) => {
+  const fetchDistrictsNoDebounce = async (divisionIds) => {
     try {
       const response = await axios.get(
         import.meta.env.VITE_REACT_APP_BASEURL +
@@ -85,12 +187,14 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
         }
       );
       setDistrictOptions(response.data);
+      return response.data;
     } catch (err) {
       console.log(err);
+      return null;
     }
-  }, 300);
+  };
 
-  const fetchTehsils = debounce(async (districtIds) => {
+  const fetchTehsilsNoDebounce = async (districtIds) => {
     try {
       const response = await axios.get(
         import.meta.env.VITE_REACT_APP_BASEURL +
@@ -100,12 +204,14 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
         }
       );
       setTehsilOptions(response.data);
+      return response.data;
     } catch (err) {
       console.log(err);
+      return null;
     }
-  }, 300);
+  };
 
-  const fetchHospitals = debounce(async (tehsilIds) => {
+  const fetchHospitalsNoDebounce = async (tehsilIds) => {
     try {
       const response = await axios.get(
         import.meta.env.VITE_REACT_APP_BASEURL +
@@ -118,22 +224,96 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
     } catch (err) {
       console.log(err);
     }
-  }, 300);
+  };
 
-  useEffect(() => {
+  const fetchData = async (drillDown, open) => {
+    const fetchHierarchy = async (levels, ids) => {
+      if (levels.length === 0) return;
+      const [level, ...nextLevels] = levels;
+      const response = await level.fetch(ids);
+      if (response) {
+        const nextIds = response.map((item) => item.id);
+        await fetchHierarchy(nextLevels, nextIds);
+      }
+    };
+
     if (open) {
-      if (user.usertype === userType.superAdmin) {
-        fetchProvinces();
-      } else if (user.usertype === userType.provinceAdmin) {
-        fetchDivisions([user.province.id]);
-      } else if (user.usertype === userType.divisionAdmin) {
-        fetchDistricts([user.division.id]);
-      } else if (user.usertype === userType.districtAdmin) {
-        fetchTehsils([user.district.id]);
-      } else if (user.usertype === userType.tehsilAdmin) {
-        fetchHospitals([user.tehsil.id]);
+      if (drillDown) {
+        switch (user.usertype) {
+          case userType.superAdmin:
+            fetchProvinces();
+            break;
+          case userType.provinceAdmin:
+            fetchDivisions([user.province.id]);
+            break;
+          case userType.divisionAdmin:
+            fetchDistricts([user.division.id]);
+            break;
+          case userType.districtAdmin:
+            fetchTehsils([user.district.id]);
+            break;
+          case userType.tehsilAdmin:
+            fetchHospitals([user.tehsil.id]);
+            break;
+          default:
+            break;
+        }
+      } else {
+        switch (user.usertype) {
+          case userType.superAdmin:
+            await fetchHierarchy(
+              [
+                { fetch: fetchProvincesNoDebounce },
+                { fetch: fetchDivisionsNoDebounce },
+                { fetch: fetchDistrictsNoDebounce },
+                { fetch: fetchTehsilsNoDebounce },
+                { fetch: fetchHospitalsNoDebounce },
+              ],
+              []
+            );
+            break;
+          case userType.provinceAdmin:
+            await fetchHierarchy(
+              [
+                { fetch: fetchDivisionsNoDebounce },
+                { fetch: fetchDistrictsNoDebounce },
+                { fetch: fetchTehsilsNoDebounce },
+                { fetch: fetchHospitalsNoDebounce },
+              ],
+              [user.province.id]
+            );
+            break;
+          case userType.divisionAdmin:
+            await fetchHierarchy(
+              [
+                { fetch: fetchDistrictsNoDebounce },
+                { fetch: fetchTehsilsNoDebounce },
+                { fetch: fetchHospitalsNoDebounce },
+              ],
+              [user.division.id]
+            );
+            break;
+          case userType.districtAdmin:
+            await fetchHierarchy(
+              [
+                { fetch: fetchTehsilsNoDebounce },
+                { fetch: fetchHospitalsNoDebounce },
+              ],
+              [user.district.id]
+            );
+            break;
+          case userType.tehsilAdmin:
+            fetchHospitalsNoDebounce([user.tehsil.id]);
+            break;
+          default:
+            break;
+        }
       }
     }
+  };
+
+  useEffect(() => {
+    fetchData(drillDown, open);
   }, [open]);
 
   const handleProvinceSelect = (event, newValue) => {
@@ -142,11 +322,9 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
     setSelectedDistricts([]);
     setSelectedTehsils([]);
     setSelectedHospitals([]);
-    if (newValue.length) {
+    if (drillDown && newValue.length) {
       setDivisionOptions([]);
       fetchDivisions(newValue.map((province) => province.id));
-    } else {
-      setDivisionOptions([]);
     }
   };
 
@@ -155,11 +333,9 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
     setSelectedDistricts([]);
     setSelectedTehsils([]);
     setSelectedHospitals([]);
-    if (newValue.length) {
+    if (drillDown && newValue.length) {
       setDistrictOptions([]);
       fetchDistricts(newValue.map((division) => division.id));
-    } else {
-      setDistrictOptions([]);
     }
   };
 
@@ -167,22 +343,18 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
     setSelectedDistricts(newValue);
     setSelectedTehsils([]);
     setSelectedHospitals([]);
-    if (newValue.length) {
+    if (drillDown && newValue.length) {
       setTehsilOptions([]);
       fetchTehsils(newValue.map((district) => district.id));
-    } else {
-      setTehsilOptions([]);
     }
   };
 
   const handleTehsilSelect = (event, newValue) => {
     setSelectedTehsils(newValue);
     setSelectedHospitals([]);
-    if (newValue.length) {
+    if (drillDown && newValue.length) {
       setHospitalOptions([]);
       fetchHospitals(newValue.map((tehsil) => tehsil.id));
-    } else {
-      setHospitalOptions([]);
     }
   };
 
@@ -207,6 +379,10 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
     setSelectedGender(null);
     setAgeRange([1, 100]);
     handleFilterValue({
+      provinceIds: [],
+      divisionIds: [],
+      districtIds: [],
+      tehsilIds: [],
       hospitalIds: [],
       symptoms: [],
       admissionStartDate: null,
@@ -215,6 +391,7 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
       ageStart: 1,
       ageEnd: 100,
     });
+    setDrillDown(false);
   };
   const handleClose = () => {
     onClose();
@@ -260,6 +437,13 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
       hospitalIds = [user.hospital.id];
     }
     handleFilterValue({
+      provinceIds:
+        selectedProvinces.length !== 0
+          ? selectedProvinces.map((province) => province.id)
+          : [],
+      divisionIds: selectedDivisions.length !== 0 ? selectedDivisions : [],
+      districtIds: selectedDistricts.length !== 0 ? selectedDistricts : [],
+      tehsilIds: selectedTehsils.length !== 0 ? selectedTehsils : [],
       hospitalIds: hospitalIds,
       symptoms:
         selectedSymptoms.length !== 0
@@ -273,6 +457,20 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
       ageEnd: ageRange != null ? ageRange[1] : 100,
     });
     handleClose();
+  };
+  const handleDrillDownCheck = (event) => {
+    setProvinceOptions([]);
+    setDivisionOptions([]);
+    setDistrictOptions([]);
+    setTehsilOptions([]);
+    setHospitalOptions([]);
+    setSelectedProvinces([]);
+    setSelectedDivisions([]);
+    setSelectedDistricts([]);
+    setSelectedTehsils([]);
+    setSelectedHospitals([]);
+    setDrillDown(event.target.checked);
+    fetchData(event.target.checked, open);
   };
 
   return (
@@ -316,6 +514,12 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
             <CloseIcon />
           </IconButton>
         </Box>
+        <FormControlLabel
+          control={
+            <Checkbox checked={drillDown} onChange={handleDrillDownCheck} />
+          }
+          label="Drill Down Option"
+        />
         {user.usertype === userType.superAdmin && (
           <>
             <DrawerAutoComplete
@@ -335,6 +539,7 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
               onChange={handleDivisionSelect}
               title="Division"
               disabled={
+                drillDown &&
                 selectedProvinces.length === 0 &&
                 user.usertype === userType.superAdmin
               }
@@ -351,6 +556,7 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
               onChange={handleDistrictSelect}
               title="District"
               disabled={
+                drillDown &&
                 selectedDivisions.length === 0 &&
                 (user.usertype === userType.superAdmin ||
                   user.usertype === userType.provinceAdmin)
@@ -369,6 +575,7 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
               onChange={handleTehsilSelect}
               title="Tehsil"
               disabled={
+                drillDown &&
                 selectedDistricts.length === 0 &&
                 (user.usertype === userType.superAdmin ||
                   user.usertype === userType.provinceAdmin ||
@@ -389,6 +596,7 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
               onChange={handleHospitalSelect}
               title="Hospital"
               disabled={
+                drillDown &&
                 selectedTehsils.length === 0 &&
                 (user.usertype === userType.superAdmin ||
                   user.usertype === userType.provinceAdmin ||

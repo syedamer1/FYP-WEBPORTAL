@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import PropTypes from "prop-types";
+import ToastNotification, { emitToast } from "@components/ToastNotification";
 
 const AddHospitalDialog = ({ open, onClose, refresh }) => {
   const [formData, setFormData] = useState({
@@ -24,18 +25,20 @@ const AddHospitalDialog = ({ open, onClose, refresh }) => {
   const [tehsilOptions, setTehsilOptions] = useState([]);
 
   useEffect(() => {
-    const fetchTehsilOptions = async () => {
-      try {
-        const response = await axios.get(
-          import.meta.env.VITE_REACT_APP_BASEURL + "/tehsil/getIdAndName"
-        );
-        setTehsilOptions(response.data);
-      } catch (error) {
-        console.error("Error fetching tehsils:", error);
-      }
-    };
-    fetchTehsilOptions();
-  }, []);
+    if (open) {
+      const fetchTehsilOptions = async () => {
+        try {
+          const response = await axios.get(
+            import.meta.env.VITE_REACT_APP_BASEURL + "/tehsil/getIdAndName"
+          );
+          setTehsilOptions(response.data);
+        } catch (error) {
+          emitToast("Error fetching Tehsils Options", "error");
+        }
+      };
+      fetchTehsilOptions();
+    }
+  }, [open]);
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -74,13 +77,15 @@ const AddHospitalDialog = ({ open, onClose, refresh }) => {
       });
       refresh();
       onClose();
+      emitToast("Hospital Added Successfully", "success");
     } catch (error) {
-      console.error("Error creating hospital:", error);
+      emitToast("Error adding new Hospital Record", "error");
     }
   };
 
   return (
     <>
+      <ToastNotification />
       <Dialog open={open} onClose={onClose}>
         <Box sx={{ p: 2 }}>
           <DialogTitle variant="h3">Add Hospital</DialogTitle>

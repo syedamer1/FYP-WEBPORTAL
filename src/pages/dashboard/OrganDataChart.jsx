@@ -15,100 +15,118 @@ const OrganDataChart = ({ OrganChartData }) => {
 
       let option;
 
-      const response = await fetch(VeinsMedicalSVG);
-      const svgText = await response.text();
+      try {
+        const response = await fetch(VeinsMedicalSVG);
+        const svgText = await response.text();
 
-      if (svgText) {
-        echarts.registerMap("organ_diagram", { svg: svgText });
-        option = {
-          tooltip: {},
-          geo: {
-            left: 10,
-            right: "50%",
-            map: "organ_diagram",
-            selectedMode: "multiple",
-            emphasis: {
-              focus: "self",
-              itemStyle: {
-                color: null,
-              },
-              label: {
-                position: "bottom",
-                distance: 0,
-                textBorderColor: "#fff",
-                textBorderWidth: 2,
-              },
-            },
-            blur: {},
-            select: {
-              itemStyle: {
-                color: "#b50205",
-              },
-              label: {
-                show: false,
-                textBorderColor: "#fff",
-                textBorderWidth: 2,
-              },
-            },
-          },
-          grid: {
-            left: "60%",
-            top: "20%",
-            bottom: "20%",
-          },
-          xAxis: {},
-          yAxis: {
-            data: [
-              "heart",
-              "large-intestine",
-              "small-intestine",
-              "kidney",
-              "lung",
-            ],
-          },
-          series: [
-            {
-              type: "bar",
+        if (svgText) {
+          echarts.registerMap("organ_diagram", { svg: svgText });
+          option = {
+            tooltip: {},
+            geo: {
+              left: 10,
+              right: "50%",
+              map: "organ_diagram",
+              selectedMode: "multiple",
               emphasis: {
                 focus: "self",
+                itemStyle: {
+                  color: null,
+                },
+                label: {
+                  position: "bottom",
+                  distance: 0,
+                  textBorderColor: "#fff",
+                  textBorderWidth: 2,
+                },
               },
+              blur: {},
+              select: {
+                itemStyle: {
+                  color: "#b50205",
+                },
+                label: {
+                  show: false,
+                  textBorderColor: "#fff",
+                  textBorderWidth: 2,
+                },
+              },
+            },
+            grid: {
+              left: "60%",
+              top: "20%",
+              bottom: "20%",
+            },
+            xAxis: {},
+            yAxis: {
               data: [
-                OrganChartData.heartCount,
-                OrganChartData.largeIntestineCount,
-                OrganChartData.smallIntestineCount,
-                OrganChartData.kidneyCount,
-                OrganChartData.lungCount,
+                "heart",
+                "large-intestine",
+                "small-intestine",
+                "kidney",
+                "lung",
               ],
             },
-          ],
-        };
-        chartInstance.setOption(option);
-        chartInstance.on("mouseover", { seriesIndex: 0 }, function (event) {
-          chartInstance.dispatchAction({
-            type: "highlight",
-            geoIndex: 0,
-            name: event.name,
+            series: [
+              {
+                type: "bar",
+                emphasis: {
+                  focus: "self",
+                },
+                data: [
+                  OrganChartData.heartCount,
+                  OrganChartData.largeIntestineCount,
+                  OrganChartData.smallIntestineCount,
+                  OrganChartData.kidneyCount,
+                  OrganChartData.lungCount,
+                ],
+              },
+            ],
+          };
+          chartInstance.setOption(option);
+          chartInstance.on("mouseover", { seriesIndex: 0 }, function (event) {
+            chartInstance.dispatchAction({
+              type: "highlight",
+              geoIndex: 0,
+              name: event.name,
+            });
           });
-        });
-        chartInstance.on("mouseout", { seriesIndex: 0 }, function (event) {
-          chartInstance.dispatchAction({
-            type: "downplay",
-            geoIndex: 0,
-            name: event.name,
+          chartInstance.on("mouseout", { seriesIndex: 0 }, function (event) {
+            chartInstance.dispatchAction({
+              type: "downplay",
+              geoIndex: 0,
+              name: event.name,
+            });
           });
-        });
+        }
+      } catch (error) {
+        console.error("Error loading SVG:", error);
       }
 
-      window.addEventListener("resize", chartInstance.resize);
+      const handleResize = () => {
+        chartInstance.resize();
+      };
+
+      const debouncedResize = debounce(handleResize, 100);
+
+      window.addEventListener("resize", debouncedResize);
 
       return () => {
-        window.removeEventListener("resize", chartInstance.resize);
+        window.removeEventListener("resize", debouncedResize);
         chartInstance.dispose();
       };
     };
 
     initializeChart();
-  }, []);
+  }, [OrganChartData]);
+
+  const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  };
 
   return (
     <div
@@ -122,6 +140,7 @@ const OrganDataChart = ({ OrganChartData }) => {
     />
   );
 };
+
 OrganDataChart.propTypes = {
   OrganChartData: PropTypes.shape({
     heartCount: PropTypes.number.isRequired,

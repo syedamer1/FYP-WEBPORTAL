@@ -2,7 +2,9 @@ import { useEffect, useRef } from "react";
 import * as echarts from "echarts";
 import rawData from "./data.json";
 
-const LineRaceChart = () => {
+// eslint-disable-next-line react/prop-types
+const LineRaceChart = ({ chartData }) => {
+  console.log(chartData);
   const chartRef = useRef(null);
 
   useEffect(() => {
