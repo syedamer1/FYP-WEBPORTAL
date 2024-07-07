@@ -32,7 +32,6 @@ import CustomCard from "@components/CustomCard";
 import Transitions from "@components/animation/Transitions";
 import ViewProfileDialog from "./ViewProfileDialog";
 import { useUser } from "@context/UserContext";
-import ToastNotification, { emitToast } from "@components/ToastNotification";
 
 const Profile = () => {
   const theme = useTheme();

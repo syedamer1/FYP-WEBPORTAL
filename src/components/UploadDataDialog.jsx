@@ -215,6 +215,8 @@ const UploadDataDialog = ({ open, onClose }) => {
         .then((response) => {
           emitToast(response.data, "success");
           handleClose();
+          //reload page
+          window.location.reload();
         })
         .catch(() => {
           emitToast("Uploading Patient failed!", "error");

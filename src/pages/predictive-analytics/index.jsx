@@ -23,10 +23,10 @@ const PredictiveAnalytics = () => {
           import.meta.env.VITE_REACT_APP_BASEURL + "/api/predictions"
         );
         setPredictionData(response.data);
-        // setIsLoading(false);
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching predictive data:", error);
-        // setIsLoading(false);
+        setIsLoading(false);
       }
     };
 
