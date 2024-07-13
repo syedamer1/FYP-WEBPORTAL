@@ -8,7 +8,6 @@ import {
   MRT_GlobalFilterTextField,
   MRT_ToggleFiltersButton,
 } from "material-react-table";
-import { formatDate } from "@utility";
 // eslint-disable-next-line react/prop-types
 const PredictiveTable = ({ data }) => {
   const columns = useMemo(
