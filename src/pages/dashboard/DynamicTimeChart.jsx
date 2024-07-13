@@ -16,7 +16,7 @@ const DynamicTimeChart = ({ chartData }) => {
       const lastDataPoint = dataRef.current[dataRef.current.length - 1];
       const newDate = new Date(lastDataPoint[0]);
       newDate.setDate(newDate.getDate() + 1); // Example: increment date by one day
-      const newValue = lastDataPoint[1] + Math.random() * 21 - 10; // Example: generate random value
+      const newValue = Math.round(lastDataPoint[1] + Math.random() * 21 - 10); // Generate random integer value
       return [newDate.toISOString(), newValue];
     }
 
@@ -46,25 +46,10 @@ const DynamicTimeChart = ({ chartData }) => {
         formatter: function (params) {
           params = params[0];
           var date = new Date(params.name);
-
-          var monthNames = [
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December",
-          ];
           return (
             date.getDate() +
             "-" +
-            monthNames[date.getMonth()] +
+            (date.getMonth() + 1) +
             "-" +
             date.getFullYear() +
             " | Patient : " +

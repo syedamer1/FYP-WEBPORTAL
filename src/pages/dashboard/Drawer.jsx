@@ -625,16 +625,18 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
                 label="Start Date"
                 value={startAdmissionDate}
                 onChange={(newStartAdmissionDate) =>
-                  setStartAdmissionDate(newStartAdmissionDate)
+                  setStartAdmissionDate(dayjs(newStartAdmissionDate).toDate())
                 }
-                maxDate={dayjs()}
+                maxDate={dayjs().toDate()}
               />
               <DatePicker
                 label="End Date"
                 value={endAdmissionDate}
-                onChange={(newEndDate) => setEndAdmissionDate(newEndDate)}
+                onChange={(newEndDate) =>
+                  setEndAdmissionDate(dayjs(newEndDate).toDate())
+                }
                 sx={{ mb: 2 }}
-                maxDate={dayjs()}
+                maxDate={dayjs().toDate()}
               />
             </Box>
           </DemoContainer>

@@ -83,7 +83,7 @@ const LineRaceChart = ({ chartData }) => {
         ...datasetWithFilters,
       ],
       title: {
-        text: "Hospital Patients Data",
+        text: "",
       },
       tooltip: {
         order: "valueDesc",
