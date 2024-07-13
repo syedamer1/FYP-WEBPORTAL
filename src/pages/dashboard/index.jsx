@@ -211,7 +211,7 @@ const Dashboard = () => {
         if (type == null || selectedDisease == null) {
           return;
         }
-
+        setIsLoading(true);
         const response = await axios.post(
           `${
             import.meta.env.VITE_REACT_APP_BASEURL
@@ -219,6 +219,7 @@ const Dashboard = () => {
           updatedFilters
         );
         setBarChartData(response.data);
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching bar chart data:", error);
       }
