@@ -355,6 +355,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (selectedDisease != null) {
+      setIsLoading(true);
       fetchDashboardData();
       if (user.usertype === userType.superAdmin) {
         fetchBarChartData("province");
