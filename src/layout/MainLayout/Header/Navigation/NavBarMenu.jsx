@@ -19,7 +19,7 @@ const Navigation = () => {
   };
 
   const getBackgroundColor = (path) => {
-    if (location.pathname === "/" && path === "/dashboard/") {
+    if (location.pathname === "/" && path === "/dashboard") {
       return theme.palette.primary.lighter;
     }
     return location.pathname === path
