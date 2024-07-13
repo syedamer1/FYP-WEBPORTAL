@@ -459,8 +459,13 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
           ? selectedSymptoms.map((symptom) => symptom.attrName)
           : [],
       admissionStartDate:
-        startAdmissionDate !== null ? startAdmissionDate : null,
-      admissionEndDate: endAdmissionDate !== null ? endAdmissionDate : null,
+        startAdmissionDate !== null
+          ? startAdmissionDate.format("YYYY-MM-DD")
+          : null,
+      admissionEndDate:
+        endAdmissionDate !== null
+          ? endAdmissionDate.format("YYYY-MM-DD")
+          : null,
       gender: selectedGender != null ? selectedGender.id : null,
       ageStart: ageRange != null ? ageRange[0] : 1,
       ageEnd: ageRange != null ? ageRange[1] : 100,
@@ -625,18 +630,16 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
                 label="Start Date"
                 value={startAdmissionDate}
                 onChange={(newStartAdmissionDate) =>
-                  setStartAdmissionDate(dayjs(newStartAdmissionDate).toDate())
+                  setStartAdmissionDate(newStartAdmissionDate)
                 }
-                maxDate={dayjs().toDate()}
+                maxDate={dayjs()}
               />
               <DatePicker
                 label="End Date"
                 value={endAdmissionDate}
-                onChange={(newEndDate) =>
-                  setEndAdmissionDate(dayjs(newEndDate).toDate())
-                }
+                onChange={(newEndDate) => setEndAdmissionDate(newEndDate)}
                 sx={{ mb: 2 }}
-                maxDate={dayjs().toDate()}
+                maxDate={dayjs()}
               />
             </Box>
           </DemoContainer>

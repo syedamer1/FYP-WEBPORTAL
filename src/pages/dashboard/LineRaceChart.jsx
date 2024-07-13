@@ -53,7 +53,6 @@ const LineRaceChart = ({ chartData }) => {
         endLabel: {
           show: true,
           formatter: function (params) {
-            console.log(params);
             return params.value.hospital + ": " + params.value.value;
           },
         },
