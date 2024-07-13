@@ -302,6 +302,7 @@ const Dashboard = () => {
     async (updatedFilters = initialFilters) => {
       try {
         if (selectedDisease != null && user != null) {
+          setIsLoading(true);
           const response = await axios.post(
             `${
               import.meta.env.VITE_REACT_APP_BASEURL
