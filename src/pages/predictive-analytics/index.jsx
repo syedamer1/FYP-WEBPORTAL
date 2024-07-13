@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Typography, Box, Grid } from "@mui/material";
+import { Typography, Box, Grid, Autocomplete, TextField } from "@mui/material";
 import HotelIcon from "@mui/icons-material/Hotel";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import ResourcesDataCard from "@components/ResourcesDataCard";
@@ -10,28 +10,78 @@ import PredictiveLineChart from "./PredictiveLineChart";
 import MasksIcon from "@mui/icons-material/Masks";
 import CenteredAlert from "@components/CenteredAlert";
 import OverLayLoader from "@components/OverlayLoader";
+import { useUser } from "@context/UserContext";
 
 const PredictiveAnalytics = () => {
   const [predictionData, setPredictionData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hospitalOptions, setHospitalOptions] = useState([]);
+  const [selectedHospital, setSelectedHospital] = useState(null);
+  const { user } = useUser();
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchHospitalOptions = async () => {
+      try {
+        const response = await axios.get(
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            `/hospital/getHospitalOptionsBaseUser?userId=${user.id}`
+        );
+        setHospitalOptions(response.data);
+      } catch (error) {
+        console.error("Error fetching hospital options:", error);
+      }
+    };
+
+    const fetchPredictiveData = async (hospital) => {
       try {
         setIsLoading(true);
+        const folder_name = hospital.name + "_" + hospital.id;
         const response = await axios.get(
-          import.meta.env.VITE_REACT_APP_BASEURL + "/api/predictions"
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            `/api/predictions?folder=${folder_name}`
         );
         setPredictionData(response.data);
-        setIsLoading(false);
       } catch (error) {
-        console.error("Error fetching predictive data:", error);
+        console.error(
+          "Error fetching predictive data for selected hospital:",
+          error
+        );
+      } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    if (user.hospital == null) {
+      fetchHospitalOptions();
+    } else {
+      setSelectedHospital(user.hospital);
+      fetchPredictiveData(user.hospital);
+    }
+  }, [user]);
+
+  const handleHospitalChange = async (event, newValue) => {
+    setSelectedHospital(newValue);
+
+    if (newValue) {
+      try {
+        setIsLoading(true);
+        //remove space from
+        const folder_name = newValue.name + "_" + newValue.id;
+        const response = await axios.get(
+          import.meta.env.VITE_REACT_APP_BASEURL +
+            `/api/predictions?folder=${folder_name}`
+        );
+        setPredictionData(response.data);
+      } catch (error) {
+        console.error(
+          "Error fetching predictive data for selected hospital:",
+          error
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
 
   const totalPatients = predictionData.reduce(
     (acc, item) => acc + item.PredictedPatients,
@@ -82,26 +132,60 @@ const PredictiveAnalytics = () => {
               <Grid item xs={12} sm={6}>
                 <Typography variant="h5">Predictive Analytics</Typography>
               </Grid>
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                sx={{ display: "flex", justifyContent: "flex-end" }}
+              >
+                <Autocomplete
+                  sx={{
+                    width: { xs: "100%", sm: 222 },
+                    height: 40,
+                    "& .MuiInputBase-root": {
+                      height: "100%",
+                    },
+                    mb: 1.5,
+                    position: "relative",
+                  }}
+                  id="hospital-autocomplete"
+                  options={hospitalOptions}
+                  getOptionLabel={(option) => option.name}
+                  value={selectedHospital}
+                  onChange={handleHospitalChange}
+                  isOptionEqualToValue={(option, value) =>
+                    option.id === value.id
+                  }
+                  renderInput={(params) => (
+                    <TextField {...params} label="Select Hospital" />
+                  )}
+                />
+              </Grid>
             </Grid>
           </Grid>
-          {isLoading ? (
+          {!selectedHospital ? (
+            <CenteredAlert
+              title={"Select Hospital to View Predictions"}
+              color={"red"}
+            />
+          ) : isLoading ? (
             <CenteredAlert
               title={"Predictive data is loading"}
               color={"#ffcc00"}
             />
+          ) : predictionData.length === 0 ? (
+            <CenteredAlert title={"No patient data found"} color={"#ff0000"} />
           ) : (
             <>
-              <Grid container spacing={2.75}>
-                {resourceCards.map((card, index) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
-                    <ResourcesDataCard
-                      title={card.title}
-                      count={card.count}
-                      IconComponent={card.IconComponent}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
+              {resourceCards.map((card, index) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+                  <ResourcesDataCard
+                    title={card.title}
+                    count={card.count}
+                    IconComponent={card.IconComponent}
+                  />
+                </Grid>
+              ))}
               <Grid item xs={12} md={5} lg={12}>
                 <Grid
                   container
