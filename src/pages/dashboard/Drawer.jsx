@@ -29,7 +29,7 @@ import { useUser } from "@context/UserContext";
 import DrawerAutoComplete from "@components/DrawerAutoComplete";
 import dayjs from "dayjs";
 import { userType } from "@utility";
-const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
+const FilterDrawer = ({ open, onClose, handleFilterValue, setLoading }) => {
   const theme = useTheme();
 
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
@@ -429,6 +429,7 @@ const FilterDrawer = ({ open, onClose, handleFilterValue }) => {
   };
 
   const handleFilterSubmit = () => {
+    setLoading(true);
     let hospitalIds =
       selectedHospitals.length !== 0
         ? selectedHospitals.map((hospital) => hospital.id)
@@ -778,6 +779,7 @@ FilterDrawer.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   handleFilterValue: PropTypes.any.isRequired,
+  setLoading: PropTypes.func.isRequired,
 };
 
 export default FilterDrawer;

@@ -210,6 +210,7 @@ const Dashboard = () => {
   const [drawerOpen, setFilterDrawerOpen] = useState(false);
   const [selectedDisease, setSelectedDisease] = useState(null);
   const [disease, setDisease] = useState([]);
+  let filterloading = false;
   const initialFilters = {
     provinceIds: [],
     divisionIds: [],
@@ -282,76 +283,69 @@ const Dashboard = () => {
   const checkLoadingState = () => {
     if (!barChartLoading && !dashboardLoading) {
       setIsLoading(false);
+      filterloading = false;
     }
   };
 
-  const fetchBarChartData = debounce(
-    async (type, updatedFilters = initialFilters) => {
-      try {
-        if (type == null || selectedDisease == null) {
-          return;
-        }
-        setBarChartLoading(true);
+  const fetchBarChartData = debounce(async (type, updatedFilters) => {
+    try {
+      if (type == null || selectedDisease == null) {
+        return;
+      }
+      setBarChartLoading(true);
+      const response = await axios.post(
+        `${
+          import.meta.env.VITE_REACT_APP_BASEURL
+        }/dashboard/getBarChartData/${type}/${user.id}/${selectedDisease.id}`,
+        updatedFilters
+      );
+      setBarChartData(response.data);
+      setBarChartLoading(false);
+      checkLoadingState();
+    } catch (error) {
+      console.error("Error fetching bar chart data:", error);
+      setBarChartLoading(false);
+      checkLoadingState();
+    }
+  }, 300);
+
+  const fetchDashboardData = debounce(async (updatedFilters) => {
+    try {
+      if (selectedDisease != null && user != null) {
+        setDashboardLoading(true);
         const response = await axios.post(
           `${
             import.meta.env.VITE_REACT_APP_BASEURL
-          }/dashboard/getBarChartData/${type}/${user.id}/${selectedDisease.id}`,
+          }/dashboard/getDashboardData/${user.id}/${selectedDisease.id}`,
           updatedFilters
         );
-        setBarChartData(response.data);
-        setBarChartLoading(false);
-        checkLoadingState();
-      } catch (error) {
-        console.error("Error fetching bar chart data:", error);
-        setBarChartLoading(false);
-        checkLoadingState();
-      }
-    },
-    300
-  );
+        setDataPresent(response.data.dataPresent);
+        setStatisticCardData(response.data.statisticResponse);
+        setDynamicTimeChartData(response.data.dynamicTimeChartData.dataPoints);
+        setBarRaceSymptoms(response.data.barRaceSymptoms);
+        setOrganChartData(response.data.organChartData);
+        const newHospitalPatientCount = Array.isArray(
+          response.data.hospitalPatientCount.patientCounts
+        )
+          ? response.data.hospitalPatientCount.patientCounts.map((item) =>
+              Array.isArray(item) && item.length === 3 ? item : null
+            )
+          : [];
 
-  const fetchDashboardData = debounce(
-    async (updatedFilters = initialFilters) => {
-      try {
-        if (selectedDisease != null && user != null) {
-          setDashboardLoading(true);
-          const response = await axios.post(
-            `${
-              import.meta.env.VITE_REACT_APP_BASEURL
-            }/dashboard/getDashboardData/${user.id}/${selectedDisease.id}`,
-            updatedFilters
-          );
-          setDataPresent(response.data.dataPresent);
-          setStatisticCardData(response.data.statisticResponse);
-          setDynamicTimeChartData(
-            response.data.dynamicTimeChartData.dataPoints
-          );
-          setBarRaceSymptoms(response.data.barRaceSymptoms);
-          setOrganChartData(response.data.organChartData);
-          const newHospitalPatientCount = Array.isArray(
-            response.data.hospitalPatientCount.patientCounts
-          )
-            ? response.data.hospitalPatientCount.patientCounts.map((item) =>
-                Array.isArray(item) && item.length === 3 ? item : null
-              )
-            : [];
+        setHospitalPatientCount((prevState) => [
+          ...prevState,
+          ...newHospitalPatientCount,
+        ]);
 
-          setHospitalPatientCount((prevState) => [
-            ...prevState,
-            ...newHospitalPatientCount,
-          ]);
-
-          setDashboardLoading(false);
-          checkLoadingState();
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
         setDashboardLoading(false);
         checkLoadingState();
       }
-    },
-    300
-  );
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      setDashboardLoading(false);
+      checkLoadingState();
+    }
+  }, 300);
 
   useEffect(() => {
     if (selectedDisease != null) {
@@ -428,54 +422,83 @@ const Dashboard = () => {
   };
 
   const handleFilterValue = (filtersValue) => {
+    filterloading = true;
     let updatedFilters;
     setFilters((prevFilters) => {
-      updatedFilters = { ...prevFilters, ...filtersValue };
+      return { ...prevFilters, ...filtersValue };
     });
+    updatedFilters = { ...filters, ...filtersValue };
     setFilters(filtersValue);
     if (userType.superAdmin == user.usertype) {
       switch (value) {
         case 0:
-          fetchBarChartData("province", updatedFilters);
+          {
+            fetchBarChartData("province", updatedFilters);
+            fetchDashboardData(updatedFilters);
+          }
           break;
         case 1:
-          fetchBarChartData("division", updatedFilters);
+          {
+            fetchBarChartData("division", updatedFilters);
+            fetchDashboardData(updatedFilters);
+          }
           break;
         case 2:
-          fetchBarChartData("district"), updatedFilters;
+          {
+            fetchBarChartData("district"), updatedFilters;
+            fetchDashboardData(updatedFilters);
+          }
           break;
         case 3:
-          fetchBarChartData("tehsil", updatedFilters);
+          {
+            fetchBarChartData("tehsil", updatedFilters);
+            fetchDashboardData(updatedFilters);
+          }
           break;
         case 4:
-          fetchBarChartData("hospital", updatedFilters);
+          {
+            fetchBarChartData("hospital", updatedFilters);
+            fetchDashboardData(updatedFilters);
+          }
           break;
         default:
           break;
       }
-      fetchDashboardData(updatedFilters);
       return;
     }
     switch (value) {
       case 0:
-        fetchBarChartData("division", updatedFilters);
+        {
+          fetchBarChartData("division", updatedFilters);
+          fetchDashboardData(updatedFilters);
+        }
         break;
       case 1:
-        fetchBarChartData("district", updatedFilters);
+        {
+          fetchBarChartData("district", updatedFilters);
+          fetchDashboardData(updatedFilters);
+        }
         break;
       case 2:
-        fetchBarChartData("tehsil", updatedFilters);
+        {
+          fetchBarChartData("tehsil", updatedFilters);
+          fetchDashboardData(updatedFilters);
+        }
         break;
       case 3:
-        fetchBarChartData("hospital", updatedFilters);
+        {
+          fetchBarChartData("hospital", updatedFilters);
+          fetchDashboardData(updatedFilters);
+        }
         break;
       case 4:
-        fetchBarChartData("hospital", updatedFilters);
+        {
+          fetchDashboardData(updatedFilters);
+        }
         break;
       default:
         break;
     }
-    fetchDashboardData(updatedFilters);
   };
   const tabIndices = getTabIndices(user.usertype);
 
@@ -501,6 +524,7 @@ const Dashboard = () => {
   return (
     <>
       <OverLayLoader loading={isLoading} />
+      <OverLayLoader loading={filterloading} />
 
       <ToastNotification />
       {selectedDisease != null && (
@@ -513,6 +537,7 @@ const Dashboard = () => {
             open={drawerOpen}
             onClose={toggleFilterDrawer}
             handleFilterValue={handleFilterValue}
+            setLoading={setIsLoading}
           />
         </>
       )}

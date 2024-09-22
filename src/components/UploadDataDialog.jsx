@@ -23,7 +23,7 @@ import { userType } from "@utility";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import ToastNotification, { emitToast } from "@components/ToastNotification";
-
+import OverlayLoader from "@components/OverlayLoader";
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -36,7 +36,7 @@ const UploadDataDialog = ({ open, onClose }) => {
   const [hospitalOptions, setHospitalOptions] = useState([]);
   const [diseaseOptions, setDiseaseOptions] = useState([]);
   const { user } = useUser();
-
+  const [isLoading, setisLoading] = useState(false);
   const fetchProvinces = debounce(async () => {
     try {
       const response = await axios.get(
@@ -199,6 +199,7 @@ const UploadDataDialog = ({ open, onClose }) => {
       file: Yup.mixed().required("File is required"),
     }),
     onSubmit: (values) => {
+      setisLoading(true);
       const formData = new FormData();
       formData.append("file", values.file);
       formData.append(
@@ -221,6 +222,7 @@ const UploadDataDialog = ({ open, onClose }) => {
         .catch(() => {
           emitToast("Uploading Patient failed!", "error");
         });
+      setisLoading(false);
     },
   });
 
@@ -332,6 +334,7 @@ const UploadDataDialog = ({ open, onClose }) => {
 
   return (
     <>
+      <OverlayLoader open={isLoading} />
       <ToastNotification />
       <Dialog
         open={open}
