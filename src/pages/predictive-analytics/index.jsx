@@ -103,8 +103,10 @@ const PredictiveAnalytics = () => {
       setSelectedHospital(user.hospital);
       //  fetchPredictiveData(user.hospital);
       setIsLoading(true);
-      setPredictionData(generateDummyData());
-      setIsLoading(false);
+      generateDummyData().then((data) => {
+        setPredictionData(data);
+        setIsLoading(false);
+      });
     }
   }, [user]);
 
@@ -130,8 +132,10 @@ const PredictiveAnalytics = () => {
       //   setIsLoading(false);
       // }
       setIsLoading(true);
-      setPredictionData(generateDummyData());
-      setIsLoading(false);
+      generateDummyData().then((data) => {
+        setPredictionData(data);
+        setIsLoading(false);
+      });
     }
   };
 
