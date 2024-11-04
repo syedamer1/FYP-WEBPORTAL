@@ -58,7 +58,11 @@ const PredictiveAnalytics = () => {
       });
     }
 
-    return dummyData;
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(dummyData);
+      }, 4000);
+    });
   };
 
   useEffect(() => {
